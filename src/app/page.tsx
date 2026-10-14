@@ -68,12 +68,18 @@ export default function Home() {
 
 /* ───────────── 입장 ───────────── */
 
+const NICK_EXAMPLES = [
+  "세수하는 토끼", "노래하는 다람쥐", "낮잠 자는 판다", "춤추는 고슴도치",
+  "밥 먹는 펭귄", "산책하는 거북이", "기지개 켜는 고양이", "웃는 수달",
+];
+
 function Join({ onDone }: { onDone: () => void }) {
   const [mode, setMode] = useState<"new" | "login">("new");
   const [nickname, setNickname] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [example] = useState(() => NICK_EXAMPLES[Math.floor(Math.random() * NICK_EXAMPLES.length)]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -110,7 +116,7 @@ function Join({ onDone }: { onDone: () => void }) {
       <form className="card stack" onSubmit={submit}>
         <label className="stack" style={{ gap: 6 }}>
           <b>닉네임</b>
-          <input className="input" value={nickname} maxLength={12} placeholder="예) 소프라노 지은" onChange={(e) => setNickname(e.target.value)} />
+          <input className="input" value={nickname} maxLength={12} placeholder={`예) ${example}`} onChange={(e) => setNickname(e.target.value)} />
         </label>
         <label className="stack" style={{ gap: 6 }}>
           <b>PIN 4자리</b>
@@ -168,7 +174,11 @@ function Mine({ me, reload, say, goBasket }: { me: Me; reload: () => Promise<voi
           <div className="big-fruit"><Fruit id={fruit.id} golden={user.golden} size={64} /></div>
           <div style={{ flex: 1 }}>
             <div className="spread">
-              <b>{phase === "weekend" || phase === "after" ? "이번 주 열매" : "지금 받을 열매"}: {user.golden ? "황금 " : ""}{fruit.name}</b>
+              <b>
+                {phase === "before" && "감사를 모으면 열매가 자라요"}
+                {phase === "weekday" && `지금은 ${josa(fruit.name, "을", "를")} 받을 수 있어요`}
+                {(phase === "weekend" || phase === "after") && `이번 주 내 열매는 ${user.golden ? "황금 " : ""}${fruit.name}!`}
+              </b>
               <span className="muted small">{user.count}/{MAX_COUNT}</span>
             </div>
             <div className="bar" style={{ margin: "8px 0 4px" }}><i style={{ width: `${(user.count / MAX_COUNT) * 100}%` }} /></div>
