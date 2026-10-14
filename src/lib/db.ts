@@ -51,7 +51,7 @@ async function connect(): Promise<QueryFn> {
   }
   // 로컬 개발용 내장 Postgres
   const { PGlite } = await import("@electric-sql/pglite");
-  const pg = new PGlite("./.pglite");
+  const pg = new PGlite(process.env.PGLITE_DIR || "./.pglite");
   return async (text, params = []) => (await pg.query(text, params as any[])).rows as any;
 }
 
