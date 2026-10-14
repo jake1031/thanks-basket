@@ -216,7 +216,7 @@ function Mine({ me, reload, say, goBasket }: { me: Me; reload: () => Promise<voi
         <>
           <h3 style={{ marginTop: 8 }}>✨ 주말 보너스 감사</h3>
           <p className="muted small" style={{ margin: "-6px 0 0" }}>
-            개수에는 들어가지 않지만, 한 개라도 쓰면 이번 주 열매가 황금색이 돼요.
+            개수에는 들어가지 않지만, 한 개라도 쓰면 이번 주 열매에 황금 반짝이가 달려요 ✨
           </p>
           {WEEKEND.map((d) => (
             <Day key={d} date={d} today={today} entries={byDate(d)} bonus reload={reload} say={say} />
@@ -549,7 +549,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
           <div>
             <b>내 {user.golden ? "황금 " : ""}{josa(myFruit.name, "을", "를")} 넣었어요</b>
             <p className="muted small" style={{ margin: "2px 0 0" }}>
-              {user.golden ? "주말 감사로 황금색이 되었어요 ✨" : "주말 감사를 쓰면 바구니 속 열매도 황금색으로 바뀌어요!"}
+              {user.golden ? "주말 감사로 황금 반짝이가 달렸어요 ✨" : "주말 감사를 쓰면 바구니 속 열매에도 황금 반짝이가 달려요!"}
             </p>
           </div>
         </div>
