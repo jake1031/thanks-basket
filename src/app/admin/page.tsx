@@ -61,10 +61,10 @@ export default function Admin() {
 
   function exportCsv() {
     if (!data) return;
-    const head = ["닉네임", ...WEEKDAYS.map((d) => dayLabel(d).md), "평일합계", "토요일", "열매", "황금", "바구니"];
+    const head = ["닉네임", ...WEEKDAYS.map((d) => dayLabel(d).md), "평일합계", "토요일", "열매", "황금"];
     const rows = data.users.map((u) => [
       u.nickname, ...WEEKDAYS.map((d) => u.byDay[d] ?? 0), u.count, u.bonus,
-      fruitFor(u.count).name, u.golden ? "O" : "", u.placed ? "O" : "",
+      fruitFor(u.count).name, u.golden ? "O" : "",
     ]);
     const csv = "﻿" + [head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
     const a = document.createElement("a");
@@ -105,7 +105,6 @@ export default function Admin() {
       <div className="card admin-summary">
         <div className="stat"><span>👥 참여자</span><b>{data.users.length}<small>명</small></b></div>
         <div className="stat"><span>✍️ 총 감사</span><b>{data.entries.length}<small>개</small></b></div>
-        <div className="stat"><span>🧺 바구니 넣음</span><b>{data.users.filter((u) => u.placed).length}<small>명</small></b></div>
         <div className="stat"><span>✨ 황금 열매</span><b>{data.users.filter((u) => u.golden).length}<small>명</small></b></div>
         <div className="fruit-tally">
           {FRUITS.map((f) => (
@@ -132,7 +131,6 @@ export default function Admin() {
                 <span className="admin-mini">
                   {[...WEEKDAYS, ...WEEKEND].map((d) => <i key={d} className={`n${Math.min(u.byDay[d] ?? 0, 3)}`} />)}
                 </span>
-                <span className={u.placed ? "placed on" : "placed"}>{u.placed ? "🧺" : "·"}</span>
               </button>
               {openId === u.id && (
                 <div className="admin-row-detail">
@@ -142,8 +140,7 @@ export default function Admin() {
                       return <span key={d} className={n ? "on" : ""}><i>{dayLabel(d).dow}</i>{n}</span>;
                     })}
                   </div>
-                  <div className="row" style={{ justifyContent: "space-between", marginTop: 6 }}>
-                    <span className="muted small">{u.placed ? "바구니에 넣었어요" : "아직 바구니에 안 넣었어요"}</span>
+                  <div className="row" style={{ justifyContent: "flex-end", marginTop: 6 }}>
                     <span>
                       <button className="link" onClick={() => resetPin(u)}>PIN 초기화</button>
                       <button className="link danger" onClick={() => act({ action: "delete-user", userId: u.id }, `${u.nickname}님과 모든 감사를 삭제할까요? 되돌릴 수 없어요.`)}>삭제</button>
