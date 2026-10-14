@@ -91,6 +91,7 @@ const NICK_EXAMPLES = [
 function Join({ onDone }: { onDone: () => void }) {
   const [mode, setMode] = useState<"new" | "login">("new");
   const [nickname, setNickname] = useState("");
+  const [realName, setRealName] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -111,7 +112,7 @@ function Join({ onDone }: { onDone: () => void }) {
     e.preventDefault();
     setBusy(true); setError("");
     try {
-      const res = await api<{ token: string }>("/api/auth", { method: "POST", body: { mode, nickname, pin } });
+      const res = await api<{ token: string }>("/api/auth", { method: "POST", body: { mode, nickname, pin, realName } });
       token.set(res.token);
       onDone();
     } catch (err) {
@@ -140,10 +141,17 @@ function Join({ onDone }: { onDone: () => void }) {
 
       <form className="card stack" onSubmit={submit}>
         {mode === "new" ? (
-          <label className="stack" style={{ gap: 6 }}>
-            <b>닉네임</b>
-            <input className="input" value={nickname} maxLength={12} placeholder={`예) ${example}`} onChange={(e) => setNickname(e.target.value)} />
-          </label>
+          <>
+            <label className="stack" style={{ gap: 6 }}>
+              <b>이름</b>
+              <input className="input" value={realName} maxLength={10} placeholder="예) 홍길동" onChange={(e) => setRealName(e.target.value)} />
+              <span className="muted small">이름은 관리자만 볼 수 있어요. 다른 팀원에게는 닉네임만 보여요.</span>
+            </label>
+            <label className="stack" style={{ gap: 6 }}>
+              <b>닉네임</b>
+              <input className="input" value={nickname} maxLength={12} placeholder={`예) ${example}`} onChange={(e) => setNickname(e.target.value)} />
+            </label>
+          </>
         ) : (
           <div className="stack" style={{ gap: 6 }}>
             <b>내 닉네임을 골라주세요</b>
@@ -175,7 +183,7 @@ function Join({ onDone }: { onDone: () => void }) {
           </span>
         </label>}
         {error && <p className="error" style={{ margin: 0 }}>{error}</p>}
-        <button className="btn block" disabled={busy || !nickname.trim() || pin.length !== 4}>
+        <button className="btn block" disabled={busy || !nickname.trim() || pin.length !== 4 || (mode === "new" && !realName.trim())}>
           {mode === "new" ? "시작하기" : "이어하기"}
         </button>
       </form>

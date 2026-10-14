@@ -5,13 +5,16 @@ import { Fruit } from "@/components/Fruit";
 import { FRUITS, WEEKDAYS, WEEKEND, dayLabel, fruitFor, type FruitId } from "@/lib/rules";
 
 type U = {
-  id: number; nickname: string; count: number; bonus: number; fruit: FruitId;
+  id: number; nickname: string; realName: string; count: number; bonus: number; fruit: FruitId;
   golden: boolean; placed: boolean; byDay: Record<string, number>;
 };
 type E = { id: number; date: string; content: string; nickname: string };
 type Data = { today: string; users: U[]; entries: E[] };
 
 const PW_KEY = "thanks-admin";
+
+/** 관리자 화면에서만: 닉네임 (이름) */
+const label = (u: { nickname: string; realName: string }) => (u.realName ? `${u.nickname} (${u.realName})` : u.nickname);
 
 export default function Admin() {
   const [pw, setPw] = useState("");
@@ -53,7 +56,7 @@ export default function Admin() {
   }
 
   function resetPin(u: U) {
-    const pin = prompt(`${u.nickname}님의 새 PIN 4자리를 입력하세요`);
+    const pin = prompt(`${label(u)}님의 새 PIN 4자리를 입력하세요`);
     if (!pin) return;
     if (!/^\d{4}$/.test(pin)) { alert("숫자 4자리로 입력해주세요."); return; }
     act({ action: "reset-pin", userId: u.id, pin }, `${u.nickname}님의 PIN을 ${pin}(으)로 바꿀까요?`);
@@ -61,9 +64,9 @@ export default function Admin() {
 
   function exportCsv() {
     if (!data) return;
-    const head = ["닉네임", ...WEEKDAYS.map((d) => dayLabel(d).md), "평일합계", "토요일", "열매", "황금"];
+    const head = ["닉네임", "이름", ...WEEKDAYS.map((d) => dayLabel(d).md), "평일합계", "토요일", "열매", "황금"];
     const rows = data.users.map((u) => [
-      u.nickname, ...WEEKDAYS.map((d) => u.byDay[d] ?? 0), u.count, u.bonus,
+      u.nickname, u.realName, ...WEEKDAYS.map((d) => u.byDay[d] ?? 0), u.count, u.bonus,
       fruitFor(u.count).name, u.golden ? "O" : "",
     ]);
     const csv = "﻿" + [head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
@@ -125,7 +128,7 @@ export default function Admin() {
               <button className="admin-row-main" onClick={() => setOpenId(openId === u.id ? null : u.id)}>
                 <Fruit id={u.fruit} golden={u.golden} size={28} />
                 <span className="admin-name">
-                  <b>{u.nickname}</b>
+                  <b>{label(u)}</b>
                   <small>{u.golden ? "황금 " : ""}{fruitFor(u.count).name} · {u.count}개</small>
                 </span>
                 <span className="admin-mini">
@@ -175,7 +178,7 @@ function PersonEntries({ users, entries, onDelete }: { users: U[]; entries: E[];
         <select className="input" value={who} onChange={(e) => setWho(e.target.value)}>
           {users.map((u) => (
             <option key={u.id} value={u.nickname}>
-              {u.nickname} ({entries.filter((e) => e.nickname === u.nickname).length}개)
+              {label(u)} · {entries.filter((e) => e.nickname === u.nickname).length}개
             </option>
           ))}
         </select>

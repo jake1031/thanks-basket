@@ -8,7 +8,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { mode, nickname: rawName, pin } = await req.json().catch(() => ({}));
+  const { mode, nickname: rawName, pin, realName: rawReal } = await req.json().catch(() => ({}));
   const nickname = String(rawName ?? "").trim().replace(/\s+/g, " ");
   if (nickname.length < 1 || nickname.length > 12) return fail("닉네임은 1~12자로 정해주세요.");
   if (!/^\d{4}$/.test(String(pin ?? ""))) return fail("PIN은 숫자 4자리예요.");
@@ -19,10 +19,12 @@ export async function POST(req: Request) {
   );
 
   if (mode === "new") {
+    const realName = String(rawReal ?? "").trim().replace(/\s+/g, " ");
+    if (realName.length < 1 || realName.length > 10) return fail("이름을 적어주세요. (관리자만 볼 수 있어요)");
     if (user) return fail("이미 있는 닉네임이에요. 다른 기기에서 쓰던 거라면 '이어하기'를 눌러주세요.", 409);
     const [created] = await db<{ id: number }>(
-      "insert into users (nickname, pin_hash) values ($1, $2) returning id",
-      [nickname, hashPin(pin)],
+      "insert into users (nickname, pin_hash, real_name) values ($1, $2, $3) returning id",
+      [nickname, hashPin(pin), realName],
     );
     return json({ token: await createSession(created.id), nickname });
   }

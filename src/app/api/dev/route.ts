@@ -14,6 +14,12 @@ const DEMO = [
   ["노래 연습 중인 참새", 13, true], ["반짝이는 반딧불", 11, false], ["수다쟁이 앵무새", 0, false],
 ] as const;
 
+const DEMO_NAMES = [
+  "김지은", "이서준", "박하은", "최민준", "정수아", "강도윤", "조예린", "윤시우",
+  "장서연", "임주원", "한지호", "오채원", "서하준", "신유나", "권지안", "황민서",
+  "안예준", "송다은", "류건우", "홍서윤", "전태민", "고은비", "문승현", "양소율",
+];
+
 const SAMPLES = [
   "아침에 따뜻한 커피 한 잔을 마실 수 있어서 감사해요",
   "연습 때 화음이 딱 맞아서 너무 행복했어요",
@@ -110,11 +116,11 @@ export async function POST(req: Request) {
   const today = todayKST(req);
   const pin = hashPin("0000");
   const ids: number[] = [];
-  for (const [nickname] of DEMO) {
+  for (const [i, [nickname]] of DEMO.entries()) {
     const [{ id }] = await db<{ id: number }>(
-      `insert into users (nickname, pin_hash) values ($1, $2)
-       on conflict (nickname) do update set nickname = excluded.nickname returning id`,
-      [nickname, pin],
+      `insert into users (nickname, pin_hash, real_name) values ($1, $2, $3)
+       on conflict (nickname) do update set real_name = excluded.real_name returning id`,
+      [nickname, pin, DEMO_NAMES[i % DEMO_NAMES.length]],
     );
     ids.push(id);
   }

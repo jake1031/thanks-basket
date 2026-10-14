@@ -8,7 +8,10 @@ export async function GET(req: Request) {
     `select e.id, e.entry_date::text as date, e.content, u.nickname
        from entries e join users u on u.id = e.user_id order by e.id desc`,
   );
-  return json({ today: todayKST(req), users: await userStats(), entries });
+  const names = await db<{ id: number; real_name: string }>("select id, real_name from users");
+  const nameOf = new Map(names.map((n) => [n.id, n.real_name]));
+  const users = (await userStats()).map((u) => ({ ...u, realName: nameOf.get(u.id) ?? "" }));
+  return json({ today: todayKST(req), users, entries });
 }
 
 export async function POST(req: Request) {
