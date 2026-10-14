@@ -210,7 +210,7 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
     <div className="stack" style={{ gap: 16 }}>
       <div className="card" style={{ padding: "14px 18px 16px" }}>
         <div className="spread" style={{ marginBottom: 12 }}>
-          <b className="hello">🙂 {user.nickname}님</b>
+          <b className="hello">🎤 {user.nickname}님</b>
           <button className="link" onClick={logout}>로그아웃</button>
         </div>
         <div className="progress-card">
