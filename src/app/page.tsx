@@ -446,8 +446,9 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
     }
   }
   slots.sort((x, y) => x.left - y.left || y.bottom - x.bottom);
-  // 밤은 다른 과일보다 조금 작게
-  return items.map((it, i) => ({ ...it, ...slots[i], size: slots[i].size * (it.fruit === "chestnut" ? 0.82 : 1) }));
+  // 밤이 가장 작고, 귤은 밤과 감 사이 크기
+  const SCALE: Partial<Record<FruitId, number>> = { chestnut: 0.82, tangerine: 0.9 };
+  return items.map((it, i) => ({ ...it, ...slots[i], size: slots[i].size * (SCALE[it.fruit] ?? 1) }));
 }
 
 function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say: (m: string) => void }) {
