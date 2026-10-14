@@ -479,16 +479,18 @@ function Board({ today, say, goWrite }: { today: string; say: (m: string) => voi
 }
 
 /**
- * 게이지 위치(%). 열매 단계(밤 0·귤 4·감 7·배 10·사과 13개)가 막대 위에 같은 간격
- * (0·25·50·75·100%)으로 놓이고, 최고 단계인 사과(13개)부터는 막대가 꽉 찬다.
+ * 게이지 위치(%). 열매 단계(0·4·7·10·13개)가 막대 위에 같은 간격으로 놓이도록
+ * 단계 사이를 구간별로 늘려서 계산한다. 15개면 100%.
  */
 function gaugePos(count: number) {
-  const mins = FRUITS.map((f) => f.min);
-  const last = mins.length - 1;
-  const step = 100 / last;
-  if (count >= mins[last]) return 100;
-  for (let i = last - 1; i >= 0; i--) {
-    if (count >= mins[i]) return i * step + ((count - mins[i]) / (mins[i + 1] - mins[i])) * step;
+  const mins = FRUITS.map((f) => f.min); // [0, 4, 7, 10, 13]
+  const step = 88 / (mins.length - 1); // 단계 사이 간격 22%
+  for (let i = mins.length - 1; i >= 0; i--) {
+    if (count >= mins[i]) {
+      const nextMin = mins[i + 1] ?? MAX_COUNT;
+      const span = i === mins.length - 1 ? 100 - 88 : step;
+      return Math.min(100, i * step + ((count - mins[i]) / (nextMin - mins[i])) * span);
+    }
   }
   return 0;
 }
