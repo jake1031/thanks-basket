@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { WEEKDAYS, WEEKEND, basketOpen } from "@/lib/rules";
-import { DEV, fail, hashPin, json, todayKST } from "@/lib/server";
+import { DEV, currentUser, fail, hashPin, json, todayKST } from "@/lib/server";
 
 // 개발 모드 전용: 날짜 미리보기에 맞춰 데모 팀원과 감사를 채운다.
 const DEMO = [
@@ -35,6 +35,12 @@ const SAMPLES = [
 export async function POST(req: Request) {
   if (!DEV) return fail("Not found", 404);
   const { action } = await req.json().catch(() => ({}));
+  if (action === "unplace") {
+    // 내 열매를 바구니에서 다시 꺼내기 (넣는 모습 다시 보기용)
+    const user = await currentUser(req);
+    if (user) await db("delete from basket where user_id = $1", [user.id]);
+    return json({ ok: true });
+  }
   const names = DEMO.map(([n]) => n);
   await db("delete from users where nickname = any($1)", [names]);
   if (action === "clear") return json({ ok: true });

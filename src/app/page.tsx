@@ -20,7 +20,17 @@ type Tab = "mine" | "board" | "basket";
 export default function Home() {
   const [me, setMe] = useState<Me | null>(null);
   const [ready, setReady] = useState(false);
-  const [tab, setTab] = useState<Tab>("mine");
+  const [tab, setTabState] = useState<Tab>("mine");
+  const setTab = useCallback((t: Tab) => {
+    setTabState(t);
+    try { sessionStorage.setItem("thanks-tab", t); } catch {}
+  }, []);
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem("thanks-tab") as Tab | null;
+      if (saved === "mine" || saved === "board" || saved === "basket") setTabState(saved);
+    } catch {}
+  }, []);
   const [toast, setToast] = useState<string | null>(null);
 
   const say = useCallback((msg: string) => {
@@ -447,7 +457,7 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
   }
   slots.sort((x, y) => x.left - y.left || y.bottom - x.bottom);
   // 밤이 가장 작고, 귤은 밤과 감 사이 크기
-  const SCALE: Partial<Record<FruitId, number>> = { chestnut: 0.82, tangerine: 0.9 };
+  const SCALE: Partial<Record<FruitId, number>> = { chestnut: 0.7, tangerine: 0.9 };
   return items.map((it, i) => ({ ...it, ...slots[i], size: slots[i].size * (SCALE[it.fruit] ?? 1) }));
 }
 

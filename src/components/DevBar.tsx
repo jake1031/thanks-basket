@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { dayLabel } from "@/lib/rules";
+import { api } from "@/lib/client";
 
 // 개발 모드 전용 날짜 미리보기 도구 (배포 사이트에는 나타나지 않음)
 const DATES = [
@@ -37,6 +38,12 @@ export function DevBar() {
     location.reload();
   }
 
+  async function unplace() {
+    setBusy(true);
+    await api("/api/dev", { method: "POST", body: { action: "unplace" } }).catch(() => {});
+    location.reload();
+  }
+
   async function toggleDemo() {
     setBusy(true);
     const on = !demo;
@@ -68,6 +75,9 @@ export function DevBar() {
             <input type="checkbox" checked={demo} disabled={busy} onChange={toggleDemo} />
             데모 팀원 24명 채우기 (게시판·바구니 미리보기용)
           </label>
+          <button className="btn ghost block" style={{ marginTop: 10, padding: "8px 12px", fontSize: 13 }} disabled={busy} onClick={unplace}>
+            ↩︎ 내 열매 바구니에서 꺼내기 (다시 넣어보기)
+          </button>
         </div>
       )}
       <button className="devbar-fab" onClick={() => setOpen(!open)}>
