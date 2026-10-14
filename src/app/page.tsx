@@ -602,13 +602,12 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   const { user } = me;
   const myFruit = fruitFor(user.count);
   const tally = FRUITS.map((f) => ({ ...f, n: data.placed.filter((p) => p.fruit === f.id).length })).filter((f) => f.n > 0);
-  const goldN = data.placed.filter((p) => p.golden).length;
   const pieces = arrangeFruits(data.placed);
 
   return (
     <div className="stack">
       <div className="spread" style={{ paddingTop: 4, alignItems: "baseline" }}>
-        <h2>🧺 우리 팀 감사 바구니</h2>
+        <h2>🎤 싱어팀 감사 바구니</h2>
         <span className="muted small">{data.placed.length}명 참여</span>
       </div>
 
@@ -645,7 +644,6 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
             {tally.map((f) => (
               <span key={f.id} className="chip"><Fruit id={f.id} size={18} />{f.name} {f.n}</span>
             ))}
-            {goldN > 0 && <span className="chip">✨황금 {goldN}</span>}
           </div>
         ) : (
           <p className="muted small" style={{ textAlign: "center", margin: "4px 0" }}>아직 비어 있는 바구니예요</p>
