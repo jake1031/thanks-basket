@@ -54,20 +54,23 @@ export default function Home() {
 
   if (!ready) return <div className="wrap hero"><p className="muted">불러오는 중…</p></div>;
   if (!me) return <Join onDone={load} />;
+  const current: Tab = tab === "basket" && !basketOpen(me.today) ? "mine" : tab;
 
   return (
     <>
       <div className="wrap">
-        {tab === "mine" && <Mine key={focusDate ?? ""} me={me} initialDate={focusDate} reload={load} say={say} goBasket={() => setTab("basket")} />}
-        {tab === "board" && (
+        {current === "mine" && <Mine key={focusDate ?? ""} me={me} initialDate={focusDate} reload={load} say={say} goBasket={() => setTab("basket")} />}
+        {current === "board" && (
           <Board today={me.today} say={say} goWrite={(d) => { setFocusDate(d); setTab("mine"); window.scrollTo(0, 0); }} />
         )}
-        {tab === "basket" && <Basket me={me} reload={load} say={say} />}
+        {current === "basket" && <Basket me={me} reload={load} say={say} />}
       </div>
       <nav className="tabs">
         <div className="tabs-inner">
-          {([["mine", "✍️", "내 감사"], ["board", "💌", "감사 게시판"], ["basket", "🧺", "바구니"]] as const).map(([id, ico, label]) => (
-            <button key={id} className={`tab ${tab === id ? "on" : ""}`} onClick={() => { setTab(id); window.scrollTo(0, 0); }}>
+          {([["mine", "✍️", "내 감사"], ["board", "💌", "감사 게시판"], ["basket", "🧺", "바구니"]] as const)
+            .filter(([id]) => id !== "basket" || basketOpen(me.today)) // 바구니 탭은 토요일부터
+            .map(([id, ico, label]) => (
+            <button key={id} className={`tab ${current === id ? "on" : ""}`} onClick={() => { setTab(id); window.scrollTo(0, 0); }}>
               <span className="ico">{ico}</span>{label}
             </button>
           ))}
@@ -649,7 +652,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
           <p className="muted small" style={{ textAlign: "center", margin: "4px 0" }}>아직 비어 있는 바구니예요</p>
         )}
         <div className="total-row">
-          <span>🙏 지금까지 모인 감사</span>
+          <span>🙏 한 주간 모인 감사</span>
           <span className="total-count">{data.totalThanks}개</span>
         </div>
       </div>
@@ -666,7 +669,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
         <div className="card my-fruit">
           <Fruit id={myFruit.id} golden={user.golden} size={44} />
           <div style={{ flex: 1 }}>
-            <b>내 {user.golden ? "황금 " : ""}{josa(myFruit.name, "을", "를")} 넣었어요</b>
+            <b>나는 {user.golden ? "황금 " : ""}{josa(myFruit.name, "을", "를")} 넣었어요!</b>
             <p className="muted small">
               {user.golden ? "토요일 감사로 황금 반짝이가 달렸어요 ✨" : "토요일에 감사를 쓰면 황금 반짝이가 달려요!"}
             </p>
