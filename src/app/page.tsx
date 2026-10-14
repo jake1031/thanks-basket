@@ -21,6 +21,7 @@ export default function Home() {
   const [me, setMe] = useState<Me | null>(null);
   const [ready, setReady] = useState(false);
   const [tab, setTabState] = useState<Tab>("mine");
+  const [focusDate, setFocusDate] = useState<string | null>(null); // 게시판에서 '쓰러 가기'로 넘어올 날짜
   const setTab = useCallback((t: Tab) => {
     setTabState(t);
     try { sessionStorage.setItem("thanks-tab", t); } catch {}
@@ -57,8 +58,10 @@ export default function Home() {
   return (
     <>
       <div className="wrap">
-        {tab === "mine" && <Mine me={me} reload={load} say={say} goBasket={() => setTab("basket")} />}
-        {tab === "board" && <Board today={me.today} say={say} />}
+        {tab === "mine" && <Mine key={focusDate ?? ""} me={me} initialDate={focusDate} reload={load} say={say} goBasket={() => setTab("basket")} />}
+        {tab === "board" && (
+          <Board today={me.today} say={say} goWrite={(d) => { setFocusDate(d); setTab("mine"); window.scrollTo(0, 0); }} />
+        )}
         {tab === "basket" && <Basket me={me} reload={load} say={say} />}
       </div>
       <nav className="tabs">
@@ -182,7 +185,9 @@ function Join({ onDone }: { onDone: () => void }) {
 
 /* ───────────── 내 감사 ───────────── */
 
-function Mine({ me, reload, say, goBasket }: { me: Me; reload: () => Promise<void>; say: (m: string) => void; goBasket: () => void }) {
+function Mine({ me, initialDate, reload, say, goBasket }: {
+  me: Me; initialDate: string | null; reload: () => Promise<void>; say: (m: string) => void; goBasket: () => void;
+}) {
   const { today, user, entries } = me;
   const phase = phaseOf(today);
   const fruit = fruitFor(user.count);
@@ -196,7 +201,7 @@ function Mine({ me, reload, say, goBasket }: { me: Me; reload: () => Promise<voi
   }
 
   const byDate = (d: string) => entries.filter((e) => e.date === d);
-  const [sel, setSel] = useState(() => defaultDay(today));
+  const [sel, setSel] = useState(() => (initialDate && DAYS.includes(initialDate) ? initialDate : defaultDay(today)));
 
   return (
     <div className="stack" style={{ gap: 10 }}>
@@ -376,7 +381,7 @@ function EntryItem({ entry, index, editable, reload, say }: {
 
 type BoardCard = { nickname: string; mine: boolean; entries: string[] };
 
-function Board({ today, say }: { today: string; say: (m: string) => void }) {
+function Board({ today, say, goWrite }: { today: string; say: (m: string) => void; goWrite: (date: string) => void }) {
   const [sel, setSel] = useState(() => defaultDay(today));
   const [people, setPeople] = useState<Record<string, number>>({});
   const [cards, setCards] = useState<BoardCard[] | null>(null);
@@ -410,6 +415,12 @@ function Board({ today, say }: { today: string; say: (m: string) => void }) {
 
   const future = sel > today;
   const { md, dow } = dayLabel(sel);
+  // 내 카드는 항상 맨 앞. 아직 안 썼고 지금 쓸 수 있는 날이면 '쓰러 가기' 카드를 맨 앞에 둔다
+  const mineCard = cards?.find((c) => c.mine);
+  const others = cards?.filter((c) => !c.mine) ?? [];
+  const slides: (BoardCard | "prompt")[] = mineCard
+    ? [mineCard, ...others]
+    : canEditDate(today, sel) ? ["prompt", ...others] : others;
 
   return (
     <div className="stack" style={{ gap: 10 }}>
@@ -428,27 +439,37 @@ function Board({ today, say }: { today: string; say: (m: string) => void }) {
         <div className="card muted" style={{ textAlign: "center" }}>🔒 {md}({dow})은 아직 열리지 않았어요</div>
       ) : cards === null ? (
         <p className="muted" style={{ textAlign: "center" }}>불러오는 중…</p>
-      ) : cards.length === 0 ? (
+      ) : slides.length === 0 ? (
         <div className="card muted" style={{ textAlign: "center" }}>{md}({dow})에는 아직 감사가 없어요</div>
       ) : (
         <>
           <div className="swipe" ref={trackRef} onScroll={onScroll}>
-            {cards.map((c, i) => (
-              <div key={i} className={`swipe-card tone-${i % 4}`}>
-                <div className="spread">
-                  <b className="card-name">{c.nickname}</b>
-                  {c.mine ? <span className="badge brand">나</span> : <span className="muted small">{md} ({dow}){WEEKEND.includes(sel) && " ✨"}</span>}
+            {slides.map((c, i) =>
+              c === "prompt" ? (
+                <div key="prompt" className="swipe-card prompt-card">
+                  <b className="card-name">나</b>
+                  <div className="prompt-body">
+                    <p>아직 {md}({dow})의 감사를 쓰지 않았어요</p>
+                    <button className="btn" onClick={() => goWrite(sel)}>✍️ 감사 쓰러 가기</button>
+                  </div>
                 </div>
-                <ol>
-                  {c.entries.map((t, k) => <li key={k}>{t}</li>)}
-                </ol>
-              </div>
-            ))}
+              ) : (
+                <div key={i} className={`swipe-card tone-${i % 4}`}>
+                  <div className="spread">
+                    <b className="card-name">{c.nickname}</b>
+                    {c.mine ? <span className="badge brand">나</span> : <span className="muted small">{md} ({dow}){WEEKEND.includes(sel) && " ✨"}</span>}
+                  </div>
+                  <ol>
+                    {c.entries.map((t, k) => <li key={k}>{t}</li>)}
+                  </ol>
+                </div>
+              ),
+            )}
           </div>
           <div className="swipe-nav">
             <button className="link" disabled={index === 0} onClick={() => go(index - 1)}>‹ 이전</button>
-            <span className="muted small">{Math.min(index + 1, cards.length)} / {cards.length}</span>
-            <button className="link" disabled={index >= cards.length - 1} onClick={() => go(index + 1)}>다음 ›</button>
+            <span className="muted small">{Math.min(index + 1, slides.length)} / {slides.length}</span>
+            <button className="link" disabled={index >= slides.length - 1} onClick={() => go(index + 1)}>다음 ›</button>
           </div>
         </>
       )}

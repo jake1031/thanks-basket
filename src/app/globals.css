@@ -249,14 +249,19 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 /* 게시판 스와이프 카드 */
 .swipe {
   display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
-  margin: 0 -16px; padding: 2px 16px 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  margin: 0 -16px; padding: 2px 0 4px 32px; scrollbar-width: none; -webkit-overflow-scrolling: touch;
 }
+.swipe::after { content: ""; flex: 0 0 20px; } /* 마지막 카드도 가운데 오도록 오른쪽 여백 (20 + gap 12 = 32) */
 .swipe::-webkit-scrollbar { display: none; }
+/* 카드 폭 = 보이는 폭 - 양쪽 32px → 첫 카드부터 마지막 카드까지 모두 가운데 */
 .swipe-card {
-  flex: 0 0 86%; scroll-snap-align: center; min-height: 300px;
+  flex: 0 0 calc(min(100vw, 480px) - 64px); scroll-snap-align: center; min-height: 300px;
   border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px;
   box-shadow: 0 2px 8px rgba(90, 60, 20, .06);
 }
+.prompt-card { background: #fff; border-style: dashed; display: flex; flex-direction: column; }
+.prompt-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; color: var(--muted); }
+.prompt-body p { margin: 0; }
 .swipe-card ol { margin: 14px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 14px; }
 .swipe-card li { line-height: 1.55; font-size: 16px; white-space: pre-wrap; }
 .swipe-card li::marker { color: var(--brand); font-weight: 800; }
