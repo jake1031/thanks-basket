@@ -42,16 +42,26 @@ export async function POST(req: Request) {
     return json({ ok: true });
   }
   const names = DEMO.map(([n]) => n);
-  await db("delete from users where nickname = any($1)", [names]);
-  if (action === "clear") return json({ ok: true });
+  if (action === "clear") {
+    await db("delete from users where nickname = any($1)", [names]);
+    return json({ ok: true });
+  }
 
+  // 데모 계정은 지우지 않고 유지한다 (데모 계정으로 로그인한 상태가 풀리지 않도록).
+  // 그 계정들의 감사·바구니 기록만 지우고 미리보기 날짜에 맞게 다시 채운다.
   const today = todayKST(req);
   const pin = hashPin("0000");
   const ids: number[] = [];
   for (const [nickname] of DEMO) {
-    const [{ id }] = await db<{ id: number }>("insert into users (nickname, pin_hash) values ($1, $2) returning id", [nickname, pin]);
+    const [{ id }] = await db<{ id: number }>(
+      `insert into users (nickname, pin_hash) values ($1, $2)
+       on conflict (nickname) do update set nickname = excluded.nickname returning id`,
+      [nickname, pin],
+    );
     ids.push(id);
   }
+  await db("delete from entries where user_id = any($1)", [ids]);
+  await db("delete from basket where user_id = any($1)", [ids]);
   // 날짜 순서대로 섞여 쌓이도록 날짜 → 사람 순으로 넣는다
   let k = 0;
   const left = DEMO.map(([, target]) => target as number);
