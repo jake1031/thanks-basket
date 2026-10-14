@@ -4,10 +4,10 @@ import { DEV, currentUser, fail, hashPin, json, todayKST } from "@/lib/server";
 
 // 개발 모드 전용: 날짜 미리보기에 맞춰 데모 팀원과 감사를 채운다.
 const DEMO = [
-  ["노래하는 다람쥐", 15, true], ["낮잠 자는 판다", 15, false], ["춤추는 고슴도치", 14, true],
-  ["밥 먹는 펭귄", 13, false], ["산책하는 거북이", 13, false], ["기지개 켜는 고양이", 12, true],
-  ["웃는 수달", 12, false], ["뜀뛰는 캥거루", 11, false], ["콧노래 부엉이", 10, true],
-  ["꿀 먹은 곰돌이", 10, false], ["졸린 코알라", 9, false], ["수줍은 사슴", 9, true],
+  ["노래하는 다람쥐", 15, true], ["낮잠 자는 판다", 15, true], ["춤추는 고슴도치", 14, true],
+  ["밥 먹는 펭귄", 13, true], ["산책하는 거북이", 13, false], ["기지개 켜는 고양이", 12, true],
+  ["웃는 수달", 12, true], ["뜀뛰는 캥거루", 11, false], ["콧노래 부엉이", 10, true],
+  ["꿀 먹은 곰돌이", 10, true], ["졸린 코알라", 9, false], ["수줍은 사슴", 9, true],
   ["박수 치는 물개", 8, false], ["뒹구는 너구리", 7, false], ["깡충 토끼", 6, true],
   ["하품하는 강아지", 6, false], ["구르는 햄스터", 5, false], ["손 흔드는 오리", 4, false],
   ["느긋한 나무늘보", 3, true], ["바쁜 꿀벌", 2, false], ["엉뚱한 여우", 1, false],
@@ -30,7 +30,65 @@ const SAMPLES = [
   "단풍이 물들기 시작한 길을 걸었어요 🍁",
   "작은 실수를 너그럽게 넘어가 준 분께 감사",
   "싱어팀 단톡방이 오늘도 따뜻했어요",
+  "버스를 딱 맞춰 탔어요 🚌",
+  "기도 제목이 하나 응답됐어요 🙏",
+  "퇴근길에 노을이 너무 예뻤어요",
+  "아이가 먼저 안아줬어요",
+  "목 상태가 좋아져서 마음껏 노래했어요",
+  "오늘 하루도 무사히 지나가서 감사해요",
+  "점심에 먹은 김치찌개가 정말 맛있었어요",
+  "회의가 생각보다 빨리 끝났어요",
+  "길에서 귀여운 강아지를 만났어요 🐶",
+  "따뜻한 물로 샤워할 수 있어서 감사",
+  "말씀 묵상 중에 위로를 받았어요",
+  "엄마가 반찬을 보내주셨어요",
+  "운동을 빼먹지 않고 다녀왔어요",
+  "새로 배운 곡이 점점 익숙해지고 있어요",
+  "친구의 고민을 들어줄 수 있었어요",
+  "가을 바람이 시원해서 기분이 좋았어요",
+  "밀린 일을 드디어 끝냈어요",
+  "저녁에 가족이랑 다 같이 밥을 먹었어요",
+  "누군가 엘리베이터를 잡아줬어요",
+  "좋아하는 노래가 라디오에서 나왔어요 📻",
+  "아픈 데 없이 하루를 보냈어요",
+  "팀원이 응원 메시지를 보내줬어요",
+  "책 한 챕터를 다 읽었어요 📖",
+  "따뜻한 붕어빵을 사 먹었어요",
+  "예배 때 마음이 평안했어요",
+  "오랜만에 방 정리를 했어요",
+  "고구마가 정말 달았어요 🍠",
+  "아침에 눈뜰 수 있는 것 자체가 감사",
+  "동생이랑 오랜만에 수다를 떨었어요",
+  "어려운 부분 화음을 드디어 외웠어요",
 ];
+
+const SATURDAY = [
+  "토요일 아침 가족과 산책했어요 ✨",
+  "늦잠을 푹 자서 개운했어요",
+  "주말 연습에 다 같이 모여서 좋았어요",
+  "내일 추수감사 예배가 기대돼요",
+  "한 주 동안 감사를 적으면서 마음이 따뜻해졌어요",
+  "친구랑 브런치를 먹었어요 🥞",
+];
+
+// 같은 입력이면 항상 같은 값이 나오는 간단한 난수
+function rand(seed: number) {
+  const x = Math.sin(seed * 9301 + 49297) * 233280;
+  return x - Math.floor(x);
+}
+
+/** 목표 개수를 평일 5일에 골고루(하루 최대 3) 흩어 놓는다 */
+function spread(target: number, seed: number) {
+  const days = [0, 0, 0, 0, 0];
+  let left = target;
+  let t = 0;
+  while (left > 0) {
+    const d = Math.floor(rand(seed * 31 + t++) * 5);
+    if (days[d] < 3) { days[d]++; left--; }
+  }
+  return days;
+}
+
 
 export async function POST(req: Request) {
   if (!DEV) return fail("Not found", 404);
@@ -62,23 +120,26 @@ export async function POST(req: Request) {
   }
   await db("delete from entries where user_id = any($1)", [ids]);
   await db("delete from basket where user_id = any($1)", [ids]);
-  // 날짜 순서대로 섞여 쌓이도록 날짜 → 사람 순으로 넣는다
+  // 날짜 → 사람 순으로 넣어 게시판에서 자연스럽게 섞이게 한다
+  const plans = DEMO.map(([, target], u) => spread(target as number, u + 1));
   let k = 0;
-  const left = DEMO.map(([, target]) => target as number);
-  for (const d of WEEKDAYS) {
+  for (let di = 0; di < WEEKDAYS.length; di++) {
+    const d = WEEKDAYS[di];
     if (d > today) break;
     for (let u = 0; u < DEMO.length; u++) {
-      const n = Math.min(3, left[u]);
-      for (let i = 0; i < n; i++) {
-        await db("insert into entries (user_id, entry_date, content) values ($1, $2, $3)", [ids[u], d, SAMPLES[k++ % SAMPLES.length]]);
+      for (let i = 0; i < plans[u][di]; i++) {
+        k += 7; // 같은 사람이 같은 문장을 반복하지 않도록 건너뛰며 고른다
+        await db("insert into entries (user_id, entry_date, content) values ($1, $2, $3)", [ids[u], d, SAMPLES[(k + u) % SAMPLES.length]]);
       }
-      left[u] -= n;
     }
   }
   for (let u = 0; u < DEMO.length; u++) {
     const [, target, golden] = DEMO[u];
     if (golden && WEEKEND[0] <= today) {
-      await db("insert into entries (user_id, entry_date, content) values ($1, $2, $3)", [ids[u], WEEKEND[0], "토요일 아침 가족과 산책했어요 ✨"]);
+      const n = 1 + Math.floor(rand(u + 100) * 3);
+      for (let i = 0; i < n; i++) {
+        await db("insert into entries (user_id, entry_date, content) values ($1, $2, $3)", [ids[u], WEEKEND[0], SATURDAY[(u + i) % SATURDAY.length]]);
+      }
     }
     if (basketOpen(today) && target !== 0) await db("insert into basket (user_id) values ($1)", [ids[u]]);
   }

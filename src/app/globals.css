@@ -266,3 +266,4 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .tone-3 { background: #f3f6ff; }
 .swipe-nav { display: flex; align-items: center; justify-content: space-between; }
 .swipe-nav .link:disabled { opacity: .3; }
+.card-name { font-size: 15px; }

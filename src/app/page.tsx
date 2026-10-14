@@ -374,7 +374,7 @@ function EntryItem({ entry, index, editable, reload, say }: {
 
 /* ───────────── 감사 게시판 ───────────── */
 
-type BoardCard = { mine: boolean; entries: string[] };
+type BoardCard = { nickname: string; mine: boolean; entries: string[] };
 
 function Board({ today, say }: { today: string; say: (m: string) => void }) {
   const [sel, setSel] = useState(() => defaultDay(today));
@@ -415,7 +415,7 @@ function Board({ today, say }: { today: string; say: (m: string) => void }) {
     <div className="stack" style={{ gap: 10 }}>
       <div style={{ paddingTop: 4 }}>
         <h2>💌 감사 게시판</h2>
-        <p className="muted small" style={{ margin: "4px 0 0" }}>누가 썼는지는 보이지 않아요. 옆으로 넘기며 서로의 감사를 나눠요.</p>
+        <p className="muted small" style={{ margin: "4px 0 0" }}>옆으로 넘기며 서로의 감사를 나눠요.</p>
       </div>
 
       <DayTabs
@@ -436,8 +436,8 @@ function Board({ today, say }: { today: string; say: (m: string) => void }) {
             {cards.map((c, i) => (
               <div key={i} className={`swipe-card tone-${i % 4}`}>
                 <div className="spread">
-                  <span className="muted small">{md} ({dow}){WEEKEND.includes(sel) && " ✨"}</span>
-                  {c.mine && <span className="badge">내 감사</span>}
+                  <b className="card-name">{c.nickname}</b>
+                  {c.mine ? <span className="badge brand">나</span> : <span className="muted small">{md} ({dow}){WEEKEND.includes(sel) && " ✨"}</span>}
                 </div>
                 <ol>
                   {c.entries.map((t, k) => <li key={k}>{t}</li>)}
