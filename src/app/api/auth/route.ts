@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 
   if (mode === "new") {
     const realName = String(rawReal ?? "").trim().replace(/\s+/g, " ");
-    if (realName.length < 1 || realName.length > 10) return fail("이름을 적어주세요. (관리자만 볼 수 있어요)");
+    if (realName.length < 1 || realName.length > 10) return fail("이름을 적어주세요.");
     if (user) return fail("이미 있는 닉네임이에요. 다른 기기에서 쓰던 거라면 '이어하기'를 눌러주세요.", 409);
     const [created] = await db<{ id: number }>(
       "insert into users (nickname, pin_hash, real_name) values ($1, $2, $3) returning id",
