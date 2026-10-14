@@ -89,74 +89,118 @@ export default function Admin() {
   const tally = FRUITS.map((f) => ({ name: f.name, n: data.users.filter((u) => u.fruit === f.id).length }));
 
   return (
-    <div className="wrap stack" style={{ maxWidth: 960 }}>
-      <div className="spread" style={{ paddingTop: 8, flexWrap: "wrap" }}>
+    <div className="wrap stack admin" style={{ maxWidth: 960 }}>
+      <div className="spread" style={{ paddingTop: 4, flexWrap: "wrap" }}>
         <div>
           <h2>🔐 관리자</h2>
           <span className="muted small">기준 날짜 {data.today}</span>
         </div>
         <div className="row">
-          <button className="btn ghost" onClick={() => load()}>새로고침</button>
-          <button className="btn" onClick={exportCsv}>CSV 내보내기</button>
+          <button className="btn ghost btn-sm" style={{ marginTop: 0 }} onClick={() => load()}>새로고침</button>
+          <button className="btn btn-sm" style={{ marginTop: 0 }} onClick={exportCsv}>CSV 내보내기</button>
         </div>
       </div>
 
-      <div className="card row" style={{ flexWrap: "wrap", gap: 16 }}>
-        <span>참여 <b>{data.users.length}</b>명</span>
-        <span>감사 <b>{data.entries.length}</b>개</span>
-        <span>바구니 <b>{data.users.filter((u) => u.placed).length}</b>명</span>
-        <span>황금 <b>{data.users.filter((u) => u.golden).length}</b>명</span>
-        <span className="muted">{tally.map((t) => `${t.name} ${t.n}`).join(" · ")}</span>
+      <div className="card admin-summary">
+        <div><b>{data.users.length}</b><span>참여</span></div>
+        <div><b>{data.entries.length}</b><span>감사</span></div>
+        <div><b>{data.users.filter((u) => u.placed).length}</b><span>바구니</span></div>
+        <div><b>{data.users.filter((u) => u.golden).length}</b><span>황금</span></div>
+        <p className="muted small">{tally.map((t) => `${t.name} ${t.n}`).join(" · ")}</p>
       </div>
 
-      <div className="segment" style={{ maxWidth: 320 }}>
+      <div className="segment">
         <button className={view === "users" ? "on" : ""} onClick={() => setView("users")}>참여자</button>
         <button className={view === "entries" ? "on" : ""} onClick={() => setView("entries")}>전체 감사</button>
       </div>
 
       {view === "users" ? (
-        <div className="card scroll-x">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>닉네임</th>
-                {WEEKDAYS.map((d) => <th key={d}>{dayLabel(d).md}</th>)}
-                <th>합계</th>
-                {WEEKEND.map((d) => <th key={d}>{dayLabel(d).md}</th>)}
-                <th>열매</th><th>바구니</th><th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.users.map((u) => (
-                <tr key={u.id}>
-                  <td><b>{u.nickname}</b></td>
-                  {WEEKDAYS.map((d) => <td key={d}>{u.byDay[d] ?? 0}</td>)}
-                  <td><b>{u.count}</b></td>
-                  {WEEKEND.map((d) => <td key={d} className="muted">{u.byDay[d] ?? 0}</td>)}
-                  <td><span className="row" style={{ justifyContent: "center", gap: 2 }}><Fruit id={u.fruit} golden={u.golden} size={22} />{fruitFor(u.count).name}</span></td>
-                  <td>{u.placed ? "✅" : ""}</td>
-                  <td>
-                    <button className="link" onClick={() => resetPin(u)}>PIN 초기화</button>
-                    <button className="link danger" onClick={() => act({ action: "delete-user", userId: u.id }, `${u.nickname}님과 모든 감사를 삭제할까요? 되돌릴 수 없어요.`)}>삭제</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="stack">
-          {data.entries.map((e) => (
-            <div key={e.id} className="note">
-              <p>{e.content}</p>
-              <div className="spread">
-                <span className="muted small">{e.nickname} · {dayLabel(e.date).md}</span>
-                <button className="link danger" onClick={() => act({ action: "delete-entry", id: e.id }, "이 감사를 삭제할까요?")}>삭제</button>
+        <div className="admin-grid">
+          {data.users.map((u) => (
+            <div key={u.id} className="card admin-user">
+              <div className="row" style={{ gap: 10 }}>
+                <Fruit id={u.fruit} golden={u.golden} size={36} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <b>{u.nickname}</b>
+                  <p className="muted small" style={{ margin: 0 }}>
+                    {u.golden ? "황금 " : ""}{fruitFor(u.count).name} · 평일 {u.count}/15
+                  </p>
+                </div>
+                {u.placed ? <span className="badge brand">바구니 ✓</span> : <span className="badge">미참여</span>}
+              </div>
+              <div className="admin-days">
+                {[...WEEKDAYS, ...WEEKEND].map((d) => {
+                  const n = u.byDay[d] ?? 0;
+                  return (
+                    <span key={d} className={n ? "on" : ""}>
+                      <i>{dayLabel(d).dow}</i>{n}
+                    </span>
+                  );
+                })}
+              </div>
+              <div className="row" style={{ justifyContent: "flex-end", gap: 0 }}>
+                <button className="link" onClick={() => resetPin(u)}>PIN 초기화</button>
+                <button className="link danger" onClick={() => act({ action: "delete-user", userId: u.id }, `${u.nickname}님과 모든 감사를 삭제할까요? 되돌릴 수 없어요.`)}>삭제</button>
               </div>
             </div>
           ))}
         </div>
+      ) : (
+        <PersonEntries
+          users={data.users} entries={data.entries}
+          onDelete={(id) => act({ action: "delete-entry", id }, "이 감사를 삭제할까요?")}
+        />
       )}
+    </div>
+  );
+}
+
+/** 사람을 고르면 그 사람의 날짜별 감사를 카드로 넘겨보기 */
+function PersonEntries({ users, entries, onDelete }: { users: U[]; entries: E[]; onDelete: (id: number) => void }) {
+  const [who, setWho] = useState<string>(users[0]?.nickname ?? "");
+  const mine = entries.filter((e) => e.nickname === who);
+  const days = [...WEEKDAYS, ...WEEKEND];
+
+  return (
+    <div className="stack">
+      <div className="name-grid" style={{ maxHeight: 132 }}>
+        {users.map((u) => (
+          <button key={u.id} className={who === u.nickname ? "on" : ""} onClick={() => setWho(u.nickname)}>
+            {u.nickname} <span className="muted">{entries.filter((e) => e.nickname === u.nickname).length}</span>
+          </button>
+        ))}
+      </div>
+      {mine.length === 0 ? (
+        <div className="card muted" style={{ textAlign: "center" }}>{who}님은 아직 쓴 감사가 없어요</div>
+      ) : (
+        <div className="swipe" key={who}>
+          {days.map((d, i) => {
+            const list = mine.filter((e) => e.date === d).sort((a, b) => a.id - b.id);
+            const { md, dow } = dayLabel(d);
+            return (
+              <div key={d} className={`swipe-card tone-${i % 4}`} style={{ minHeight: 220 }}>
+                <div className="spread">
+                  <b className="card-name">{md} ({dow}){WEEKEND.includes(d) && " ✨"}</b>
+                  <span className="muted small">{list.length}개</span>
+                </div>
+                {list.length === 0 ? (
+                  <p className="muted small" style={{ marginTop: 14 }}>이날은 쓴 감사가 없어요</p>
+                ) : (
+                  <ol>
+                    {list.map((e) => (
+                      <li key={e.id}>
+                        {e.content}{" "}
+                        <button className="link danger" style={{ padding: "0 4px" }} onClick={() => onDelete(e.id)}>삭제</button>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <p className="muted small" style={{ textAlign: "center", margin: 0 }}>← 옆으로 넘기면 날짜별로 볼 수 있어요 →</p>
     </div>
   );
 }

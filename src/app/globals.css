@@ -298,3 +298,20 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .btn-sm { margin-top: 10px; padding: 7px 12px; font-size: 13px; border-radius: 10px; }
 .card.day { padding: 12px 14px; }
 .day-head { margin-bottom: 6px; }
+
+/* 관리자 */
+.admin-summary { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; padding: 14px 8px 10px; }
+.admin-summary div { display: flex; flex-direction: column; }
+.admin-summary b { font-size: 20px; color: var(--brand); }
+.admin-summary span { font-size: 12px; color: var(--muted); }
+.admin-summary p { grid-column: 1 / -1; margin: 10px 0 0; }
+.admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.admin-user { padding: 12px 14px 6px; }
+.admin-days { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 10px; }
+.admin-days span {
+  display: flex; flex-direction: column; align-items: center; font-weight: 800; font-size: 14px;
+  background: #f6ecdc; border-radius: 8px; padding: 4px 0; color: var(--muted);
+}
+.admin-days span.on { background: #fde7d6; color: var(--brand); }
+.admin-days i { font-style: normal; font-size: 10px; font-weight: 600; color: var(--muted); }
+.name-grid button.on .muted { color: rgba(255,255,255,.8); }
