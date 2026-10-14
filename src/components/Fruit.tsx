@@ -48,9 +48,7 @@ export function Fruit({ id, golden = false, size = 48 }: { id: FruitId; golden?:
       body = "M32 21 C47 21 58 28 58 40 C58 51 47 57 32 57 C17 57 6 51 6 40 C6 28 17 21 32 21 Z";
       parts = (
         <>
-          {/* 그늘 위에 몸통을 왼쪽으로 살짝 밀어 겹쳐서, 윤곽을 따라가는 초승달 그늘을 만든다 */}
-          <path d={body} fill="#e0741f" />
-          <g clipPath={`url(#${clip})`}><path d={body} fill="#f28b30" transform="translate(-6 -2)" /></g>
+          <path d={body} fill="#f28b30" />
           <g fill="#5a9a3a">
             <path d="M32 23 C36 17 45 17 48 22 C43 26 36 26 32 23 Z" />
             <path d="M32 23 C28 17 19 17 16 22 C21 26 28 26 32 23 Z" />
