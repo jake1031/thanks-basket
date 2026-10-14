@@ -208,12 +208,11 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
 
   return (
     <div className="stack" style={{ gap: 16 }}>
-      <div className="spread" style={{ paddingTop: 4 }}>
-        <h2>{user.nickname}님의 감사</h2>
-        <button className="link" onClick={logout}>로그아웃</button>
-      </div>
-
-      <div className="card" style={{ padding: "18px 18px 16px" }}>
+      <div className="card" style={{ padding: "14px 18px 16px" }}>
+        <div className="spread" style={{ marginBottom: 12 }}>
+          <b className="hello">🙂 {user.nickname}님</b>
+          <button className="link" onClick={logout}>로그아웃</button>
+        </div>
         <div className="progress-card">
           <div className="big-fruit" style={{ padding: 0 }}><Fruit id={fruit.id} golden={user.golden} size={54} /></div>
           <div style={{ flex: 1 }}>
