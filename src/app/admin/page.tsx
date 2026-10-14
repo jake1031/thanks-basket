@@ -31,7 +31,7 @@ export default function Admin() {
       cache: "no-store",
     });
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json.error ?? "오류");
+    if (!res.ok) throw new Error(json.error ?? `오류 (${res.status})`);
     return json;
   }
 
@@ -40,7 +40,13 @@ export default function Admin() {
       setData(await call("GET", undefined, password));
       setError("");
       try { sessionStorage.setItem(PW_KEY, password); } catch {}
-    } catch (e) { setError((e as Error).message); setData(null); }
+    } catch (e) {
+      setData(null);
+      // DB 문제면 원인을 보여준다 (관리자 비밀번호가 맞을 때만 응답함)
+      const h = await fetch("/api/health", { headers: { "x-admin-password": password }, cache: "no-store" })
+        .then((r) => r.json()).catch(() => null);
+      setError(h && h.ok === false ? `DB 연결 오류 (${h.host}) ${h.code ?? ""}: ${h.message}` : (e as Error).message);
+    }
   }
 
   useEffect(() => {
