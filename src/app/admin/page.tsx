@@ -18,6 +18,7 @@ export default function Admin() {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState("");
   const [view, setView] = useState<"users" | "entries">("users");
+  const [openId, setOpenId] = useState<number | null>(null); // 펼쳐 본 참여자
 
   async function call(method: "GET" | "POST", body?: unknown, password = pw) {
     const res = await fetch("/api/admin", {
@@ -89,7 +90,7 @@ export default function Admin() {
   const tally = FRUITS.map((f) => ({ name: f.name, n: data.users.filter((u) => u.fruit === f.id).length }));
 
   return (
-    <div className="wrap stack admin" style={{ maxWidth: 960 }}>
+    <div className="wrap stack admin">
       <div className="spread" style={{ paddingTop: 4, flexWrap: "wrap" }}>
         <div>
           <h2>🔐 관리자</h2>
@@ -115,33 +116,37 @@ export default function Admin() {
       </div>
 
       {view === "users" ? (
-        <div className="admin-grid">
+        <div className="card admin-list">
           {data.users.map((u) => (
-            <div key={u.id} className="card admin-user">
-              <div className="row" style={{ gap: 10 }}>
-                <Fruit id={u.fruit} golden={u.golden} size={36} />
-                <div style={{ flex: 1, minWidth: 0 }}>
+            <div key={u.id} className={`admin-row ${openId === u.id ? "open" : ""}`}>
+              <button className="admin-row-main" onClick={() => setOpenId(openId === u.id ? null : u.id)}>
+                <Fruit id={u.fruit} golden={u.golden} size={28} />
+                <span className="admin-name">
                   <b>{u.nickname}</b>
-                  <p className="muted small" style={{ margin: 0 }}>
-                    {u.golden ? "황금 " : ""}{fruitFor(u.count).name} · 평일 {u.count}/15
-                  </p>
-                </div>
-                {u.placed ? <span className="badge brand">바구니 ✓</span> : <span className="badge">미참여</span>}
-              </div>
-              <div className="admin-days">
-                {[...WEEKDAYS, ...WEEKEND].map((d) => {
-                  const n = u.byDay[d] ?? 0;
-                  return (
-                    <span key={d} className={n ? "on" : ""}>
-                      <i>{dayLabel(d).dow}</i>{n}
+                  <small>{u.golden ? "황금 " : ""}{fruitFor(u.count).name} · {u.count}개</small>
+                </span>
+                <span className="admin-mini">
+                  {[...WEEKDAYS, ...WEEKEND].map((d) => <i key={d} className={`n${Math.min(u.byDay[d] ?? 0, 3)}`} />)}
+                </span>
+                <span className={u.placed ? "placed on" : "placed"}>{u.placed ? "🧺" : "·"}</span>
+              </button>
+              {openId === u.id && (
+                <div className="admin-row-detail">
+                  <div className="admin-days">
+                    {[...WEEKDAYS, ...WEEKEND].map((d) => {
+                      const n = u.byDay[d] ?? 0;
+                      return <span key={d} className={n ? "on" : ""}><i>{dayLabel(d).dow}</i>{n}</span>;
+                    })}
+                  </div>
+                  <div className="row" style={{ justifyContent: "space-between", marginTop: 6 }}>
+                    <span className="muted small">{u.placed ? "바구니에 넣었어요" : "아직 바구니에 안 넣었어요"}</span>
+                    <span>
+                      <button className="link" onClick={() => resetPin(u)}>PIN 초기화</button>
+                      <button className="link danger" onClick={() => act({ action: "delete-user", userId: u.id }, `${u.nickname}님과 모든 감사를 삭제할까요? 되돌릴 수 없어요.`)}>삭제</button>
                     </span>
-                  );
-                })}
-              </div>
-              <div className="row" style={{ justifyContent: "flex-end", gap: 0 }}>
-                <button className="link" onClick={() => resetPin(u)}>PIN 초기화</button>
-                <button className="link danger" onClick={() => act({ action: "delete-user", userId: u.id }, `${u.nickname}님과 모든 감사를 삭제할까요? 되돌릴 수 없어요.`)}>삭제</button>
-              </div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -162,8 +167,8 @@ function PersonEntries({ users, entries, onDelete }: { users: U[]; entries: E[];
   const days = [...WEEKDAYS, ...WEEKEND];
 
   return (
-    <div className="stack">
-      <div className="name-grid" style={{ maxHeight: 132 }}>
+    <div className="admin-entries">
+      <div className="name-grid">
         {users.map((u) => (
           <button key={u.id} className={who === u.nickname ? "on" : ""} onClick={() => setWho(u.nickname)}>
             {u.nickname} <span className="muted">{entries.filter((e) => e.nickname === u.nickname).length}</span>

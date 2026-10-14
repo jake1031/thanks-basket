@@ -315,3 +315,38 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .admin-days span.on { background: #fde7d6; color: var(--brand); }
 .admin-days i { font-style: normal; font-size: 10px; font-weight: 600; color: var(--muted); }
 .name-grid button.on .muted { color: rgba(255,255,255,.8); }
+
+/* 관리자 참여자: 한 줄 목록 (누르면 펼침) */
+.admin-list { padding: 4px 0; }
+.admin-row { border-bottom: 1px solid var(--line); }
+.admin-row:last-child { border-bottom: none; }
+.admin-row-main {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  background: none; border: none; padding: 10px 14px; text-align: left;
+}
+.admin-row.open .admin-row-main { background: #fbf1e2; }
+.admin-name { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.admin-name b { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.admin-name small { font-size: 12px; color: var(--muted); }
+.admin-mini { display: flex; gap: 3px; }
+.admin-mini i { width: 8px; height: 18px; border-radius: 3px; background: #efe3cf; }
+.admin-mini i.n1 { background: #f6c9a6; }
+.admin-mini i.n2 { background: #e79a63; }
+.admin-mini i.n3 { background: var(--brand); }
+.placed { width: 22px; text-align: center; color: var(--muted); }
+.admin-row-detail { padding: 4px 14px 10px; background: #fbf1e2; }
+.admin-row-detail .admin-days { margin-top: 0; }
+
+/* 관리자: 페이지는 한 화면에 고정, 목록만 안에서 스크롤 */
+.wrap.admin { height: 100dvh; display: flex; flex-direction: column; gap: 12px; padding-bottom: 16px; overflow: hidden; }
+.wrap.admin > * { flex-shrink: 0; }
+.wrap.admin > .admin-list,
+.wrap.admin > .admin-entries { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.admin-entries { display: flex; flex-direction: column; gap: 12px; overflow-x: hidden; }
+.admin-entries .name-grid {
+  flex-wrap: nowrap; max-height: none; flex-shrink: 0; overflow-x: auto; overflow-y: hidden;
+  margin: 0 -16px; padding: 2px 16px 6px; scrollbar-width: none;
+}
+.admin-entries .name-grid::-webkit-scrollbar { display: none; }
+.admin-entries .name-grid button { flex-shrink: 0; white-space: nowrap; }
+.admin-entries .swipe-card { min-height: 0; }
