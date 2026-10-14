@@ -6,7 +6,7 @@ export type UserStat = {
   id: number;
   nickname: string;
   count: number; // 평일 감사 개수 (0~15)
-  bonus: number; // 주말 감사 개수
+  bonus: number; // 토요일 보너스 감사 개수
   fruit: ReturnType<typeof fruitFor>["id"];
   golden: boolean;
   placed: boolean;

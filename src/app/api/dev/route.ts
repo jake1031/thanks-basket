@@ -78,7 +78,7 @@ export async function POST(req: Request) {
   for (let u = 0; u < DEMO.length; u++) {
     const [, target, golden] = DEMO[u];
     if (golden && WEEKEND[0] <= today) {
-      await db("insert into entries (user_id, entry_date, content) values ($1, $2, $3)", [ids[u], WEEKEND[0], "주말에 가족과 산책했어요 ✨"]);
+      await db("insert into entries (user_id, entry_date, content) values ($1, $2, $3)", [ids[u], WEEKEND[0], "토요일 아침 가족과 산책했어요 ✨"]);
     }
     if (basketOpen(today) && target !== 0) await db("insert into basket (user_id) values ($1)", [ids[u]]);
   }

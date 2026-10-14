@@ -60,7 +60,7 @@ export default function Admin() {
 
   function exportCsv() {
     if (!data) return;
-    const head = ["닉네임", ...WEEKDAYS.map((d) => dayLabel(d).md), "평일합계", "주말", "열매", "황금", "바구니"];
+    const head = ["닉네임", ...WEEKDAYS.map((d) => dayLabel(d).md), "평일합계", "토요일", "열매", "황금", "바구니"];
     const rows = data.users.map((u) => [
       u.nickname, ...WEEKDAYS.map((d) => u.byDay[d] ?? 0), u.count, u.bonus,
       fruitFor(u.count).name, u.golden ? "O" : "", u.placed ? "O" : "",

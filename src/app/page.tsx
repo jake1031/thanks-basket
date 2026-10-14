@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Fruit } from "@/components/Fruit";
 import { ApiError, api, token } from "@/lib/client";
 import {
-  FRUITS, MAX_COUNT, MAX_LEN, PER_DAY, WEEKDAYS, WEEKEND,
+  EVENT_DAYS as DAYS, FRUITS, MAX_COUNT, MAX_LEN, PER_DAY, WEEKDAYS, WEEKEND,
   basketOpen, canEditDate, dayLabel, fruitFor, josa, nextFruit, phaseOf,
   type FruitId,
 } from "@/lib/rules";
@@ -196,20 +196,20 @@ function Mine({ me, reload, say, goBasket }: { me: Me; reload: () => Promise<voi
   }
 
   const byDate = (d: string) => entries.filter((e) => e.date === d);
+  const [sel, setSel] = useState(() =>
+    DAYS.includes(today) ? today : today < DAYS[0] ? DAYS[0] : DAYS[DAYS.length - 1],
+  );
 
   return (
-    <div className="stack">
-      <div className="spread" style={{ paddingTop: 8 }}>
-        <div>
-          <p className="muted small" style={{ margin: 0 }}>반가워요 🙂</p>
-          <h2>{user.nickname}님의 감사</h2>
-        </div>
+    <div className="stack" style={{ gap: 10 }}>
+      <div className="spread" style={{ paddingTop: 4 }}>
+        <h2>{user.nickname}님의 감사</h2>
         <button className="link" onClick={logout}>로그아웃</button>
       </div>
 
-      <div className="card">
+      <div className="card" style={{ padding: "12px 14px" }}>
         <div className="progress-card">
-          <div className="big-fruit"><Fruit id={fruit.id} golden={user.golden} size={64} /></div>
+          <div className="big-fruit" style={{ padding: 0 }}><Fruit id={fruit.id} golden={user.golden} size={54} /></div>
           <div style={{ flex: 1 }}>
             <div className="spread">
               <b>
@@ -219,11 +219,11 @@ function Mine({ me, reload, say, goBasket }: { me: Me; reload: () => Promise<voi
               </b>
               <span className="muted small">{user.count}/{MAX_COUNT}</span>
             </div>
-            <div className="bar" style={{ margin: "8px 0 4px" }}><i style={{ width: `${(user.count / MAX_COUNT) * 100}%` }} /></div>
+            <div className="bar" style={{ margin: "6px 0 4px" }}><i style={{ width: `${(user.count / MAX_COUNT) * 100}%` }} /></div>
             <p className="muted small" style={{ margin: 0 }}>
               {phase === "before" && "10월 19일(월)부터 쓸 수 있어요!"}
               {phase === "weekday" && (next ? `${next.min - user.count}개 더 쓰면 ${josa(next.name, "으로", "로")} 바뀌어요!` : "최고 열매 달성! 🎉")}
-              {phase === "weekend" && (user.golden ? "주말 감사로 황금 열매가 되었어요 ✨" : "주말에 감사를 쓰면 황금 열매로 바뀌어요 ✨")}
+              {phase === "weekend" && (user.golden ? "토요일 감사로 황금 반짝이가 달렸어요 ✨" : "토요일에 감사를 쓰면 황금 반짝이가 달려요 ✨")}
               {phase === "after" && "추수감사절 감사 일기가 끝났어요. 함께해서 고마워요!"}
             </p>
           </div>
@@ -231,41 +231,39 @@ function Mine({ me, reload, say, goBasket }: { me: Me; reload: () => Promise<voi
         <div className="tiers">
           {FRUITS.map((f) => (
             <span key={f.id} className={user.count >= f.min ? "reached" : ""}>
-              <Fruit id={f.id} size={26} />{f.min}+
+              <Fruit id={f.id} size={20} />{f.min}+
             </span>
           ))}
         </div>
         {basketOpen(today) && (
-          <button className="btn block" style={{ marginTop: 12 }} onClick={goBasket}>
+          <button className="btn block" style={{ marginTop: 10, padding: "10px 16px" }} onClick={goBasket}>
             {user.placed ? "🧺 바구니 보러 가기" : "🧺 바구니에 열매 넣으러 가기"}
           </button>
         )}
       </div>
 
-      {(phase === "weekend" || phase === "after") && (
-        <>
-          <h3 style={{ marginTop: 8 }}>✨ 주말 보너스 감사</h3>
-          <p className="muted small" style={{ margin: "-6px 0 0" }}>
-            개수에는 들어가지 않지만, 한 개라도 쓰면 이번 주 열매에 황금 반짝이가 달려요 ✨
-          </p>
-          {WEEKEND.map((d) => (
-            <Day key={d} date={d} today={today} entries={byDate(d)} bonus reload={reload} say={say} />
-          ))}
-        </>
-      )}
+      <div className="day-tabs">
+        {DAYS.map((d) => {
+          const { md, dow } = dayLabel(d);
+          const n = byDate(d).length;
+          const open = canEditDate(today, d);
+          return (
+            <button
+              key={d}
+              className={`${d === sel ? "on" : ""} ${!open && n === 0 ? "locked" : ""} ${d === today ? "today" : ""}`}
+              onClick={() => setSel(d)}
+            >
+              <span className="dow">{dow}{WEEKEND.includes(d) && "✨"}</span>
+              <span className="md">{md}</span>
+              <span className="mini-dots">
+                {Array.from({ length: PER_DAY }, (_, i) => <i key={i} className={i < n ? "on" : ""} />)}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
-      <h3 style={{ marginTop: 8 }}>평일 감사</h3>
-      {phase === "weekday" && (
-        <p className="muted small" style={{ margin: "-6px 0 0" }}>
-          지난 날짜도 금요일까지는 채울 수 있어요. 주말이 되면 잠겨요.
-        </p>
-      )}
-      {(phase === "weekday"
-        ? [...WEEKDAYS.filter((d) => d <= today).reverse(), ...WEEKDAYS.filter((d) => d > today)]
-        : WEEKDAYS
-      ).map((d) => (
-        <Day key={d} date={d} today={today} entries={byDate(d)} reload={reload} say={say} />
-      ))}
+      <Day key={sel} date={sel} today={today} entries={byDate(sel)} bonus={WEEKEND.includes(sel)} reload={reload} say={say} />
     </div>
   );
 }
@@ -312,13 +310,18 @@ function Day({ date, today, entries, bonus = false, reload, say }: {
           {Array.from({ length: PER_DAY }, (_, i) => <i key={i} className={i < entries.length ? "on" : ""} />)}
         </span>
       </div>
+      {bonus && (
+        <p className="muted small" style={{ margin: "-4px 0 10px" }}>
+          ✨ 보너스 감사예요. 개수에는 안 들어가지만, 한 개라도 쓰면 내 열매에 황금 반짝이가 달려요.
+        </p>
+      )}
       <div className="stack" style={{ gap: 8 }}>
         {entries.map((e, i) => <EntryItem key={e.id} entry={e} index={i} editable={editable} reload={reload} say={say} />)}
         {editable && entries.length < PER_DAY && (
           <div className="stack" style={{ gap: 6 }}>
             <textarea
               className="textarea" maxLength={MAX_LEN} value={draft} onChange={(e) => setDraft(e.target.value)}
-              placeholder={bonus ? "주말에 감사했던 순간을 적어주세요" : [date === today ? "오늘, 무엇이 감사했나요?" : "이날, 무엇이 감사했나요?", "또 어떤 순간이 감사했나요?", "마지막 감사를 채워주세요"][entries.length]}
+              placeholder={bonus ? "토요일, 무엇이 감사했나요?" : [date === today ? "오늘, 무엇이 감사했나요?" : "이날, 무엇이 감사했나요?", "또 어떤 순간이 감사했나요?", "마지막 감사를 채워주세요"][entries.length]}
             />
             <div className="spread">
               <span className="muted small">{draft.length}/{MAX_LEN}</span>
@@ -585,7 +588,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
           <Fruit id={myFruit.id} size={44} />
           <div style={{ flex: 1 }}>
             <b>바구니는 10/24(토)에 열려요</b>
-            <p className="muted small">평일 동안 감사를 채우고, 주말에 내 열매를 넣어주세요!</p>
+            <p className="muted small">평일 동안 감사를 채우고, 토요일에 내 열매를 넣어주세요!</p>
           </div>
         </div>
       ) : user.placed ? (
@@ -594,7 +597,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
           <div style={{ flex: 1 }}>
             <b>내 {user.golden ? "황금 " : ""}{josa(myFruit.name, "을", "를")} 넣었어요</b>
             <p className="muted small">
-              {user.golden ? "주말 감사로 황금 반짝이가 달렸어요 ✨" : "주말 감사를 쓰면 황금 반짝이가 달려요!"}
+              {user.golden ? "토요일 감사로 황금 반짝이가 달렸어요 ✨" : "토요일에 감사를 쓰면 황금 반짝이가 달려요!"}
             </p>
           </div>
         </div>

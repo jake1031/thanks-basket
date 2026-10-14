@@ -224,3 +224,22 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
   border: 1px solid var(--line); background: #fbf3e4; border-radius: 8px; padding: 7px 0; font-size: 12px; font-weight: 600;
 }
 .devbar-grid button.on { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+/* 날짜 탭 */
+.day-tabs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.day-tabs button {
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  border: 1px solid var(--line); background: var(--card); border-radius: 12px; padding: 7px 0 6px;
+}
+.day-tabs .dow { font-weight: 800; font-size: 14px; }
+.day-tabs .md { font-size: 11px; color: var(--muted); }
+.day-tabs .mini-dots { display: flex; gap: 2px; margin-top: 3px; }
+.day-tabs .mini-dots i { width: 5px; height: 5px; border-radius: 50%; background: #ecdcc3; }
+.day-tabs .mini-dots i.on { background: var(--brand); }
+.day-tabs button.today { border-color: var(--brand); }
+.day-tabs button.locked { opacity: .45; }
+.day-tabs button.on { background: var(--brand); border-color: var(--brand); color: #fff; opacity: 1; }
+.day-tabs button.on .md { color: rgba(255,255,255,.85); }
+.day-tabs button.on .mini-dots i { background: rgba(255,255,255,.35); }
+.day-tabs button.on .mini-dots i.on { background: #fff; }
+.tiers { margin-top: 4px; }

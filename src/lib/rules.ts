@@ -1,7 +1,7 @@
 // 이벤트 규칙 (서버/클라이언트 공용). 모든 날짜는 한국 시간(KST) 기준 'YYYY-MM-DD'.
 
 export const WEEKDAYS = ["2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23"];
-export const WEEKEND = ["2026-10-24", "2026-10-25"];
+export const WEEKEND = ["2026-10-24"]; // 토요일만 보너스 감사 (일요일은 결산·읽기 전용)
 export const EVENT_DAYS = [...WEEKDAYS, ...WEEKEND];
 export const PER_DAY = 3;
 export const MAX_COUNT = WEEKDAYS.length * PER_DAY; // 15
@@ -43,8 +43,8 @@ export function dayLabel(date: string) {
 export type Phase =
   | "before" // 10/19 이전: 가입만 가능
   | "weekday" // 평일: 오늘까지의 평일 칸 작성/수정/삭제 가능
-  | "weekend" // 주말: 평일 기록 잠금, 오늘 날짜로 보너스 감사만, 바구니 넣기 가능
-  | "after"; // 10/25 이후: 읽기 전용
+  | "weekend" // 토요일: 평일 기록 잠금, 보너스 감사만, 바구니 넣기 가능
+  | "after"; // 일요일(10/25)부터: 감사는 읽기 전용, 바구니 넣기는 가능
 
 export function phaseOf(today: string): Phase {
   if (today < WEEKDAYS[0]) return "before";
