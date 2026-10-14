@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Fruit, FruitDefs } from "@/components/Fruit";
+import { Fruit } from "@/components/Fruit";
 import { ApiError, api, token } from "@/lib/client";
 import {
   FRUITS, MAX_COUNT, MAX_LEN, PER_DAY, WEEKDAYS, WEEKEND,
@@ -46,7 +46,6 @@ export default function Home() {
 
   return (
     <>
-      <FruitDefs />
       <div className="wrap">
         {tab === "mine" && <Mine me={me} reload={load} say={say} goBasket={() => setTab("basket")} />}
         {tab === "board" && <Board say={say} />}
@@ -96,7 +95,6 @@ function Join({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="wrap stack">
-      <FruitDefs />
       <div className="hero">
         <div className="row" style={{ justifyContent: "center", gap: 2 }}>
           {FRUITS.map((f) => <Fruit key={f.id} id={f.id} size={40} />)}
@@ -405,45 +403,51 @@ type BasketData = {
   totalThanks: number;
 };
 
-// 바구니에는 과일 종류(일반/황금)별로 한 무더기씩 포개어 담는다.
-// 사람 수만큼 다 그리지 않고, 받은 사람이 많을수록 무더기가 1→2→3개로 커진다.
-type Heap = { fruit: FruitId; golden: boolean; count: number; mine: boolean };
+// 바구니에는 사람 수만큼 다 그리지 않고, 과일 종류별로 1~3개를 크게 포개어 봉긋하게 담는다.
+// 받은 사람이 많을수록 그 과일이 1→2→3개로 늘어나고, 황금이 있으면 그중 하나에 반짝이를 단다.
+type Piece = { fruit: FruitId; golden: boolean; mine: boolean; left: number; bottom: number; size: number; rotate: number; z: number };
 
-const HEAP_SHAPES = [
-  [{ x: 50, y: 0, r: -6 }],
-  [{ x: 32, y: 0, r: -12 }, { x: 68, y: 3, r: 10 }],
-  [{ x: 28, y: 0, r: -14 }, { x: 72, y: 2, r: 12 }, { x: 50, y: 34, r: -4 }],
+const ROW_SPEC = [
+  { cap: 6, bottom: 0, spacing: 15, size: 27, z: 3 }, // 앞줄
+  { cap: 5, bottom: 22, spacing: 15, size: 27, z: 2 }, // 가운데 (앞줄과 엇갈림)
+  { cap: 4, bottom: 42, spacing: 15, size: 26, z: 1 }, // 뒷줄
 ];
 
-function buildHeaps(placed: BasketData["placed"]): Heap[] {
-  const heaps: Heap[] = [];
+function arrangeFruits(placed: BasketData["placed"]): Piece[] {
+  const items: Omit<Piece, "left" | "bottom" | "size" | "rotate" | "z">[] = [];
   for (const f of FRUITS) {
-    for (const golden of [false, true]) {
-      const items = placed.filter((p) => p.fruit === f.id && p.golden === golden);
-      if (items.length) heaps.push({ fruit: f.id, golden, count: items.length, mine: items.some((p) => p.mine) });
+    const mine = placed.filter((p) => p.fruit === f.id);
+    if (!mine.length) continue;
+    const n = mine.length >= 4 ? 3 : mine.length >= 2 ? 2 : 1;
+    for (let k = 0; k < n; k++) {
+      items.push({
+        fruit: f.id,
+        golden: k === n - 1 && mine.some((p) => p.golden),
+        mine: k === n - 1 && mine.some((p) => p.mine),
+      });
     }
   }
-  return heaps;
-}
-
-/** 무더기 위치: 과일 종류마다 한 자리. 황금 무더기는 같은 과일 위에 살짝 얹는다. 가운데가 봉긋하게. */
-function heapLayout(heaps: Heap[]) {
-  const types = [...new Set(heaps.map((h) => h.fruit))];
-  const k = types.length;
-  const spacing = Math.min(20, 80 / Math.max(k, 1));
-  return heaps.map((h) => {
-    const idx = types.indexOf(h.fruit);
-    const offset = idx - (k - 1) / 2;
-    const mound = k > 1 ? (1 - Math.abs(offset) / ((k - 1) / 2)) * 8 : 8;
-    const hasNormal = heaps.some((o) => o.fruit === h.fruit && !o.golden);
-    const onTop = h.golden && hasNormal; // 같은 과일 무더기 위에 살짝 얹기
-    return {
-      left: 50 + offset * spacing + (onTop ? spacing * 0.3 : 0),
-      bottom: (onTop ? 26 : 0) + mound,
-      z: onTop ? 4 : 1 + (idx % 2),
-      scale: onTop ? 0.72 : 1,
-    };
-  });
+  // 앞줄부터 채우고, 자리를 왼→오 순서로 정렬해 같은 과일끼리 가까이 포개지게 한다
+  const slots: Omit<Piece, "fruit" | "golden" | "mine">[] = [];
+  let left = items.length;
+  for (const row of ROW_SPEC) {
+    const k = Math.min(row.cap, left);
+    left -= k;
+    for (let j = 0; j < k; j++) {
+      const r = Math.sin((slots.length + 1) * 12.9898) * 43758.5453;
+      const rand = r - Math.floor(r);
+      slots.push({
+        left: 50 + (j - (k - 1) / 2) * row.spacing,
+        bottom: row.bottom + (rand - 0.5) * 4,
+        size: row.size,
+        rotate: (rand - 0.5) * 24,
+        z: row.z * 10 + j,
+      });
+    }
+  }
+  slots.sort((x, y) => x.left - y.left || y.bottom - x.bottom);
+  // 밤은 다른 과일보다 조금 작게
+  return items.map((it, i) => ({ ...it, ...slots[i], size: slots[i].size * (it.fruit === "chestnut" ? 0.82 : 1) }));
 }
 
 function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say: (m: string) => void }) {
@@ -474,8 +478,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   const tally = FRUITS.map((f) => ({ ...f, n: data.placed.filter((p) => p.fruit === f.id).length })).filter((f) => f.n > 0);
   const goldN = data.placed.filter((p) => p.golden).length;
   const goal = Math.max(data.members, 1) * MAX_COUNT;
-  const heaps = buildHeaps(data.placed);
-  const layout = heapLayout(heaps);
+  const pieces = arrangeFruits(data.placed);
 
   return (
     <div className="stack">
@@ -490,25 +493,17 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
         <div className="basket-stage">
           <BasketBack />
           <div className="pile">
-            {heaps.map((h, i) => {
-              const pos = layout[i];
-              const shape = HEAP_SHAPES[Math.min(h.count >= 4 ? 3 : h.count >= 2 ? 2 : 1, 3) - 1];
-              return (
-                <div key={`${h.fruit}-${h.golden}`} className="heap" style={{ left: `${pos.left}%`, bottom: `${pos.bottom}%`, zIndex: pos.z, width: `${34 * pos.scale}%` }}>
-                  {shape.map((f, k) => (
-                    <div
-                      key={k}
-                      className={`p ${h.mine && dropped && k === shape.length - 1 ? "drop" : ""}`}
-                      style={{ left: `${f.x}%`, bottom: `${f.y}%`, zIndex: k }}
-                    >
-                      <div style={{ transform: `rotate(${f.r}deg)` }}>
-                        <Fruit id={h.fruit} golden={h.golden} size="100%" />
-                      </div>
-                    </div>
-                  ))}
+            {pieces.map((p, i) => (
+              <div
+                key={i}
+                className={`p ${p.mine && dropped ? "drop" : ""}`}
+                style={{ left: `${p.left}%`, bottom: `${p.bottom}%`, width: `${p.size}%`, zIndex: p.z }}
+              >
+                <div style={{ transform: `rotate(${p.rotate}deg)` }}>
+                  <Fruit id={p.fruit} golden={p.golden} size="100%" />
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
           <BasketFront />
         </div>
@@ -561,86 +556,62 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   );
 }
 
-// 바구니 테두리를 따라 땋은 무늬 위치 계산 (3차 베지어)
-function rimPoints(n: number) {
-  const P = [[34, 200], [34, 236], [366, 236], [366, 200]];
-  return Array.from({ length: n }, (_, k) => {
-    const t = k / (n - 1), u = 1 - t;
-    const b = [u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t];
-    return { x: b.reduce((s, w, q) => s + w * P[q][0], 0), y: b.reduce((s, w, q) => s + w * P[q][1], 0) };
-  });
+function Wheat({ x, y, angle, flip = false }: { x: number; y: number; angle: number; flip?: boolean }) {
+  const grains = [0, 1, 2, 3, 4, 5];
+  return (
+    <g transform={`translate(${x} ${y}) rotate(${angle}) ${flip ? "scale(-1 1)" : ""}`}>
+      <path d="M0 0 C2 -40 6 -80 14 -118" stroke="#b5834a" strokeWidth="3" fill="none" strokeLinecap="round" />
+      {grains.map((g) => {
+        const t = 30 + g * 15;
+        const cx = (t / 118) * 12;
+        return (
+          <g key={g}>
+            <ellipse cx={cx - 8} cy={-t} rx="5" ry="9.5" fill="#c99a5e" transform={`rotate(-35 ${cx - 8} ${-t})`} />
+            <ellipse cx={cx + 9} cy={-t - 4} rx="5" ry="9.5" fill="#b9884d" transform={`rotate(35 ${cx + 9} ${-t - 4})`} />
+          </g>
+        );
+      })}
+      <ellipse cx="14" cy="-126" rx="4.5" ry="9" fill="#c99a5e" />
+    </g>
+  );
 }
 
 function BasketBack() {
   return (
     <svg className="basket" viewBox="0 0 400 360" aria-hidden>
-      <defs>
-        <linearGradient id="bk-handle" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#e2ad70" />
-          <stop offset="1" stopColor="#a8682f" />
-        </linearGradient>
-        <radialGradient id="bk-inside" cx="0.5" cy="0.35" r="0.7">
-          <stop offset="0" stopColor="#6b4222" />
-          <stop offset="1" stopColor="#3a200c" />
-        </radialGradient>
-        <pattern id="bk-gingham" width="16" height="16" patternUnits="userSpaceOnUse">
-          <rect width="16" height="16" fill="#fffaf3" />
-          <rect width="8" height="16" fill="#e97a70" opacity="0.6" />
-          <rect width="16" height="8" fill="#e97a70" opacity="0.6" />
-        </pattern>
-      </defs>
-      <ellipse cx="200" cy="336" rx="150" ry="12" fill="#5a3a1a" opacity=".12" />
-      <path d="M64 202 C64 48 336 48 336 202" fill="none" stroke="#8a5424" strokeWidth="18" strokeLinecap="round" />
-      <path d="M64 202 C64 48 336 48 336 202" fill="none" stroke="url(#bk-handle)" strokeWidth="13" strokeLinecap="round" />
-      <path d="M64 202 C64 48 336 48 336 202" fill="none" stroke="#9c6230" strokeWidth="13" strokeDasharray="9 9" opacity=".55" />
-      <path d="M64 202 C64 48 336 48 336 202" fill="none" stroke="#f4cf9a" strokeWidth="3" strokeDasharray="9 9" strokeDashoffset="9" opacity=".6" transform="translate(0 -2)" />
-      <ellipse cx="200" cy="202" rx="164" ry="27" fill="url(#bk-inside)" />
-      <path d="M48 204 C66 172 116 166 150 176 C178 164 222 164 250 176 C284 166 334 172 352 204 C300 192 100 192 48 204 Z" fill="url(#bk-gingham)" />
-      <path d="M48 204 C66 172 116 166 150 176 C178 164 222 164 250 176 C284 166 334 172 352 204" fill="none" stroke="#e58f86" strokeWidth="1.5" opacity=".6" />
+      <ellipse cx="200" cy="330" rx="150" ry="10" fill="#7a5530" opacity=".12" />
+      <Wheat x={70} y={206} angle={-28} />
+      <Wheat x={92} y={206} angle={-10} />
+      <Wheat x={330} y={206} angle={26} flip />
+      <path d="M38 208 C70 172 330 172 362 208 Z" fill="#b48655" />
     </svg>
   );
 }
 
 function BasketFront() {
-  const rows = [];
-  for (let y = 226; y < 330; y += 15) rows.push(y);
+  const marks: { x: number; y: number }[] = [];
+  [240, 266, 292].forEach((y, r) => {
+    for (let x = 72 + (r % 2) * 20; x <= 330; x += 40) marks.push({ x, y });
+  });
   return (
     <svg className="basket" viewBox="0 0 400 360" aria-hidden>
       <defs>
-        <linearGradient id="bk-body" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#d99c5c" />
-          <stop offset="1" stopColor="#a5662e" />
-        </linearGradient>
-        <linearGradient id="bk-strand" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#f0c48c" />
-          <stop offset="1" stopColor="#c48346" />
-        </linearGradient>
-        <linearGradient id="bk-shade" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#3a1f08" stopOpacity=".35" />
-          <stop offset=".25" stopColor="#3a1f08" stopOpacity="0" />
-          <stop offset=".75" stopColor="#3a1f08" stopOpacity="0" />
-          <stop offset="1" stopColor="#3a1f08" stopOpacity=".4" />
-        </linearGradient>
         <clipPath id="bk-clip">
-          <path d="M34 200 C34 236 366 236 366 200 L330 316 C326 340 74 340 70 316 Z" />
+          <path d="M42 214 L358 214 C354 270 316 320 200 320 C84 320 46 270 42 214 Z" />
         </clipPath>
       </defs>
       <g clipPath="url(#bk-clip)">
-        <rect x="0" y="190" width="400" height="160" fill="url(#bk-body)" />
-        {rows.map((y, i) => (
-          <g key={y}>
-            {Array.from({ length: 13 }, (_, k) => (
-              <rect key={k} x={k * 32 - (i % 2 ? 0 : 16)} y={y} width="28" height="11" rx="5.5" fill="url(#bk-strand)" />
-            ))}
+        <rect x="0" y="200" width="400" height="140" fill="#dcb987" />
+        <path d="M280 214 L400 214 L400 340 L250 340 C320 300 330 260 280 214 Z" fill="#cfa974" />
+        {marks.map((m, i) => (
+          <g key={i} stroke="#b08550" strokeWidth="5" strokeLinecap="round">
+            <line x1={m.x - 11} y1={m.y - 6} x2={m.x - 4} y2={m.y + 6} />
+            <line x1={m.x + 4} y1={m.y + 6} x2={m.x + 11} y2={m.y - 6} />
           </g>
         ))}
-        <rect x="0" y="190" width="400" height="160" fill="url(#bk-shade)" />
       </g>
-      <path d="M34 200 C34 236 366 236 366 200" fill="none" stroke="#9a5f2a" strokeWidth="20" strokeLinecap="round" />
-      {rimPoints(44).map((p, k) => (
-        <ellipse key={k} cx={p.x} cy={p.y + (k % 2 ? 3 : -3)} rx="10" ry="5" fill={k % 2 ? "#d39652" : "#ebbb7f"}
-          stroke="#9a5f2a" strokeWidth="0.6" transform={`rotate(${k % 2 ? 28 : -28} ${p.x} ${p.y})`} />
-      ))}
+      <rect x="26" y="196" width="348" height="26" rx="13" fill="#b08550" />
+      <rect x="34" y="200" width="332" height="5" rx="2.5" fill="#c49a66" />
     </svg>
   );
 }

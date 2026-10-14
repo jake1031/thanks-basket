@@ -143,9 +143,8 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 /* 바구니 */
 .basket-stage { position: relative; width: 100%; aspect-ratio: 1 / 0.9; }
 .basket-stage svg.basket { position: absolute; inset: 0; width: 100%; height: 100%; }
-.pile { position: absolute; left: 12%; right: 12%; bottom: 40%; height: 40%; }
-.pile .heap { position: absolute; width: 30%; aspect-ratio: 1; transform: translateX(-50%); }
-.pile .p { position: absolute; width: 58%; transform: translate(-50%, 0); }
+.pile { position: absolute; left: 10%; right: 10%; bottom: 40%; height: 50%; }
+.pile .p { position: absolute; transform: translate(-50%, 0); }
 .pile .p svg { display: block; }
 .pile .p.drop { animation: drop .9s cubic-bezier(.3, .0, .4, 1) both; }
 @keyframes drop {
@@ -154,10 +153,9 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
   80% { transform: translate(-50%, -8%) rotate(-3deg); }
   100% { transform: translate(-50%, 0) rotate(0); }
 }
-.fruit { overflow: visible; filter: drop-shadow(0 2px 2px rgba(60, 30, 10, .18)); }
-.fruit.golden { filter: drop-shadow(0 0 6px rgba(245, 197, 66, .85)) drop-shadow(0 2px 2px rgba(60, 30, 10, .15)); }
+.fruit { overflow: visible; }
 .fruit .sparkle { animation: twinkle 1.8s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
-@keyframes twinkle { 50% { opacity: .2; transform: scale(.6); } }
+@keyframes twinkle { 50% { opacity: .45; transform: scale(.8); } }
 .basket-stage { background: radial-gradient(ellipse at 50% 45%, #fff3dc 0%, rgba(255, 243, 220, 0) 65%); border-radius: 14px; }
 .summary { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .chip {
