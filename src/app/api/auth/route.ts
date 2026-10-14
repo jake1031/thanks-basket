@@ -1,6 +1,12 @@
 import { db } from "@/lib/db";
 import { createSession, deleteSession, fail, hashPin, json, verifyPin } from "@/lib/server";
 
+// '이어하기'에서 고를 닉네임 목록 (작성 내용은 노출하지 않음)
+export async function GET() {
+  const rows = await db<{ nickname: string }>("select nickname from users order by nickname");
+  return json({ nicknames: rows.map((r) => r.nickname) });
+}
+
 export async function POST(req: Request) {
   const { mode, nickname: rawName, pin } = await req.json().catch(() => ({}));
   const nickname = String(rawName ?? "").trim().replace(/\s+/g, " ");

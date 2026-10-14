@@ -89,6 +89,17 @@ function Join({ onDone }: { onDone: () => void }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [example] = useState(() => NICK_EXAMPLES[Math.floor(Math.random() * NICK_EXAMPLES.length)]);
+  const [names, setNames] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    if (mode !== "login") return;
+    api<{ nicknames: string[] }>("/api/auth").then((r) => setNames(r.nicknames)).catch(() => setNames([]));
+  }, [mode]);
+
+  function switchMode(m: "new" | "login") {
+    setMode(m); setError(""); setPin("");
+    if (m === "login") setNickname("");
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -117,17 +128,36 @@ function Join({ onDone }: { onDone: () => void }) {
       </div>
 
       <div className="segment">
-        <button className={mode === "new" ? "on" : ""} onClick={() => { setMode("new"); setError(""); }}>처음 시작하기</button>
-        <button className={mode === "login" ? "on" : ""} onClick={() => { setMode("login"); setError(""); }}>이어하기</button>
+        <button className={mode === "new" ? "on" : ""} onClick={() => switchMode("new")}>처음 시작하기</button>
+        <button className={mode === "login" ? "on" : ""} onClick={() => switchMode("login")}>이어하기</button>
       </div>
 
       <form className="card stack" onSubmit={submit}>
-        <label className="stack" style={{ gap: 6 }}>
-          <b>닉네임</b>
-          <input className="input" value={nickname} maxLength={12} placeholder={`예) ${example}`} onChange={(e) => setNickname(e.target.value)} />
-        </label>
-        <label className="stack" style={{ gap: 6 }}>
-          <b>PIN 4자리</b>
+        {mode === "new" ? (
+          <label className="stack" style={{ gap: 6 }}>
+            <b>닉네임</b>
+            <input className="input" value={nickname} maxLength={12} placeholder={`예) ${example}`} onChange={(e) => setNickname(e.target.value)} />
+          </label>
+        ) : (
+          <div className="stack" style={{ gap: 6 }}>
+            <b>내 닉네임을 골라주세요</b>
+            {names === null ? (
+              <p className="muted small" style={{ margin: 0 }}>불러오는 중…</p>
+            ) : names.length === 0 ? (
+              <p className="muted small" style={{ margin: 0 }}>아직 가입한 사람이 없어요. &apos;처음 시작하기&apos;를 눌러주세요.</p>
+            ) : (
+              <div className="name-grid">
+                {names.map((n) => (
+                  <button type="button" key={n} className={nickname === n ? "on" : ""} onClick={() => { setNickname(n); setError(""); }}>
+                    {n}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {(mode === "new" || nickname) && <label className="stack" style={{ gap: 6 }}>
+          <b>{mode === "login" ? `${nickname}님의 PIN 4자리` : "PIN 4자리"}</b>
           <input
             className="input pin" inputMode="numeric" type="password" autoComplete="off" maxLength={4} value={pin}
             onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
@@ -137,7 +167,7 @@ function Join({ onDone }: { onDone: () => void }) {
               ? "다른 기기에서 이어서 쓸 때 필요해요. 꼭 기억해주세요!"
               : "처음 만들 때 정한 PIN을 입력하세요."}
           </span>
-        </label>
+        </label>}
         {error && <p className="error" style={{ margin: 0 }}>{error}</p>}
         <button className="btn block" disabled={busy || !nickname.trim() || pin.length !== 4}>
           {mode === "new" ? "시작하기" : "이어하기"}
