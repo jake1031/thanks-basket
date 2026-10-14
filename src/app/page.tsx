@@ -547,10 +547,12 @@ type BasketData = {
 // 받은 사람이 많을수록 그 과일이 1→2→3개로 늘어난다. 황금은 그리지 않는다.
 type Piece = { fruit: FruitId; golden: boolean; mine: boolean; left: number; bottom: number; size: number; rotate: number; z: number };
 
+// 봉긋한 더미: 줄마다 반 칸씩 엇갈리고, 가운데로 갈수록 살짝 솟는다(curve).
+// 앞줄은 바구니 테두리 뒤로 깊이 잠기게(base 음수) 해서 과일이 바구니에 담긴 느낌을 준다.
 const ROW_SPEC = [
-  { cap: 6, bottom: 0, spacing: 15, size: 27, z: 3 }, // 앞줄
-  { cap: 5, bottom: 22, spacing: 15, size: 27, z: 2 }, // 가운데 (앞줄과 엇갈림)
-  { cap: 4, bottom: 42, spacing: 15, size: 26, z: 1 }, // 뒷줄
+  { cap: 6, base: -7, curve: 5, spacing: 14.5, size: 30, z: 3 }, // 앞줄
+  { cap: 5, base: 10, curve: 8, spacing: 14.5, size: 29, z: 2 }, // 가운데
+  { cap: 4, base: 26, curve: 7, spacing: 14.5, size: 27, z: 1 }, // 맨 위
 ];
 
 function arrangeFruits(placed: BasketData["placed"]): Piece[] {
@@ -567,28 +569,52 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
       });
     }
   }
-  // 앞줄부터 채우고, 자리를 왼→오 순서로 정렬해 같은 과일끼리 가까이 포개지게 한다
+  // 앞줄부터 자리를 만든다
   const slots: Omit<Piece, "fruit" | "golden" | "mine">[] = [];
   let left = items.length;
   for (const row of ROW_SPEC) {
     const k = Math.min(row.cap, left);
     left -= k;
+    const half = Math.max((k - 1) / 2, 1);
     for (let j = 0; j < k; j++) {
       const r = Math.sin((slots.length + 1) * 12.9898) * 43758.5453;
       const rand = r - Math.floor(r);
+      const off = j - (k - 1) / 2;
       slots.push({
-        left: 50 + (j - (k - 1) / 2) * row.spacing,
-        bottom: row.bottom + (rand - 0.5) * 4,
+        left: 50 + off * row.spacing + (rand - 0.5) * 2,
+        bottom: row.base + row.curve * (1 - (off / half) ** 2) + (rand - 0.5) * 2,
         size: row.size,
-        rotate: (rand - 0.5) * 24,
-        z: row.z * 10 + j,
+        rotate: (rand - 0.5) * 20,
+        z: row.z * 10 + Math.round(10 - Math.abs(off) * 2),
       });
     }
   }
-  slots.sort((x, y) => x.left - y.left || y.bottom - x.bottom);
+  // 같은 과일끼리 옹기종기 모이도록: 왼쪽 아래 빈자리부터 시작해서 가장 가까운 자리들을 묶어 준다
+  const free = slots.map((_, i) => i);
+  const dist = (i: number, j: number) => Math.hypot(slots[i].left - slots[j].left, (slots[i].bottom - slots[j].bottom) * 0.9);
+  const order: number[] = [];
+  let at = 0;
+  while (at < items.length) {
+    let n = 1;
+    while (at + n < items.length && items[at + n].fruit === items[at].fruit) n++;
+    free.sort((x, y) => slots[x].left - slots[y].left || slots[x].bottom - slots[y].bottom);
+    const seed = free.shift()!;
+    const group = [seed];
+    for (let g = 1; g < n; g++) {
+      free.sort((x, y) => dist(x, seed) - dist(y, seed));
+      group.push(free.shift()!);
+    }
+    order.push(...group);
+    at += n;
+  }
   // 밤이 가장 작고, 귤은 밤과 감 사이 크기
   const SCALE: Partial<Record<FruitId, number>> = { chestnut: 0.7, tangerine: 0.9 };
-  return items.map((it, i) => ({ ...it, ...slots[i], size: slots[i].size * (SCALE[it.fruit] ?? 1) }));
+  return items.map((it, i) => {
+    const sl = slots[order[i]];
+    const size = sl.size * (SCALE[it.fruit] ?? 1);
+    // 작은 과일은 바구니에 너무 파묻히지 않게 줄어든 만큼 살짝 올린다
+    return { ...it, ...sl, size, bottom: sl.bottom + (sl.size - size) * 0.9 };
+  });
 }
 
 function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say: (m: string) => void }) {
