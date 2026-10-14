@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Fruit, GoldDefs } from "@/components/Fruit";
+import { Fruit, FruitDefs } from "@/components/Fruit";
 import { ApiError, api, token } from "@/lib/client";
 import {
   FRUITS, MAX_COUNT, MAX_LEN, PER_DAY, WEEKDAYS, WEEKEND,
@@ -46,7 +46,7 @@ export default function Home() {
 
   return (
     <>
-      <GoldDefs />
+      <FruitDefs />
       <div className="wrap">
         {tab === "mine" && <Mine me={me} reload={load} say={say} goBasket={() => setTab("basket")} />}
         {tab === "board" && <Board say={say} />}
@@ -96,7 +96,7 @@ function Join({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="wrap stack">
-      <GoldDefs />
+      <FruitDefs />
       <div className="hero">
         <div className="row" style={{ justifyContent: "center", gap: 2 }}>
           {FRUITS.map((f) => <Fruit key={f.id} id={f.id} size={40} />)}
@@ -280,7 +280,7 @@ function Day({ date, today, entries, bonus = false, reload, say }: {
           <div className="stack" style={{ gap: 6 }}>
             <textarea
               className="textarea" maxLength={MAX_LEN} value={draft} onChange={(e) => setDraft(e.target.value)}
-              placeholder={bonus ? "주말의 감사를 적어주세요" : [date === today ? "오늘 감사한 일 하나" : "이날 감사한 일 하나", "감사한 일 둘", "마지막 감사 셋"][entries.length]}
+              placeholder={bonus ? "주말에 감사했던 순간을 적어주세요" : [date === today ? "오늘, 무엇이 감사했나요?" : "이날, 무엇이 감사했나요?", "또 어떤 순간이 감사했나요?", "마지막 감사를 채워주세요"][entries.length]}
             />
             <div className="spread">
               <span className="muted small">{draft.length}/{MAX_LEN}</span>
@@ -413,7 +413,15 @@ function slot(i: number) {
   const n = ROWS[r];
   const order = Array.from({ length: n }, (_, k) => k).sort((a, b) => Math.abs(a - (n - 1) / 2) - Math.abs(b - (n - 1) / 2));
   const col = order[idx % n];
-  return { left: 50 + (col - (n - 1) / 2) * 12.5, bottom: r * 22 };
+  // 자연스럽게 보이도록 위치·각도·크기를 살짝 흔든다 (항상 같은 값)
+  const j = Math.sin(i * 12.9898) * 43758.5453;
+  const rand = j - Math.floor(j);
+  return {
+    left: 50 + (col - (n - 1) / 2) * 12.5 + (rand - 0.5) * 3,
+    bottom: r * 21 + (col % 2) * 3,
+    rotate: (rand - 0.5) * 30,
+    size: 44 + Math.round(rand * 6),
+  };
 }
 
 function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say: (m: string) => void }) {
@@ -461,8 +469,10 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
             {data.placed.slice(0, 26).map((p, i) => {
               const s = slot(i);
               return (
-                <div key={i} className={`p ${p.mine && dropped ? "drop" : ""}`} style={{ left: `${s.left}%`, bottom: `${s.bottom}%` }}>
-                  <Fruit id={p.fruit} golden={p.golden} size={44} />
+                <div key={i} className={`p ${p.mine && dropped ? "drop" : ""}`} style={{ left: `${s.left}%`, bottom: `${s.bottom}%`, zIndex: 10 - Math.floor(s.bottom / 21) }}>
+                  <div style={{ transform: `rotate(${s.rotate}deg)` }}>
+                    <Fruit id={p.fruit} golden={p.golden} size={s.size} />
+                  </div>
                 </div>
               );
             })}
@@ -518,39 +528,86 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   );
 }
 
+// 바구니 테두리를 따라 땋은 무늬 위치 계산 (3차 베지어)
+function rimPoints(n: number) {
+  const P = [[34, 200], [34, 236], [366, 236], [366, 200]];
+  return Array.from({ length: n }, (_, k) => {
+    const t = k / (n - 1), u = 1 - t;
+    const b = [u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t];
+    return { x: b.reduce((s, w, q) => s + w * P[q][0], 0), y: b.reduce((s, w, q) => s + w * P[q][1], 0) };
+  });
+}
+
 function BasketBack() {
   return (
     <svg className="basket" viewBox="0 0 400 360" aria-hidden>
-      <ellipse cx="200" cy="335" rx="150" ry="14" fill="#000" opacity=".07" />
-      <path d="M70 190 C70 60 330 60 330 190" fill="none" stroke="#b07a45" strokeWidth="14" strokeLinecap="round" />
-      <path d="M70 190 C70 60 330 60 330 190" fill="none" stroke="#cf9a62" strokeWidth="6" strokeLinecap="round" />
-      <ellipse cx="200" cy="200" rx="160" ry="26" fill="#7a4e27" />
+      <defs>
+        <linearGradient id="bk-handle" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#e2ad70" />
+          <stop offset="1" stopColor="#a8682f" />
+        </linearGradient>
+        <radialGradient id="bk-inside" cx="0.5" cy="0.35" r="0.7">
+          <stop offset="0" stopColor="#6b4222" />
+          <stop offset="1" stopColor="#3a200c" />
+        </radialGradient>
+        <pattern id="bk-gingham" width="16" height="16" patternUnits="userSpaceOnUse">
+          <rect width="16" height="16" fill="#fffaf3" />
+          <rect width="8" height="16" fill="#e97a70" opacity="0.6" />
+          <rect width="16" height="8" fill="#e97a70" opacity="0.6" />
+        </pattern>
+      </defs>
+      <ellipse cx="200" cy="336" rx="150" ry="12" fill="#5a3a1a" opacity=".12" />
+      <path d="M64 202 C64 48 336 48 336 202" fill="none" stroke="#8a5424" strokeWidth="18" strokeLinecap="round" />
+      <path d="M64 202 C64 48 336 48 336 202" fill="none" stroke="url(#bk-handle)" strokeWidth="13" strokeLinecap="round" />
+      <path d="M64 202 C64 48 336 48 336 202" fill="none" stroke="#9c6230" strokeWidth="13" strokeDasharray="9 9" opacity=".55" />
+      <path d="M64 202 C64 48 336 48 336 202" fill="none" stroke="#f4cf9a" strokeWidth="3" strokeDasharray="9 9" strokeDashoffset="9" opacity=".6" transform="translate(0 -2)" />
+      <ellipse cx="200" cy="202" rx="164" ry="27" fill="url(#bk-inside)" />
+      <path d="M48 204 C66 172 116 166 150 176 C178 164 222 164 250 176 C284 166 334 172 352 204 C300 192 100 192 48 204 Z" fill="url(#bk-gingham)" />
+      <path d="M48 204 C66 172 116 166 150 176 C178 164 222 164 250 176 C284 166 334 172 352 204" fill="none" stroke="#e58f86" strokeWidth="1.5" opacity=".6" />
     </svg>
   );
 }
 
 function BasketFront() {
-  const weave = [];
-  for (let y = 222; y < 320; y += 18) weave.push(y);
+  const rows = [];
+  for (let y = 226; y < 330; y += 15) rows.push(y);
   return (
     <svg className="basket" viewBox="0 0 400 360" aria-hidden>
       <defs>
-        <clipPath id="basket-body">
-          <path d="M40 200 C40 226 360 226 360 200 L330 318 C330 336 70 336 70 318 Z" />
+        <linearGradient id="bk-body" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#d99c5c" />
+          <stop offset="1" stopColor="#a5662e" />
+        </linearGradient>
+        <linearGradient id="bk-strand" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#f0c48c" />
+          <stop offset="1" stopColor="#c48346" />
+        </linearGradient>
+        <linearGradient id="bk-shade" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#3a1f08" stopOpacity=".35" />
+          <stop offset=".25" stopColor="#3a1f08" stopOpacity="0" />
+          <stop offset=".75" stopColor="#3a1f08" stopOpacity="0" />
+          <stop offset="1" stopColor="#3a1f08" stopOpacity=".4" />
+        </linearGradient>
+        <clipPath id="bk-clip">
+          <path d="M34 200 C34 236 366 236 366 200 L330 316 C326 340 74 340 70 316 Z" />
         </clipPath>
       </defs>
-      <g clipPath="url(#basket-body)">
-        <rect x="0" y="190" width="400" height="160" fill="#c58a4f" />
-        {weave.map((y, i) => (
+      <g clipPath="url(#bk-clip)">
+        <rect x="0" y="190" width="400" height="160" fill="url(#bk-body)" />
+        {rows.map((y, i) => (
           <g key={y}>
-            {Array.from({ length: 12 }, (_, k) => (
-              <rect key={k} x={k * 36 + (i % 2 ? 18 : 0)} y={y} width="26" height="12" rx="6" fill="#a96f38" />
+            {Array.from({ length: 13 }, (_, k) => (
+              <rect key={k} x={k * 32 - (i % 2 ? 0 : 16)} y={y} width="28" height="11" rx="5.5" fill="url(#bk-strand)" />
             ))}
           </g>
         ))}
+        <rect x="0" y="190" width="400" height="160" fill="url(#bk-shade)" />
       </g>
-      <path d="M40 200 C40 230 360 230 360 200" fill="none" stroke="#e0ad72" strokeWidth="14" strokeLinecap="round" />
-      <path d="M40 200 C40 230 360 230 360 200" fill="none" stroke="#9a6431" strokeWidth="3" strokeDasharray="10 8" />
+      <path d="M34 200 C34 236 366 236 366 200" fill="none" stroke="#9a5f2a" strokeWidth="20" strokeLinecap="round" />
+      {rimPoints(44).map((p, k) => (
+        <ellipse key={k} cx={p.x} cy={p.y + (k % 2 ? 3 : -3)} rx="10" ry="5" fill={k % 2 ? "#d39652" : "#ebbb7f"}
+          stroke="#9a5f2a" strokeWidth="0.6" transform={`rotate(${k % 2 ? 28 : -28} ${p.x} ${p.y})`} />
+      ))}
     </svg>
   );
 }

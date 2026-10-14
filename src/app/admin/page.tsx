@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Fruit, GoldDefs } from "@/components/Fruit";
+import { Fruit, FruitDefs } from "@/components/Fruit";
 import { WEEKDAYS, WEEKEND, dayLabel, fruitFor, type FruitId } from "@/lib/rules";
 
 type U = {
@@ -90,7 +90,7 @@ export default function Admin() {
 
   return (
     <div className="wrap stack" style={{ maxWidth: 960 }}>
-      <GoldDefs />
+      <FruitDefs />
       <div className="spread" style={{ paddingTop: 8, flexWrap: "wrap" }}>
         <div>
           <h2>🔐 관리자</h2>

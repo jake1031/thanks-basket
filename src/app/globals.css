@@ -152,7 +152,11 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
   80% { transform: translate(-50%, -8%) rotate(-3deg); }
   100% { transform: translate(-50%, 0) rotate(0); }
 }
-.fruit.golden { filter: drop-shadow(0 0 6px rgba(245, 197, 66, .8)); }
+.fruit { overflow: visible; filter: drop-shadow(0 2px 2px rgba(60, 30, 10, .18)); }
+.fruit.golden { filter: drop-shadow(0 0 6px rgba(245, 197, 66, .85)) drop-shadow(0 2px 2px rgba(60, 30, 10, .15)); }
+.fruit .sparkle { animation: twinkle 1.8s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+@keyframes twinkle { 50% { opacity: .2; transform: scale(.6); } }
+.basket-stage { background: radial-gradient(ellipse at 50% 45%, #fff3dc 0%, rgba(255, 243, 220, 0) 65%); border-radius: 14px; }
 .summary { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .chip {
   display: flex; align-items: center; gap: 4px; background: #fff; border: 1px solid var(--line);
