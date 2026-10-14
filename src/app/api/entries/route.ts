@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   const content = String(raw ?? "").trim();
   if (!content) return fail("감사 내용을 적어주세요.");
   if (content.length > MAX_LEN) return fail(`${MAX_LEN}자까지 쓸 수 있어요.`);
-  if (!canEditDate(todayKST(), String(date))) return fail("지금은 이 날짜에 쓸 수 없어요.", 403);
+  if (!canEditDate(todayKST(req), String(date))) return fail("지금은 이 날짜에 쓸 수 없어요.", 403);
 
   const [{ n }] = await db<{ n: number }>(
     "select count(*)::int as n from entries where user_id = $1 and entry_date = $2",

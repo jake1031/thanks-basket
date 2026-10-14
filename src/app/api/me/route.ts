@@ -10,5 +10,5 @@ export async function GET(req: Request) {
     [user.id],
   );
   const [stat] = await userStats(user.id);
-  return json({ today: todayKST(), user: stat, entries });
+  return json({ today: todayKST(req), user: stat, entries });
 }

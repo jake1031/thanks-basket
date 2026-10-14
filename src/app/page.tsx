@@ -280,7 +280,7 @@ function Day({ date, today, entries, bonus = false, reload, say }: {
           <div className="stack" style={{ gap: 6 }}>
             <textarea
               className="textarea" maxLength={MAX_LEN} value={draft} onChange={(e) => setDraft(e.target.value)}
-              placeholder={bonus ? "주말의 감사를 적어주세요" : ["오늘 감사한 일 하나", "감사한 일 둘", "마지막 감사 셋"][entries.length]}
+              placeholder={bonus ? "주말의 감사를 적어주세요" : [date === today ? "오늘 감사한 일 하나" : "이날 감사한 일 하나", "감사한 일 둘", "마지막 감사 셋"][entries.length]}
             />
             <div className="spread">
               <span className="muted small">{draft.length}/{MAX_LEN}</span>

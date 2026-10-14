@@ -16,7 +16,7 @@ npm install
 npm run dev
 ```
 
-`DATABASE_URL`이 없으면 내장 DB(`.pglite/`)를 씁니다. `.env.local`의 `FAKE_NOW`로 날짜를 바꿔 테스트할 수 있습니다.
+`DATABASE_URL`이 없으면 내장 DB(`.pglite/`)를 씁니다. 개발 모드에서는 오른쪽 위 🛠 버튼으로 날짜를 바꿔가며 미리볼 수 있고, 데모 팀원 12명(PIN 0000)을 채울 수도 있습니다. 배포 사이트에서는 이 기능이 꺼집니다.
 
 ## 배포 (Vercel + Supabase)
 

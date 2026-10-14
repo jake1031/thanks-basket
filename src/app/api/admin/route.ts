@@ -8,7 +8,7 @@ export async function GET(req: Request) {
     `select e.id, e.entry_date::text as date, e.content, u.nickname
        from entries e join users u on u.id = e.user_id order by e.id desc`,
   );
-  return json({ today: todayKST(), users: await userStats(), entries });
+  return json({ today: todayKST(req), users: await userStats(), entries });
 }
 
 export async function POST(req: Request) {

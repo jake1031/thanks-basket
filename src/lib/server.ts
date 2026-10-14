@@ -3,10 +3,18 @@ import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { db } from "./db";
 
-/** 현재 한국 날짜 'YYYY-MM-DD'. FAKE_NOW(KST)로 테스트용 시각을 지정할 수 있다. */
-export function todayKST(): string {
-  const fake = process.env.FAKE_NOW;
-  if (fake) return fake.slice(0, 10);
+export const DEV = process.env.NODE_ENV === "development";
+
+/**
+ * 현재 한국 날짜 'YYYY-MM-DD'.
+ * 개발 모드에서만 날짜 미리보기 쿠키(dev_date)나 FAKE_NOW로 날짜를 바꿀 수 있다.
+ */
+export function todayKST(req?: Request): string {
+  if (DEV) {
+    const cookie = req?.headers.get("cookie")?.match(/(?:^|;\s*)dev_date=(\d{4}-\d{2}-\d{2})/)?.[1];
+    if (cookie) return cookie;
+    if (process.env.FAKE_NOW) return process.env.FAKE_NOW.slice(0, 10);
+  }
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(new Date());
 }
 

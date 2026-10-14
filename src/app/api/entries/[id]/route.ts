@@ -13,7 +13,7 @@ async function ownEntry(req: Request, ctx: Ctx) {
     [Number(id), user.id],
   );
   if (!entry) return { error: fail("감사를 찾을 수 없어요.", 404) };
-  if (!canEditDate(todayKST(), entry.date)) return { error: fail("지금은 이 날짜의 감사를 고칠 수 없어요.", 403) };
+  if (!canEditDate(todayKST(req), entry.date)) return { error: fail("지금은 이 날짜의 감사를 고칠 수 없어요.", 403) };
   return { entry };
 }
 
