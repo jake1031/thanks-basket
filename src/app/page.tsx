@@ -578,8 +578,8 @@ function Wheat({ x, y, angle, flip = false }: { x: number; y: number; angle: num
 
 function BasketBack() {
   return (
-    <svg className="basket" viewBox="0 0 400 360" aria-hidden>
-      <ellipse cx="200" cy="330" rx="150" ry="10" fill="#7a5530" opacity=".12" />
+    <svg className="basket" viewBox="0 0 400 320" aria-hidden>
+      <ellipse cx="200" cy="296" rx="140" ry="9" fill="#7a5530" opacity=".12" />
       <Wheat x={70} y={206} angle={-28} />
       <Wheat x={92} y={206} angle={-10} />
       <Wheat x={330} y={206} angle={26} flip />
@@ -590,19 +590,19 @@ function BasketBack() {
 
 function BasketFront() {
   const marks: { x: number; y: number }[] = [];
-  [240, 266, 292].forEach((y, r) => {
+  [238, 262].forEach((y, r) => {
     for (let x = 72 + (r % 2) * 20; x <= 330; x += 40) marks.push({ x, y });
   });
   return (
-    <svg className="basket" viewBox="0 0 400 360" aria-hidden>
+    <svg className="basket" viewBox="0 0 400 320" aria-hidden>
       <defs>
         <clipPath id="bk-clip">
-          <path d="M42 214 L358 214 C354 270 316 320 200 320 C84 320 46 270 42 214 Z" />
+          <path d="M42 214 L358 214 C354 252 316 288 200 288 C84 288 46 252 42 214 Z" />
         </clipPath>
       </defs>
       <g clipPath="url(#bk-clip)">
         <rect x="0" y="200" width="400" height="140" fill="#dcb987" />
-        <path d="M280 214 L400 214 L400 340 L250 340 C320 300 330 260 280 214 Z" fill="#cfa974" />
+        <path d="M290 214 L400 214 L400 300 L260 300 C320 276 330 244 290 214 Z" fill="#cfa974" />
         {marks.map((m, i) => (
           <g key={i} stroke="#b08550" strokeWidth="5" strokeLinecap="round">
             <line x1={m.x - 11} y1={m.y - 6} x2={m.x - 4} y2={m.y + 6} />

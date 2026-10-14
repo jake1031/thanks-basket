@@ -50,7 +50,6 @@ export function Fruit({ id, golden = false, size = 48 }: { id: FruitId; golden?:
         <>
           <path d={body} fill="#f28b30" />
           {shade("M42 18 C54 30 54 50 38 62 L64 64 L64 0 Z", "#e0741f")}
-          <path d="M20 25 C15 34 16 47 22 55 M44 25 C49 34 48 47 42 55" stroke="#d96a1a" strokeWidth="1.6" fill="none" opacity="0.6" />
           <g fill="#5a9a3a">
             <path d="M32 23 C36 17 45 17 48 22 C43 26 36 26 32 23 Z" />
             <path d="M32 23 C28 17 19 17 16 22 C21 26 28 26 32 23 Z" />

@@ -141,9 +141,10 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .note:nth-child(4n+3) { background: #fff3ef; }
 
 /* 바구니 */
-.basket-stage { position: relative; width: 100%; aspect-ratio: 1 / 0.9; }
+.basket-stage { position: relative; width: 100%; aspect-ratio: 1 / 0.8; }
 .basket-stage svg.basket { position: absolute; inset: 0; width: 100%; height: 100%; }
-.pile { position: absolute; left: 10%; right: 10%; bottom: 40%; height: 50%; }
+.pile { position: absolute; left: 10%; right: 10%; bottom: 29%; height: 56%; z-index: 1; }
+.basket-stage svg.basket:last-child { z-index: 2; }
 .pile .p { position: absolute; transform: translate(-50%, 0); }
 .pile .p svg { display: block; }
 .pile .p.drop { animation: drop .9s cubic-bezier(.3, .0, .4, 1) both; }
