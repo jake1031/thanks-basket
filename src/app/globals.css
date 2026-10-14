@@ -342,7 +342,7 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .wrap.admin > * { flex-shrink: 0; }
 .wrap.admin > .admin-list,
 .wrap.admin > .admin-entries { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.admin-entries { display: flex; flex-direction: column; gap: 12px; overflow-x: hidden; }
+.admin-entries { display: flex; flex-direction: column; gap: 12px; overflow-x: hidden; margin: 0 -16px; padding: 0 16px; }
 .admin-entries .name-grid {
   flex-wrap: nowrap; max-height: none; flex-shrink: 0; overflow-x: auto; overflow-y: hidden;
   margin: 0 -16px; padding: 2px 16px 6px; scrollbar-width: none;
@@ -350,3 +350,11 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .admin-entries .name-grid::-webkit-scrollbar { display: none; }
 .admin-entries .name-grid button { flex-shrink: 0; white-space: nowrap; }
 .admin-entries .swipe-card { min-height: 0; }
+
+.person-picker { display: flex; gap: 8px; flex-shrink: 0; }
+.person-picker select {
+  flex: 1; min-width: 0; font-weight: 700; appearance: none; -webkit-appearance: none;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b7563' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 14px center;
+  padding-right: 36px;
+}
+.person-picker .btn { padding: 0 14px; font-size: 20px; }

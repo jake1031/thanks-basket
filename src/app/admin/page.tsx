@@ -164,16 +164,21 @@ export default function Admin() {
 function PersonEntries({ users, entries, onDelete }: { users: U[]; entries: E[]; onDelete: (id: number) => void }) {
   const [who, setWho] = useState<string>(users[0]?.nickname ?? "");
   const mine = entries.filter((e) => e.nickname === who);
+  const idx = users.findIndex((u) => u.nickname === who);
   const days = [...WEEKDAYS, ...WEEKEND];
 
   return (
     <div className="admin-entries">
-      <div className="name-grid">
-        {users.map((u) => (
-          <button key={u.id} className={who === u.nickname ? "on" : ""} onClick={() => setWho(u.nickname)}>
-            {u.nickname} <span className="muted">{entries.filter((e) => e.nickname === u.nickname).length}</span>
-          </button>
-        ))}
+      <div className="person-picker">
+        <button className="btn ghost" disabled={idx <= 0} onClick={() => setWho(users[idx - 1].nickname)} aria-label="이전 사람">‹</button>
+        <select className="input" value={who} onChange={(e) => setWho(e.target.value)}>
+          {users.map((u) => (
+            <option key={u.id} value={u.nickname}>
+              {u.nickname} ({entries.filter((e) => e.nickname === u.nickname).length}개)
+            </option>
+          ))}
+        </select>
+        <button className="btn ghost" disabled={idx >= users.length - 1} onClick={() => setWho(users[idx + 1].nickname)} aria-label="다음 사람">›</button>
       </div>
       {mine.length === 0 ? (
         <div className="card muted" style={{ textAlign: "center" }}>{who}님은 아직 쓴 감사가 없어요</div>
