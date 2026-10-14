@@ -145,7 +145,7 @@ function Join({ onDone }: { onDone: () => void }) {
             <label className="stack" style={{ gap: 6 }}>
               <b>이름</b>
               <input className="input" value={realName} maxLength={10} placeholder="예) 홍길동" onChange={(e) => setRealName(e.target.value)} />
-              <span className="muted small">이름은 관리자만 볼 수 있어요.</span>
+              <span className="muted small">다른 팀원에게는 닉네임만 보여요.</span>
             </label>
             <label className="stack" style={{ gap: 6 }}>
               <b>닉네임</b>
