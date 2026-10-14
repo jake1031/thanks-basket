@@ -181,6 +181,7 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .fruit .sparkle { animation: twinkle 1.8s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
 @keyframes twinkle { 50% { opacity: .45; transform: scale(.8); } }
 .basket-stage { background: radial-gradient(ellipse at 50% 45%, #fff3dc 0%, rgba(255, 243, 220, 0) 65%); border-radius: 14px; }
+.total-count { font-size: 22px; font-weight: 800; color: var(--brand); }
 .summary { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .chip {
   display: flex; align-items: center; gap: 4px; background: #fff; border: 1px solid var(--line);

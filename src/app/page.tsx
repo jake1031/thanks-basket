@@ -527,7 +527,6 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   const myFruit = fruitFor(user.count);
   const tally = FRUITS.map((f) => ({ ...f, n: data.placed.filter((p) => p.fruit === f.id).length })).filter((f) => f.n > 0);
   const goldN = data.placed.filter((p) => p.golden).length;
-  const goal = Math.max(data.members, 1) * MAX_COUNT;
   const pieces = arrangeFruits(data.placed);
 
   return (
@@ -535,7 +534,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
       <div style={{ paddingTop: 8 }}>
         <h2>🧺 우리 팀 감사 바구니</h2>
         <p className="muted small" style={{ margin: "4px 0 0" }}>
-          {data.placed.length}명이 열매를 넣었어요 · 함께 쓴 감사 {data.totalThanks}개
+          {data.placed.length}명이 열매를 넣었어요
         </p>
       </div>
 
@@ -579,12 +578,9 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
         )}
       </div>
 
-      <div className="card stack" style={{ gap: 8 }}>
-        <div className="spread">
-          <b>우리 팀 감사 진행률</b>
-          <span className="muted small">{data.totalThanks} / {goal}</span>
-        </div>
-        <div className="bar"><i style={{ width: `${Math.min(100, (data.totalThanks / goal) * 100)}%` }} /></div>
+      <div className="card spread">
+        <b>🙏 지금까지 모인 감사</b>
+        <span className="total-count">{data.totalThanks}개</span>
       </div>
 
       {!data.open ? (
