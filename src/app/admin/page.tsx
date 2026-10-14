@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Fruit } from "@/components/Fruit";
-import { WEEKDAYS, WEEKEND, dayLabel, fruitFor, type FruitId } from "@/lib/rules";
+import { FRUITS, WEEKDAYS, WEEKEND, dayLabel, fruitFor, type FruitId } from "@/lib/rules";
 
 type U = {
   id: number; nickname: string; count: number; bonus: number; fruit: FruitId;
@@ -85,8 +85,8 @@ export default function Admin() {
     );
   }
 
-  const tally: Record<string, number> = {};
-  for (const u of data.users) tally[fruitFor(u.count).name] = (tally[fruitFor(u.count).name] ?? 0) + 1;
+  // 과일 등급 순서(밤→사과)로 몇 명씩인지
+  const tally = FRUITS.map((f) => ({ name: f.name, n: data.users.filter((u) => u.fruit === f.id).length }));
 
   return (
     <div className="wrap stack" style={{ maxWidth: 960 }}>
@@ -106,7 +106,7 @@ export default function Admin() {
         <span>감사 <b>{data.entries.length}</b>개</span>
         <span>바구니 <b>{data.users.filter((u) => u.placed).length}</b>명</span>
         <span>황금 <b>{data.users.filter((u) => u.golden).length}</b>명</span>
-        <span className="muted">{Object.entries(tally).map(([k, v]) => `${k} ${v}`).join(" · ")}</span>
+        <span className="muted">{tally.map((t) => `${t.name} ${t.n}`).join(" · ")}</span>
       </div>
 
       <div className="segment" style={{ maxWidth: 320 }}>
