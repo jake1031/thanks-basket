@@ -207,13 +207,13 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
   const [sel, setSel] = useState(() => (initialDate && DAYS.includes(initialDate) ? initialDate : defaultDay(today)));
 
   return (
-    <div className="stack" style={{ gap: 10 }}>
+    <div className="stack" style={{ gap: 16 }}>
       <div className="spread" style={{ paddingTop: 4 }}>
         <h2>{user.nickname}님의 감사</h2>
         <button className="link" onClick={logout}>로그아웃</button>
       </div>
 
-      <div className="card" style={{ padding: "12px 14px" }}>
+      <div className="card" style={{ padding: "18px 18px 16px" }}>
         <div className="progress-card">
           <div className="big-fruit" style={{ padding: 0 }}><Fruit id={fruit.id} golden={user.golden} size={54} /></div>
           <div style={{ flex: 1 }}>
@@ -225,7 +225,7 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
               </b>
               <span className="muted small">{user.count}/{MAX_COUNT}</span>
             </div>
-            <div className="bar" style={{ margin: "6px 0 4px" }}><i style={{ width: `${(user.count / MAX_COUNT) * 100}%` }} /></div>
+            <div className="bar" style={{ margin: "10px 0 8px" }}><i style={{ width: `${(user.count / MAX_COUNT) * 100}%` }} /></div>
             <p className="muted small" style={{ margin: 0 }}>
               {phase === "before" && "10월 19일(월)부터 쓸 수 있어요!"}
               {phase === "weekday" && (next ? `${next.min - user.count}개 더 쓰면 ${josa(next.name, "으로", "로")} 바뀌어요!` : "최고 열매 달성! 🎉")}
@@ -242,7 +242,7 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
           ))}
         </div>
         {basketOpen(today) && (
-          <button className="btn block" style={{ marginTop: 10, padding: "10px 16px" }} onClick={goBasket}>
+          <button className="btn block" style={{ marginTop: 16 }} onClick={goBasket}>
             {user.placed ? "🧺 바구니 보러 가기" : "🧺 바구니에 열매 넣으러 가기"}
           </button>
         )}
@@ -310,7 +310,7 @@ function Day({ date, today, entries, bonus = false, reload, say }: {
           ✨ 보너스 감사예요. 개수에는 안 들어가지만, 한 개라도 쓰면 내 열매에 황금 반짝이가 달려요.
         </p>
       )}
-      <div className="stack" style={{ gap: 8 }}>
+      <div className="stack" style={{ gap: 10 }}>
         {entries.map((e, i) => <EntryItem key={e.id} entry={e} index={i} editable={editable} reload={reload} say={say} />)}
         {editable && entries.length < PER_DAY && (
           <div className="stack" style={{ gap: 6 }}>
@@ -426,7 +426,7 @@ function Board({ today, say, goWrite }: { today: string; say: (m: string) => voi
     : canEditDate(today, sel) ? ["prompt", ...others] : others;
 
   return (
-    <div className="stack" style={{ gap: 10 }}>
+    <div className="stack" style={{ gap: 16 }}>
       <div style={{ paddingTop: 4 }}>
         <h2>💌 감사 게시판</h2>
         <p className="muted small" style={{ margin: "4px 0 0" }}>옆으로 넘기며 서로의 감사를 나눠요.</p>
