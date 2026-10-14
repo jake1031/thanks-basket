@@ -228,7 +228,7 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
             <p className="muted small" style={{ margin: 0 }}>
               {phase === "before" && "10월 19일(월)부터 쓸 수 있어요!"}
               {phase === "weekday" && (next ? `${next.min - user.count}개 더 쓰면 ${josa(next.name, "으로", "로")} 바뀌어요!` : "최고 열매 달성! 🎉")}
-              {phase === "weekend" && (user.golden ? "토요일 감사로 황금 반짝이가 달렸어요 ✨" : "토요일에 감사를 쓰면 황금 반짝이가 달려요 ✨")}
+              {phase === "weekend" && (user.golden ? "토요일 감사로 황금 열매가 되었어요 ✨" : "토요일에 감사를 쓰면 황금 열매가 돼요 ✨")}
               {phase === "after" && "추수감사절 감사 일기가 끝났어요. 함께해서 고마워요!"}
             </p>
           </div>
@@ -306,7 +306,7 @@ function Day({ date, today, entries, bonus = false, reload, say }: {
       </div>
       {bonus && (
         <p className="muted small" style={{ margin: "-4px 0 10px" }}>
-          ✨ 보너스 감사예요. 개수에는 안 들어가지만, 한 개라도 쓰면 내 열매에 황금 반짝이가 달려요.
+          ✨ 보너스 감사예요. 개수에는 안 들어가지만, 한 개라도 쓰면 내 열매가 황금 열매로 바뀌어요.
         </p>
       )}
       <div className="stack" style={{ gap: 10 }}>
@@ -520,7 +520,7 @@ type BasketData = {
 };
 
 // 바구니에는 사람 수만큼 다 그리지 않고, 과일 종류별로 1~3개를 크게 포개어 봉긋하게 담는다.
-// 받은 사람이 많을수록 그 과일이 1→2→3개로 늘어나고, 황금이 있으면 그중 하나에 반짝이를 단다.
+// 받은 사람이 많을수록 그 과일이 1→2→3개로 늘어난다. 황금은 그리지 않는다.
 type Piece = { fruit: FruitId; golden: boolean; mine: boolean; left: number; bottom: number; size: number; rotate: number; z: number };
 
 const ROW_SPEC = [
@@ -538,7 +538,7 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
     for (let k = 0; k < n; k++) {
       items.push({
         fruit: f.id,
-        golden: k === n - 1 && mine.some((p) => p.golden),
+        golden: false, // 바구니 그림에는 황금을 그리지 않는다 (넣을 때 애니메이션으로만)
         mine: k === n - 1 && mine.some((p) => p.mine),
       });
     }
@@ -670,7 +670,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
           <div style={{ flex: 1 }}>
             <b>나는 {user.golden ? "황금 " : ""}{josa(myFruit.name, "을", "를")} 넣었어요!</b>
             <p className="muted small">
-              {user.golden ? "토요일 감사로 황금 반짝이가 달렸어요 ✨" : "토요일에 감사를 쓰면 황금 반짝이가 달려요!"}
+              {user.golden ? "토요일 감사로 황금 열매가 되었어요 ✨" : "토요일에 감사를 쓰면 황금 열매가 돼요!"}
             </p>
           </div>
         </div>
