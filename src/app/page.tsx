@@ -531,14 +531,12 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
 
   return (
     <div className="stack">
-      <div style={{ paddingTop: 8 }}>
+      <div className="spread" style={{ paddingTop: 4, alignItems: "baseline" }}>
         <h2>🧺 우리 팀 감사 바구니</h2>
-        <p className="muted small" style={{ margin: "4px 0 0" }}>
-          {data.placed.length}명이 열매를 넣었어요
-        </p>
+        <span className="muted small">{data.placed.length}명 참여</span>
       </div>
 
-      <div className="card" style={{ padding: 8 }}>
+      <div className="card" style={{ padding: "4px 8px 0" }}>
         <div className="basket-stage" ref={stageRef}>
           <BasketBack />
           <div className={`pile ${landed ? "landed" : ""}`}>
@@ -567,45 +565,47 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
           <BasketFront />
         </div>
         {tally.length > 0 ? (
-          <div className="summary" style={{ marginBottom: 8 }}>
+          <div className="summary">
             {tally.map((f) => (
-              <span key={f.id} className="chip"><Fruit id={f.id} size={24} />{f.name} {f.n}</span>
+              <span key={f.id} className="chip"><Fruit id={f.id} size={18} />{f.name} {f.n}</span>
             ))}
-            {goldN > 0 && <span className="chip" style={{ paddingLeft: 10 }}>✨ 황금 {goldN}</span>}
+            {goldN > 0 && <span className="chip">✨황금 {goldN}</span>}
           </div>
         ) : (
-          <p className="muted small" style={{ textAlign: "center" }}>아직 비어 있는 바구니예요</p>
+          <p className="muted small" style={{ textAlign: "center", margin: "4px 0" }}>아직 비어 있는 바구니예요</p>
         )}
-      </div>
-
-      <div className="card spread">
-        <b>🙏 지금까지 모인 감사</b>
-        <span className="total-count">{data.totalThanks}개</span>
+        <div className="total-row">
+          <span>🙏 지금까지 모인 감사</span>
+          <span className="total-count">{data.totalThanks}개</span>
+        </div>
       </div>
 
       {!data.open ? (
-        <div className="card" style={{ textAlign: "center" }}>
-          <p style={{ margin: 0 }}><b>바구니는 10/24(토)에 열려요</b></p>
-          <p className="muted small" style={{ margin: "6px 0 0" }}>평일 동안 감사를 채우고, 주말에 내 열매를 넣어주세요!</p>
+        <div className="card my-fruit">
+          <Fruit id={myFruit.id} size={44} />
+          <div style={{ flex: 1 }}>
+            <b>바구니는 10/24(토)에 열려요</b>
+            <p className="muted small">평일 동안 감사를 채우고, 주말에 내 열매를 넣어주세요!</p>
+          </div>
         </div>
       ) : user.placed ? (
-        <div className="card row">
-          <Fruit id={myFruit.id} golden={user.golden} size={48} />
-          <div>
+        <div className="card my-fruit">
+          <Fruit id={myFruit.id} golden={user.golden} size={44} />
+          <div style={{ flex: 1 }}>
             <b>내 {user.golden ? "황금 " : ""}{josa(myFruit.name, "을", "를")} 넣었어요</b>
-            <p className="muted small" style={{ margin: "2px 0 0" }}>
-              {user.golden ? "주말 감사로 황금 반짝이가 달렸어요 ✨" : "주말 감사를 쓰면 바구니 속 열매에도 황금 반짝이가 달려요!"}
+            <p className="muted small">
+              {user.golden ? "주말 감사로 황금 반짝이가 달렸어요 ✨" : "주말 감사를 쓰면 황금 반짝이가 달려요!"}
             </p>
           </div>
         </div>
       ) : (
-        <div className="card stack" style={{ alignItems: "center", textAlign: "center" }}>
-          <div className="big-fruit"><Fruit id={myFruit.id} golden={user.golden} size={88} /></div>
-          <div>
-            <b>이번 주 내 열매는 {user.golden ? "황금 " : ""}{myFruit.name}!</b>
-            <p className="muted small" style={{ margin: "4px 0 0" }}>평일 감사 {user.count}개를 채웠어요</p>
+        <div className="card my-fruit">
+          <div className="big-fruit" style={{ padding: 0 }}><Fruit id={myFruit.id} golden={user.golden} size={48} /></div>
+          <div style={{ flex: 1 }}>
+            <b>내 열매는 {user.golden ? "황금 " : ""}{myFruit.name}!</b>
+            <p className="muted small">평일 감사 {user.count}개를 채웠어요</p>
           </div>
-          <button className="btn block" disabled={busy} onClick={place}>바구니에 넣기</button>
+          <button className="btn" disabled={busy} onClick={place}>넣기</button>
         </div>
       )}
     </div>
@@ -634,7 +634,7 @@ function Wheat({ x, y, angle, flip = false }: { x: number; y: number; angle: num
 
 function BasketBack() {
   return (
-    <svg className="basket" viewBox="0 0 400 320" aria-hidden>
+    <svg className="basket" viewBox="0 30 400 290" aria-hidden>
       <ellipse cx="200" cy="296" rx="140" ry="9" fill="#7a5530" opacity=".12" />
       <Wheat x={70} y={206} angle={-28} />
       <Wheat x={92} y={206} angle={-10} />
@@ -650,7 +650,7 @@ function BasketFront() {
     for (let x = 72 + (r % 2) * 20; x <= 330; x += 40) marks.push({ x, y });
   });
   return (
-    <svg className="basket" viewBox="0 0 400 320" aria-hidden>
+    <svg className="basket" viewBox="0 30 400 290" aria-hidden>
       <defs>
         <clipPath id="bk-clip">
           <path d="M42 214 L358 214 C354 252 316 288 200 288 C84 288 46 252 42 214 Z" />
