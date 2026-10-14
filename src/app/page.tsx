@@ -642,7 +642,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
       setDropping(null);
       setLanded(true);
       setTimeout(() => setLanded(false), 900);
-      say("바구니에 열매를 넣었어요! 🧺");
+      say("바구니에 열매를 넣었어요!");
     } catch (e) { say((e as Error).message); }
     setBusy(false);
   }
