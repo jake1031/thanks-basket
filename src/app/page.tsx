@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Fruit } from "@/components/Fruit";
 import { ApiError, api, token } from "@/lib/client";
 import {
@@ -463,8 +463,10 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
 
 function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say: (m: string) => void }) {
   const [data, setData] = useState<BasketData | null>(null);
-  const [dropped, setDropped] = useState(false);
+  const [dropping, setDropping] = useState<{ fruit: FruitId; golden: boolean } | null>(null);
+  const [landed, setLanded] = useState(false);
   const [busy, setBusy] = useState(false);
+  const stageRef = useRef<HTMLDivElement>(null);
 
   const fetchBasket = useCallback(async () => {
     try { setData(await api<BasketData>("/api/basket")); } catch (e) { say((e as Error).message); }
@@ -475,8 +477,15 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
     setBusy(true);
     try {
       await api("/api/basket", { method: "POST" });
-      setDropped(true);
+      // 바구니가 보이게 올린 뒤, 내 열매가 위에서 떨어져 바구니에 쏙 들어간다
+      stageRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      await new Promise((r) => setTimeout(r, 450));
+      setDropping({ fruit: fruitFor(me.user.count).id, golden: me.user.golden });
+      await new Promise((r) => setTimeout(r, 1300));
       await Promise.all([fetchBasket(), reload()]);
+      setDropping(null);
+      setLanded(true);
+      setTimeout(() => setLanded(false), 900);
       say("바구니에 열매를 넣었어요! 🧺");
     } catch (e) { say((e as Error).message); }
     setBusy(false);
@@ -501,13 +510,13 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
       </div>
 
       <div className="card" style={{ padding: 8 }}>
-        <div className="basket-stage">
+        <div className="basket-stage" ref={stageRef}>
           <BasketBack />
-          <div className="pile">
+          <div className={`pile ${landed ? "landed" : ""}`}>
             {pieces.map((p, i) => (
               <div
                 key={i}
-                className={`p ${p.mine && dropped ? "drop" : ""}`}
+                className="p"
                 style={{ left: `${p.left}%`, bottom: `${p.bottom}%`, width: `${p.size}%`, zIndex: p.z }}
               >
                 <div style={{ transform: `rotate(${p.rotate}deg)` }}>
@@ -516,6 +525,16 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
               </div>
             ))}
           </div>
+          {dropping && (
+            <div className="dropper">
+              <Fruit id={dropping.fruit} golden={dropping.golden} size="100%" />
+            </div>
+          )}
+          {landed && (
+            <div className="burst" aria-hidden>
+              <span>✨</span><span>✨</span><span>✨</span>
+            </div>
+          )}
           <BasketFront />
         </div>
         {tally.length > 0 ? (

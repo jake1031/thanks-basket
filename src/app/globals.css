@@ -147,12 +147,29 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .basket-stage svg.basket:last-child { z-index: 2; }
 .pile .p { position: absolute; transform: translate(-50%, 0); }
 .pile .p svg { display: block; }
-.pile .p.drop { animation: drop .9s cubic-bezier(.3, .0, .4, 1) both; }
-@keyframes drop {
-  0% { transform: translate(-50%, -260%) rotate(-30deg); opacity: 0; }
-  60% { transform: translate(-50%, 6%) rotate(8deg); opacity: 1; }
-  80% { transform: translate(-50%, -8%) rotate(-3deg); }
-  100% { transform: translate(-50%, 0) rotate(0); }
+/* 내 열매 넣기 연출 */
+.dropper {
+  position: absolute; left: 50%; top: 0; width: 24%; z-index: 1;
+  animation: fall 1.3s cubic-bezier(.45, 0, .55, 1) both;
+}
+@keyframes fall {
+  0% { transform: translate(-50%, -110%) scale(1.5) rotate(-25deg); opacity: 0; }
+  15% { opacity: 1; }
+  65% { transform: translate(-50%, 128%) scale(1) rotate(8deg); }
+  80% { transform: translate(-50%, 108%) scale(1.04) rotate(-4deg); }
+  100% { transform: translate(-50%, 140%) scale(1) rotate(0); opacity: 1; }
+}
+.pile.landed { animation: squish .6s ease-out; transform-origin: 50% 100%; }
+@keyframes squish { 0% { transform: scale(1.03, .95); } 50% { transform: scale(.99, 1.02); } 100% { transform: none; } }
+.burst { position: absolute; left: 50%; top: 22%; z-index: 3; pointer-events: none; }
+.burst span { position: absolute; font-size: 22px; animation: burst .9s ease-out both; }
+.burst span:nth-child(1) { --x: -70px; --y: -30px; }
+.burst span:nth-child(2) { --x: 0px; --y: -60px; animation-delay: .05s; }
+.burst span:nth-child(3) { --x: 70px; --y: -30px; animation-delay: .1s; }
+@keyframes burst {
+  0% { transform: translate(-50%, 0) scale(.3); opacity: 0; }
+  40% { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--x)), var(--y)) scale(1.1); opacity: 0; }
 }
 .fruit { overflow: visible; }
 .fruit .sparkle { animation: twinkle 1.8s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
