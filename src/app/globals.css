@@ -143,8 +143,10 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 /* 바구니 */
 .basket-stage { position: relative; width: 100%; aspect-ratio: 1 / 0.9; }
 .basket-stage svg.basket { position: absolute; inset: 0; width: 100%; height: 100%; }
-.pile { position: absolute; left: 13%; right: 13%; bottom: 39%; height: 40%; }
-.pile .p { position: absolute; transform: translate(-50%, 0); }
+.pile { position: absolute; left: 12%; right: 12%; bottom: 40%; height: 40%; }
+.pile .heap { position: absolute; width: 30%; aspect-ratio: 1; transform: translateX(-50%); }
+.pile .p { position: absolute; width: 58%; transform: translate(-50%, 0); }
+.pile .p svg { display: block; }
 .pile .p.drop { animation: drop .9s cubic-bezier(.3, .0, .4, 1) both; }
 @keyframes drop {
   0% { transform: translate(-50%, -260%) rotate(-30deg); opacity: 0; }

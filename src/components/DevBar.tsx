@@ -66,7 +66,7 @@ export function DevBar() {
           </div>
           <label className="row small" style={{ marginTop: 10 }}>
             <input type="checkbox" checked={demo} disabled={busy} onChange={toggleDemo} />
-            데모 팀원 12명 채우기 (게시판·바구니 미리보기용)
+            데모 팀원 24명 채우기 (게시판·바구니 미리보기용)
           </label>
         </div>
       )}

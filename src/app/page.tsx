@@ -405,23 +405,45 @@ type BasketData = {
   totalThanks: number;
 };
 
-// 바닥부터 피라미드 모양으로 쌓기 (8,7,6,5 = 최대 26개)
-const ROWS = [8, 7, 6, 5];
-function slot(i: number) {
-  let r = 0, idx = i;
-  while (r < ROWS.length - 1 && idx >= ROWS[r]) { idx -= ROWS[r]; r++; }
-  const n = ROWS[r];
-  const order = Array.from({ length: n }, (_, k) => k).sort((a, b) => Math.abs(a - (n - 1) / 2) - Math.abs(b - (n - 1) / 2));
-  const col = order[idx % n];
-  // 자연스럽게 보이도록 위치·각도·크기를 살짝 흔든다 (항상 같은 값)
-  const j = Math.sin(i * 12.9898) * 43758.5453;
-  const rand = j - Math.floor(j);
-  return {
-    left: 50 + (col - (n - 1) / 2) * 12.5 + (rand - 0.5) * 3,
-    bottom: r * 21 + (col % 2) * 3,
-    rotate: (rand - 0.5) * 30,
-    size: 44 + Math.round(rand * 6),
-  };
+// 바구니에는 과일 종류(일반/황금)별로 한 무더기씩 포개어 담는다.
+// 사람 수만큼 다 그리지 않고, 받은 사람이 많을수록 무더기가 1→2→3개로 커진다.
+type Heap = { fruit: FruitId; golden: boolean; count: number; mine: boolean };
+
+const HEAP_SHAPES = [
+  [{ x: 50, y: 0, r: -6 }],
+  [{ x: 32, y: 0, r: -12 }, { x: 68, y: 3, r: 10 }],
+  [{ x: 28, y: 0, r: -14 }, { x: 72, y: 2, r: 12 }, { x: 50, y: 34, r: -4 }],
+];
+
+function buildHeaps(placed: BasketData["placed"]): Heap[] {
+  const heaps: Heap[] = [];
+  for (const f of FRUITS) {
+    for (const golden of [false, true]) {
+      const items = placed.filter((p) => p.fruit === f.id && p.golden === golden);
+      if (items.length) heaps.push({ fruit: f.id, golden, count: items.length, mine: items.some((p) => p.mine) });
+    }
+  }
+  return heaps;
+}
+
+/** 무더기 위치: 과일 종류마다 한 자리. 황금 무더기는 같은 과일 위에 살짝 얹는다. 가운데가 봉긋하게. */
+function heapLayout(heaps: Heap[]) {
+  const types = [...new Set(heaps.map((h) => h.fruit))];
+  const k = types.length;
+  const spacing = Math.min(20, 80 / Math.max(k, 1));
+  return heaps.map((h) => {
+    const idx = types.indexOf(h.fruit);
+    const offset = idx - (k - 1) / 2;
+    const mound = k > 1 ? (1 - Math.abs(offset) / ((k - 1) / 2)) * 8 : 8;
+    const hasNormal = heaps.some((o) => o.fruit === h.fruit && !o.golden);
+    const onTop = h.golden && hasNormal; // 같은 과일 무더기 위에 살짝 얹기
+    return {
+      left: 50 + offset * spacing + (onTop ? spacing * 0.3 : 0),
+      bottom: (onTop ? 26 : 0) + mound,
+      z: onTop ? 4 : 1 + (idx % 2),
+      scale: onTop ? 0.72 : 1,
+    };
+  });
 }
 
 function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say: (m: string) => void }) {
@@ -452,6 +474,8 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   const tally = FRUITS.map((f) => ({ ...f, n: data.placed.filter((p) => p.fruit === f.id).length })).filter((f) => f.n > 0);
   const goldN = data.placed.filter((p) => p.golden).length;
   const goal = Math.max(data.members, 1) * MAX_COUNT;
+  const heaps = buildHeaps(data.placed);
+  const layout = heapLayout(heaps);
 
   return (
     <div className="stack">
@@ -466,13 +490,22 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
         <div className="basket-stage">
           <BasketBack />
           <div className="pile">
-            {data.placed.slice(0, 26).map((p, i) => {
-              const s = slot(i);
+            {heaps.map((h, i) => {
+              const pos = layout[i];
+              const shape = HEAP_SHAPES[Math.min(h.count >= 4 ? 3 : h.count >= 2 ? 2 : 1, 3) - 1];
               return (
-                <div key={i} className={`p ${p.mine && dropped ? "drop" : ""}`} style={{ left: `${s.left}%`, bottom: `${s.bottom}%`, zIndex: 10 - Math.floor(s.bottom / 21) }}>
-                  <div style={{ transform: `rotate(${s.rotate}deg)` }}>
-                    <Fruit id={p.fruit} golden={p.golden} size={s.size} />
-                  </div>
+                <div key={`${h.fruit}-${h.golden}`} className="heap" style={{ left: `${pos.left}%`, bottom: `${pos.bottom}%`, zIndex: pos.z, width: `${34 * pos.scale}%` }}>
+                  {shape.map((f, k) => (
+                    <div
+                      key={k}
+                      className={`p ${h.mine && dropped && k === shape.length - 1 ? "drop" : ""}`}
+                      style={{ left: `${f.x}%`, bottom: `${f.y}%`, zIndex: k }}
+                    >
+                      <div style={{ transform: `rotate(${f.r}deg)` }}>
+                        <Fruit id={h.fruit} golden={h.golden} size="100%" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               );
             })}

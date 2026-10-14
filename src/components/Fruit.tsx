@@ -33,7 +33,7 @@ export function FruitDefs() {
   );
 }
 
-export function Fruit({ id, golden = false, size = 48 }: { id: FruitId; golden?: boolean; size?: number }) {
+export function Fruit({ id, golden = false, size = 48 }: { id: FruitId; golden?: boolean; size?: number | string }) {
   const body = golden ? "url(#g-gold)" : `url(#g-${id})`;
   const leaf = golden ? "url(#g-goldleaf)" : "url(#g-leaf)";
   const stem = golden ? "#a87708" : "#6b4423";
