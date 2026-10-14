@@ -103,11 +103,15 @@ export default function Admin() {
       </div>
 
       <div className="card admin-summary">
-        <div><b>{data.users.length}</b><span>참여</span></div>
-        <div><b>{data.entries.length}</b><span>감사</span></div>
-        <div><b>{data.users.filter((u) => u.placed).length}</b><span>바구니</span></div>
-        <div><b>{data.users.filter((u) => u.golden).length}</b><span>황금</span></div>
-        <p className="muted small">{tally.map((t) => `${t.name} ${t.n}`).join(" · ")}</p>
+        <div className="stat"><span>👥 참여자</span><b>{data.users.length}<small>명</small></b></div>
+        <div className="stat"><span>✍️ 총 감사</span><b>{data.entries.length}<small>개</small></b></div>
+        <div className="stat"><span>🧺 바구니 넣음</span><b>{data.users.filter((u) => u.placed).length}<small>명</small></b></div>
+        <div className="stat"><span>✨ 황금 열매</span><b>{data.users.filter((u) => u.golden).length}<small>명</small></b></div>
+        <div className="fruit-tally">
+          {FRUITS.map((f) => (
+            <span key={f.id}><Fruit id={f.id} size={22} /><b>{tally.find((t) => t.name === f.name)?.n ?? 0}</b><small>명</small></span>
+          ))}
+        </div>
       </div>
 
       <div className="segment">
