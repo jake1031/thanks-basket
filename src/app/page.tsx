@@ -207,41 +207,42 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
   const [sel, setSel] = useState(() => (initialDate && DAYS.includes(initialDate) ? initialDate : defaultDay(today)));
 
   return (
-    <div className="stack" style={{ gap: 16 }}>
-      <div className="card" style={{ padding: "14px 18px 16px" }}>
-        <div className="spread" style={{ marginBottom: 12 }}>
+    <div className="stack" style={{ gap: 12 }}>
+      <div className="card" style={{ padding: "12px 16px 14px" }}>
+        <div className="spread">
           <b className="hello">🎤 {user.nickname}님</b>
           <button className="link" onClick={logout}>로그아웃</button>
         </div>
-        <div className="progress-card">
-          <div className="big-fruit" style={{ padding: 0 }}><Fruit id={fruit.id} golden={user.golden} size={54} /></div>
-          <div style={{ flex: 1 }}>
-            <div className="spread">
-              <b>
-                {phase === "before" && "감사를 모으면 열매가 자라요"}
-                {phase === "weekday" && `지금은 ${josa(fruit.name, "을", "를")} 받을 수 있어요`}
-                {(phase === "weekend" || phase === "after") && `이번 주 내 열매는 ${user.golden ? "황금 " : ""}${fruit.name}!`}
-              </b>
-              <span className="muted small">{user.count}/{MAX_COUNT}</span>
-            </div>
-            <div className="bar" style={{ margin: "10px 0 8px" }}><i style={{ width: `${(user.count / MAX_COUNT) * 100}%` }} /></div>
-            <p className="muted small" style={{ margin: 0 }}>
+        <div className="row" style={{ gap: 12, marginTop: 6 }}>
+          <div className="big-fruit" style={{ padding: 0 }}><Fruit id={fruit.id} golden={user.golden} size={46} /></div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <b>
+              {phase === "before" && "감사를 모으면 열매가 자라요"}
+              {phase === "weekday" && `지금은 ${josa(fruit.name, "을", "를")} 받을 수 있어요`}
+              {(phase === "weekend" || phase === "after") && `이번 주 내 열매는 ${user.golden ? "황금 " : ""}${fruit.name}!`}
+            </b>
+            <p className="muted small" style={{ margin: "2px 0 0" }}>
               {phase === "before" && "10월 19일(월)부터 쓸 수 있어요!"}
               {phase === "weekday" && (next ? `${next.min - user.count}개 더 쓰면 ${josa(next.name, "으로", "로")} 바뀌어요!` : "최고 열매 달성! 🎉")}
-              {phase === "weekend" && (user.golden ? "토요일 감사로 황금 열매가 되었어요 ✨" : "토요일에 감사를 쓰면 황금 열매가 돼요 ✨")}
-              {phase === "after" && "추수감사절 감사 일기가 끝났어요. 함께해서 고마워요!"}
+              {phase === "weekend" && (user.golden ? "황금 열매가 되었어요 ✨" : "토요일 감사로 황금 열매에 도전! ✨")}
+              {phase === "after" && "함께해서 고마워요! 🙏"}
             </p>
           </div>
+          <span className="count">{user.count}<small>/{MAX_COUNT}</small></span>
         </div>
-        <div className="tiers">
-          {FRUITS.map((f) => (
-            <span key={f.id} className={user.count >= f.min ? "reached" : ""}>
-              <Fruit id={f.id} size={20} />{f.min}+
-            </span>
-          ))}
+        {/* 진행 막대 위에 열매 단계 표시 */}
+        <div className="track">
+          <div className="marks">
+            {FRUITS.map((f) => (
+              <span key={f.id} className={user.count >= f.min ? "reached" : ""} style={{ left: `${gaugePos(f.min)}%` }}>
+                <Fruit id={f.id} size={18} />
+              </span>
+            ))}
+          </div>
+          <div className="bar"><i style={{ width: `${gaugePos(user.count)}%` }} /></div>
         </div>
         {basketOpen(today) && (
-          <button className="btn block" style={{ marginTop: 16 }} onClick={goBasket}>
+          <button className="btn block btn-sm" onClick={goBasket}>
             {user.placed ? "🧺 바구니 보러 가기" : "🧺 바구니에 열매 넣으러 가기"}
           </button>
         )}
@@ -306,21 +307,19 @@ function Day({ date, today, entries, bonus = false, reload, say }: {
       </div>
       {bonus && (
         <p className="muted small" style={{ margin: "-4px 0 10px" }}>
-          ✨ 보너스 감사예요. 개수에는 안 들어가지만, 한 개라도 쓰면 내 열매가 황금 열매로 바뀌어요.
+          ✨ 개수엔 안 들어가지만, 하나라도 쓰면 황금 열매가 돼요
         </p>
       )}
       <div className="stack" style={{ gap: 10 }}>
         {entries.map((e, i) => <EntryItem key={e.id} entry={e} index={i} editable={editable} reload={reload} say={say} />)}
         {editable && entries.length < PER_DAY && (
-          <div className="stack" style={{ gap: 6 }}>
+          <div className="composer">
             <textarea
-              className="textarea" maxLength={MAX_LEN} value={draft} onChange={(e) => setDraft(e.target.value)}
+              className="textarea" rows={2} maxLength={MAX_LEN} value={draft} onChange={(e) => setDraft(e.target.value)}
               placeholder={bonus ? "토요일, 무엇이 감사했나요?" : [date === today ? "오늘, 무엇이 감사했나요?" : "이날, 무엇이 감사했나요?", "또 어떤 순간이 감사했나요?", "마지막 감사를 채워주세요"][entries.length]}
             />
-            <div className="spread">
-              <span className="muted small">{draft.length}/{MAX_LEN}</span>
-              <button className="btn" disabled={busy || !draft.trim()} onClick={add}>감사 담기</button>
-            </div>
+            <button className="btn" disabled={busy || !draft.trim()} onClick={add}>담기</button>
+            {draft.length > MAX_LEN - 30 && <span className="muted small counter">{draft.length}/{MAX_LEN}</span>}
           </div>
         )}
         {!editable && entries.length === 0 && <p className="muted small" style={{ margin: 0 }}>기록이 없어요</p>}
@@ -371,8 +370,8 @@ function EntryItem({ entry, index, editable, reload, say }: {
       <p><span className="muted">{index + 1}. </span>{entry.content}</p>
       {editable && (
         <div className="actions">
-          <button className="link" onClick={() => setEditing(true)}>수정</button>
-          <button className="link danger" onClick={remove}>삭제</button>
+          <button className="icon-btn" aria-label="수정" onClick={() => setEditing(true)}>✏️</button>
+          <button className="icon-btn" aria-label="삭제" onClick={remove}>🗑️</button>
         </div>
       )}
     </div>
@@ -477,6 +476,23 @@ function Board({ today, say, goWrite }: { today: string; say: (m: string) => voi
       )}
     </div>
   );
+}
+
+/**
+ * 게이지 위치(%). 열매 단계(0·4·7·10·13개)가 막대 위에 같은 간격으로 놓이도록
+ * 단계 사이를 구간별로 늘려서 계산한다. 15개면 100%.
+ */
+function gaugePos(count: number) {
+  const mins = FRUITS.map((f) => f.min); // [0, 4, 7, 10, 13]
+  const step = 88 / (mins.length - 1); // 단계 사이 간격 22%
+  for (let i = mins.length - 1; i >= 0; i--) {
+    if (count >= mins[i]) {
+      const nextMin = mins[i + 1] ?? MAX_COUNT;
+      const span = i === mins.length - 1 ? 100 - 88 : step;
+      return Math.min(100, i * step + ((count - mins[i]) / (nextMin - mins[i])) * span);
+    }
+  }
+  return 0;
 }
 
 /* ───────────── 날짜 탭 (내 감사·게시판 공용) ───────────── */
