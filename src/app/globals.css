@@ -243,3 +243,26 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .day-tabs button.on .mini-dots i { background: rgba(255,255,255,.35); }
 .day-tabs button.on .mini-dots i.on { background: #fff; }
 .tiers { margin-top: 4px; }
+.day-tabs .people { font-size: 10px; font-weight: 700; color: var(--brand); margin-top: 2px; }
+.day-tabs button.on .people { color: #fff; }
+
+/* 게시판 스와이프 카드 */
+.swipe {
+  display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
+  margin: 0 -16px; padding: 2px 16px 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.swipe::-webkit-scrollbar { display: none; }
+.swipe-card {
+  flex: 0 0 86%; scroll-snap-align: center; min-height: 300px;
+  border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(90, 60, 20, .06);
+}
+.swipe-card ol { margin: 14px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 14px; }
+.swipe-card li { line-height: 1.55; font-size: 16px; white-space: pre-wrap; }
+.swipe-card li::marker { color: var(--brand); font-weight: 800; }
+.tone-0 { background: #fff8e6; }
+.tone-1 { background: #f6fbef; }
+.tone-2 { background: #fff3ef; }
+.tone-3 { background: #f3f6ff; }
+.swipe-nav { display: flex; align-items: center; justify-content: space-between; }
+.swipe-nav .link:disabled { opacity: .3; }

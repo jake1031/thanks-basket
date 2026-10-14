@@ -58,7 +58,7 @@ export default function Home() {
     <>
       <div className="wrap">
         {tab === "mine" && <Mine me={me} reload={load} say={say} goBasket={() => setTab("basket")} />}
-        {tab === "board" && <Board say={say} />}
+        {tab === "board" && <Board today={me.today} say={say} />}
         {tab === "basket" && <Basket me={me} reload={load} say={say} />}
       </div>
       <nav className="tabs">
@@ -196,9 +196,7 @@ function Mine({ me, reload, say, goBasket }: { me: Me; reload: () => Promise<voi
   }
 
   const byDate = (d: string) => entries.filter((e) => e.date === d);
-  const [sel, setSel] = useState(() =>
-    DAYS.includes(today) ? today : today < DAYS[0] ? DAYS[0] : DAYS[DAYS.length - 1],
-  );
+  const [sel, setSel] = useState(() => defaultDay(today));
 
   return (
     <div className="stack" style={{ gap: 10 }}>
@@ -242,26 +240,15 @@ function Mine({ me, reload, say, goBasket }: { me: Me; reload: () => Promise<voi
         )}
       </div>
 
-      <div className="day-tabs">
-        {DAYS.map((d) => {
-          const { md, dow } = dayLabel(d);
-          const n = byDate(d).length;
-          const open = canEditDate(today, d);
-          return (
-            <button
-              key={d}
-              className={`${d === sel ? "on" : ""} ${!open && n === 0 ? "locked" : ""} ${d === today ? "today" : ""}`}
-              onClick={() => setSel(d)}
-            >
-              <span className="dow">{dow}{WEEKEND.includes(d) && "✨"}</span>
-              <span className="md">{md}</span>
-              <span className="mini-dots">
-                {Array.from({ length: PER_DAY }, (_, i) => <i key={i} className={i < n ? "on" : ""} />)}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      <DayTabs
+        today={today} sel={sel} onSel={setSel}
+        dim={(d) => !canEditDate(today, d) && byDate(d).length === 0}
+        sub={(d) => (
+          <span className="mini-dots">
+            {Array.from({ length: PER_DAY }, (_, i) => <i key={i} className={i < byDate(d).length ? "on" : ""} />)}
+          </span>
+        )}
+      />
 
       <Day key={sel} date={sel} today={today} entries={byDate(sel)} bonus={WEEKEND.includes(sel)} reload={reload} say={say} />
     </div>
@@ -387,51 +374,114 @@ function EntryItem({ entry, index, editable, reload, say }: {
 
 /* ───────────── 감사 게시판 ───────────── */
 
-type BoardEntry = Entry & { mine: boolean };
+type BoardCard = { mine: boolean; entries: string[] };
 
-function Board({ say }: { say: (m: string) => void }) {
-  const [items, setItems] = useState<BoardEntry[]>([]);
-  const [more, setMore] = useState(false);
-  const [loading, setLoading] = useState(true);
+function Board({ today, say }: { today: string; say: (m: string) => void }) {
+  const [sel, setSel] = useState(() => defaultDay(today));
+  const [people, setPeople] = useState<Record<string, number>>({});
+  const [cards, setCards] = useState<BoardCard[] | null>(null);
+  const [index, setIndex] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
 
-  const fetchPage = useCallback(async (before?: number) => {
-    setLoading(true);
-    try {
-      const res = await api<{ entries: BoardEntry[]; more: boolean }>(`/api/board${before ? `?before=${before}` : ""}`);
-      setItems((prev) => (before ? [...prev, ...res.entries] : res.entries));
-      setMore(res.more);
-    } catch (e) { say((e as Error).message); }
-    setLoading(false);
-  }, [say]);
+  useEffect(() => {
+    let alive = true;
+    setCards(null);
+    setIndex(0);
+    trackRef.current?.scrollTo({ left: 0 });
+    api<{ people: Record<string, number>; cards: BoardCard[] }>(`/api/board?date=${sel}`)
+      .then((r) => { if (alive) { setPeople(r.people); setCards(r.cards); } })
+      .catch((e) => say((e as Error).message));
+    return () => { alive = false; };
+  }, [sel, say]);
 
-  useEffect(() => { fetchPage(); }, [fetchPage]);
+  function onScroll() {
+    const el = trackRef.current;
+    if (!el || !el.firstElementChild) return;
+    const w = (el.firstElementChild as HTMLElement).offsetWidth + 12;
+    setIndex(Math.round(el.scrollLeft / w));
+  }
+
+  function go(i: number) {
+    const el = trackRef.current;
+    if (!el || !el.firstElementChild) return;
+    const w = (el.firstElementChild as HTMLElement).offsetWidth + 12;
+    el.scrollTo({ left: i * w, behavior: "smooth" });
+  }
+
+  const future = sel > today;
+  const { md, dow } = dayLabel(sel);
 
   return (
-    <div className="stack">
-      <div style={{ paddingTop: 8 }}>
+    <div className="stack" style={{ gap: 10 }}>
+      <div style={{ paddingTop: 4 }}>
         <h2>💌 감사 게시판</h2>
-        <p className="muted small" style={{ margin: "4px 0 0" }}>누가 썼는지는 보이지 않아요. 서로의 감사를 나눠요.</p>
+        <p className="muted small" style={{ margin: "4px 0 0" }}>누가 썼는지는 보이지 않아요. 옆으로 넘기며 서로의 감사를 나눠요.</p>
       </div>
-      {!loading && items.length === 0 && (
-        <div className="card muted" style={{ textAlign: "center" }}>아직 감사가 없어요. 첫 감사를 남겨주세요!</div>
-      )}
-      {items.map((e) => {
-        const { md, dow } = dayLabel(e.date);
-        return (
-          <div key={e.id} className="note">
-            <p>{e.content}</p>
-            <div className="spread">
-              <span className="muted small">{md} ({dow}){WEEKEND.includes(e.date) && " ✨"}</span>
-              {e.mine && <span className="badge">내 감사</span>}
-            </div>
+
+      <DayTabs
+        today={today} sel={sel} onSel={setSel}
+        dim={(d) => d > today && !people[d]}
+        sub={(d) => <span className="people">{people[d] ? `${people[d]}명` : "·"}</span>}
+      />
+
+      {future ? (
+        <div className="card muted" style={{ textAlign: "center" }}>🔒 {md}({dow})은 아직 열리지 않았어요</div>
+      ) : cards === null ? (
+        <p className="muted" style={{ textAlign: "center" }}>불러오는 중…</p>
+      ) : cards.length === 0 ? (
+        <div className="card muted" style={{ textAlign: "center" }}>{md}({dow})에는 아직 감사가 없어요</div>
+      ) : (
+        <>
+          <div className="swipe" ref={trackRef} onScroll={onScroll}>
+            {cards.map((c, i) => (
+              <div key={i} className={`swipe-card tone-${i % 4}`}>
+                <div className="spread">
+                  <span className="muted small">{md} ({dow}){WEEKEND.includes(sel) && " ✨"}</span>
+                  {c.mine && <span className="badge">내 감사</span>}
+                </div>
+                <ol>
+                  {c.entries.map((t, k) => <li key={k}>{t}</li>)}
+                </ol>
+              </div>
+            ))}
           </div>
+          <div className="swipe-nav">
+            <button className="link" disabled={index === 0} onClick={() => go(index - 1)}>‹ 이전</button>
+            <span className="muted small">{Math.min(index + 1, cards.length)} / {cards.length}</span>
+            <button className="link" disabled={index >= cards.length - 1} onClick={() => go(index + 1)}>다음 ›</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ───────────── 날짜 탭 (내 감사·게시판 공용) ───────────── */
+
+function defaultDay(today: string) {
+  return DAYS.includes(today) ? today : today < DAYS[0] ? DAYS[0] : DAYS[DAYS.length - 1];
+}
+
+function DayTabs({ today, sel, onSel, dim, sub }: {
+  today: string; sel: string; onSel: (d: string) => void;
+  dim: (d: string) => boolean; sub: (d: string) => React.ReactNode;
+}) {
+  return (
+    <div className="day-tabs">
+      {DAYS.map((d) => {
+        const { md, dow } = dayLabel(d);
+        return (
+          <button
+            key={d}
+            className={`${d === sel ? "on" : ""} ${dim(d) ? "locked" : ""} ${d === today ? "today" : ""}`}
+            onClick={() => onSel(d)}
+          >
+            <span className="dow">{dow}{WEEKEND.includes(d) && "✨"}</span>
+            <span className="md">{md}</span>
+            {sub(d)}
+          </button>
         );
       })}
-      {more && (
-        <button className="btn ghost block" disabled={loading} onClick={() => fetchPage(items[items.length - 1]?.id)}>
-          더 보기
-        </button>
-      )}
     </div>
   );
 }
