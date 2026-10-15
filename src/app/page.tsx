@@ -393,26 +393,17 @@ function Board({ today, say, goWrite }: { today: string; say: (m: string) => voi
   const [sel, setSel] = useState(() => defaultDay(today));
   const [people, setPeople] = useState<Record<string, number>>({});
   const [cards, setCards] = useState<BoardCard[] | null>(null);
-  const [index, setIndex] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let alive = true;
     setCards(null);
-    setIndex(0);
     trackRef.current?.scrollTo({ left: 0 });
     api<{ people: Record<string, number>; cards: BoardCard[] }>(`/api/board?date=${sel}`)
       .then((r) => { if (alive) { setPeople(r.people); setCards(r.cards); } })
       .catch((e) => say((e as Error).message));
     return () => { alive = false; };
   }, [sel, say]);
-
-  function onScroll() {
-    const el = trackRef.current;
-    if (!el || !el.firstElementChild) return;
-    const w = (el.firstElementChild as HTMLElement).offsetWidth + 12;
-    setIndex(Math.round(el.scrollLeft / w));
-  }
 
   function go(i: number) {
     const el = trackRef.current;
@@ -461,7 +452,7 @@ function Board({ today, say, goWrite }: { today: string; say: (m: string) => voi
         <div className="card muted" style={{ textAlign: "center" }}>{md}({dow})에는 아직 감사가 없어요</div>
       ) : (
         <>
-          <div className="swipe" ref={trackRef} onScroll={onScroll}>
+          <div className="swipe" ref={trackRef}>
             {slides.map((c, i) =>
               c === "prompt" ? (
                 <div key="prompt" className="swipe-card prompt-card">
@@ -470,6 +461,7 @@ function Board({ today, say, goWrite }: { today: string; say: (m: string) => voi
                     <p>아직 {md}({dow})의 감사를 쓰지 않았어요</p>
                     <button className="btn" onClick={() => goWrite(sel)}>✍️ 감사 쓰러 가기</button>
                   </div>
+                  <span className="page-no">{i + 1} / {slides.length}</span>
                 </div>
               ) : (
                 <div key={i} className={`swipe-card tone-${i % 4}`}>
@@ -480,14 +472,10 @@ function Board({ today, say, goWrite }: { today: string; say: (m: string) => voi
                   <ol>
                     {c.entries.map((t, k) => <li key={k}>{t}</li>)}
                   </ol>
+                  <span className="page-no">{i + 1} / {slides.length}</span>
                 </div>
               ),
             )}
-          </div>
-          <div className="swipe-nav">
-            <button className="link" disabled={index === 0} onClick={() => go(index - 1)}>‹ 이전</button>
-            <span className="muted small">{Math.min(index + 1, slides.length)} / {slides.length}</span>
-            <button className="link" disabled={index >= slides.length - 1} onClick={() => go(index + 1)}>다음 ›</button>
           </div>
         </>
       )}

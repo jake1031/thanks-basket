@@ -263,6 +263,7 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .swipe::-webkit-scrollbar { display: none; }
 /* 카드 폭 = 보이는 폭 - 양쪽 32px → 첫 카드부터 마지막 카드까지 모두 가운데 */
 .swipe-card {
+  display: flex; flex-direction: column;
   flex: 0 0 calc(min(100vw, 480px) - 64px); scroll-snap-align: center; min-height: 300px;
   border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px;
   box-shadow: 0 2px 8px rgba(90, 60, 20, .06);
@@ -392,3 +393,4 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .sheet-row .dots i.on { background: #e79a63; }
 .sheet-row.full .dots i.on { background: var(--brand); }
 @keyframes fade { from { opacity: 0; } }
+.page-no { margin-top: auto; padding-top: 12px; text-align: center; font-size: 12px; color: var(--muted); }
