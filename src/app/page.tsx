@@ -515,7 +515,7 @@ function PeopleButton({ date, today, cards, onPick }: {
         <span>👥</span>
         <span className="grow">
           {cards.length === 0
-            ? `${when === "오늘" ? "오늘" : `${md}(${dow})`}은 아직 감사가 없어요`
+            ? "아직 아무도 참여하지 않았어요"
             : <>{when} <b>{cards.length}명</b>이 감사를 남겨주었어요</>}
         </span>
         {cards.length > 0 && <span className="muted">›</span>}
