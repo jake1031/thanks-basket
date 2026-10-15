@@ -43,6 +43,12 @@ export function DevBar() {
     location.reload();
   }
 
+  async function basketN(n: number) {
+    setBusy(true);
+    await fetch("/api/dev", { method: "POST", body: JSON.stringify({ action: "basket", n }) });
+    location.reload();
+  }
+
   async function toggleDemo() {
     setBusy(true);
     const on = !demo;
@@ -74,6 +80,12 @@ export function DevBar() {
             <input type="checkbox" checked={demo} disabled={busy} onChange={toggleDemo} />
             데모 팀원 24명 채우기 (게시판·바구니 미리보기용)
           </label>
+          <div className="row small" style={{ marginTop: 10, gap: 4, flexWrap: "wrap" }}>
+            <span className="muted">바구니 인원</span>
+            {[0, 1, 3, 5, 8, 12, 15, 25].map((n) => (
+              <button key={n} className="link" style={{ padding: "2px 5px", border: "1px solid var(--line)", borderRadius: 6 }} disabled={busy} onClick={() => basketN(n)}>{n}</button>
+            ))}
+          </div>
           <button className="btn ghost block" style={{ marginTop: 10, padding: "8px 12px", fontSize: 13 }} disabled={busy} onClick={unplace}>
             ↩︎ 내 열매 바구니에서 꺼내기 (다시 넣어보기)
           </button>

@@ -98,7 +98,21 @@ function spread(target: number, seed: number) {
 
 export async function POST(req: Request) {
   if (!DEV) return fail("Not found", 404);
-  const { action } = await req.json().catch(() => ({}));
+  const { action, n } = await req.json().catch(() => ({}));
+  if (action === "basket") {
+    // 바구니에 넣은 사람 수를 n명으로 맞춰 보기 (데모 팀원 기준, 넣은 순서 유지)
+    const keep = await db<{ user_id: number }>("select user_id from basket order by placed_at limit $1", [Number(n) || 0]);
+    await db("delete from basket where not (user_id = any($1))", [keep.map((k) => k.user_id)]);
+    if (keep.length < Number(n)) {
+      const more = await db<{ id: number }>(
+        `select u.id from users u where not exists (select 1 from basket b where b.user_id = u.id)
+          and exists (select 1 from entries e where e.user_id = u.id) order by u.id limit $1`,
+        [Number(n) - keep.length],
+      );
+      for (const m of more) await db("insert into basket (user_id) values ($1)", [m.id]);
+    }
+    return json({ ok: true });
+  }
   if (action === "unplace") {
     // 내 열매를 바구니에서 다시 꺼내기 (넣는 모습 다시 보기용)
     const user = await currentUser(req);

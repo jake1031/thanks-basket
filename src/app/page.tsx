@@ -589,8 +589,7 @@ type BasketData = {
   totalThanks: number;
 };
 
-// 바구니에는 사람 수만큼 다 그리지 않고, 과일 종류별로 1~3개를 크게 포개어 봉긋하게 담는다.
-// 받은 사람이 많을수록 그 과일이 1→2→3개로 늘어난다. 황금은 그리지 않는다.
+// 넣은 사람 수만큼 과일이 하나씩 쌓이고(최대 15개), 그 뒤로는 가득 찬 바구니의 구성만 바뀐다.
 type Piece = { fruit: FruitId; golden: boolean; mine: boolean; left: number; bottom: number; size: number; rotate: number; z: number };
 
 // 봉긋한 더미: 줄마다 반 칸씩 엇갈리고, 가운데로 갈수록 살짝 솟는다(curve).
@@ -602,19 +601,31 @@ const ROW_SPEC = [
 ];
 
 function arrangeFruits(placed: BasketData["placed"]): Piece[] {
-  const items: Omit<Piece, "left" | "bottom" | "size" | "rotate" | "z">[] = [];
-  for (const f of FRUITS) {
-    const mine = placed.filter((p) => p.fruit === f.id);
-    if (!mine.length) continue;
-    const n = mine.length >= 4 ? 3 : mine.length >= 2 ? 2 : 1;
-    for (let k = 0; k < n; k++) {
-      items.push({
-        fruit: f.id,
-        golden: false, // 바구니 그림에는 황금을 그리지 않는다 (넣을 때 애니메이션으로만)
-        mine: k === n - 1 && mine.some((p) => p.mine),
-      });
-    }
+  // 바구니에 그릴 과일 수: 넣은 사람 수만큼 한 개씩 늘다가, 자리(15개)가 차면 그대로 유지.
+  // 가득 찬 뒤에는 과일 구성만 실제 비율을 따라간다 (있는 과일은 최소 1개).
+  const capacity = ROW_SPEC.reduce((n, r) => n + r.cap, 0);
+  const total = Math.min(placed.length, capacity);
+  const counts = FRUITS.map((f) => placed.filter((p) => p.fruit === f.id).length);
+  const shown: number[] = counts.map((c) => (c > 0 ? 1 : 0));
+  let rest = total - shown.reduce((a, b) => a + b, 0);
+  while (rest > 0) {
+    // 실제 비율보다 가장 덜 그려진 과일에 하나씩
+    let best = -1, gap = -Infinity;
+    counts.forEach((c, i) => {
+      if (!c) return;
+      const g = (c / placed.length) * total - shown[i];
+      if (g > gap) { gap = g; best = i; }
+    });
+    shown[best]++;
+    rest--;
   }
+  const items: Omit<Piece, "left" | "bottom" | "size" | "rotate" | "z">[] = [];
+  FRUITS.forEach((f, i) => {
+    for (let k = 0; k < shown[i]; k++) {
+      // 바구니 그림에는 황금을 그리지 않는다 (넣을 때 애니메이션으로만)
+      items.push({ fruit: f.id, golden: false, mine: false });
+    }
+  });
   // 앞줄부터 자리를 만든다
   const slots: Omit<Piece, "fruit" | "golden" | "mine">[] = [];
   let left = items.length;
