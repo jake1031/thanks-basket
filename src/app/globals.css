@@ -273,7 +273,10 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .prompt-body p { margin: 0; }
 .swipe-card ol {
   margin: 12px 0 0; padding: 0 4px 0 20px; display: flex; flex-direction: column; gap: 12px;
-  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  flex: 1; min-height: 0;
+  /* 위아래로만 스크롤. 좌우로 미는 건 카드 넘기기로 넘긴다 */
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain;
+  overflow-wrap: anywhere;
   /* 아래로 더 있으면 흐려지며 이어지는 느낌 */
   -webkit-mask-image: linear-gradient(to bottom, #000 85%, transparent);
   mask-image: linear-gradient(to bottom, #000 85%, transparent);
