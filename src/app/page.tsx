@@ -619,6 +619,21 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
     shown[best]++;
     rest--;
   }
+  // 보기 좋게 섞기: 6개 이상 쌓이면 한 과일이 40%를 넘지 않게 하고,
+  // 넘친 자리는 다른 과일로 채운다 (실제 개수는 아래 칩에 그대로 나온다)
+  if (total >= 6) {
+    const max = Math.max(2, Math.floor(total * 0.4));
+    let extra = 0;
+    shown.forEach((n, i) => { if (n > max) { extra += n - max; shown[i] = max; } });
+    // 실제로 넣은 과일 → 아무도 안 넣은 과일 순으로, 가장 적게 그려진 곳부터
+    const order = FRUITS.map((_, i) => i).sort((a, b) => (counts[b] > 0 ? 1 : 0) - (counts[a] > 0 ? 1 : 0));
+    while (extra > 0) {
+      const target = order.filter((i) => shown[i] < max).sort((a, b) => shown[a] - shown[b] || (counts[b] > 0 ? 1 : 0) - (counts[a] > 0 ? 1 : 0))[0];
+      if (target === undefined) break;
+      shown[target]++;
+      extra--;
+    }
+  }
   const items: Omit<Piece, "left" | "bottom" | "size" | "rotate" | "z">[] = [];
   FRUITS.forEach((f, i) => {
     for (let k = 0; k < shown[i]; k++) {
