@@ -255,8 +255,6 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
         )}
       </div>
 
-      {DAYS.includes(today) && <TodayPeople key={entries.length} today={today} />}
-
       <DayTabs
         today={today} sel={sel} onSel={setSel}
         dim={(d) => !canEditDate(today, d) && byDate(d).length === 0}
@@ -445,6 +443,16 @@ function Board({ today, say, goWrite }: { today: string; say: (m: string) => voi
         sub={(d) => <span className="people">{people[d] ? `${people[d]}명` : "·"}</span>}
       />
 
+      {!future && cards && (
+        <PeopleButton
+          date={sel} today={today} cards={cards}
+          onPick={(name) => {
+            const i = slides.findIndex((c) => c !== "prompt" && c.nickname === name);
+            if (i >= 0) go(i);
+          }}
+        />
+      )}
+
       {future ? (
         <div className="card muted" style={{ textAlign: "center" }}>🔒 {md}({dow})은 아직 열리지 않았어요</div>
       ) : cards === null ? (
@@ -504,46 +512,46 @@ function gaugePos(count: number) {
   return 0;
 }
 
-/* ───────────── 오늘 감사 남긴 사람 ───────────── */
+/* ───────────── 그날 감사 남긴 사람 (게시판) ───────────── */
 
-type TodayPerson = { nickname: string; n: number; mine: boolean };
-
-function TodayPeople({ today }: { today: string }) {
-  const [people, setPeople] = useState<TodayPerson[] | null>(null);
+function PeopleButton({ date, today, cards, onPick }: {
+  date: string; today: string; cards: BoardCard[]; onPick: (nickname: string) => void;
+}) {
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    api<{ people: TodayPerson[] }>("/api/today").then((r) => setPeople(r.people)).catch(() => setPeople([]));
-  }, []);
-
-  if (!people) return null;
-  const { md, dow } = dayLabel(today);
+  const { md, dow } = dayLabel(date);
+  const when = date === today ? "오늘" : `${md}(${dow})에`;
 
   return (
     <>
-      <button className="today-pill" onClick={() => setOpen(true)} disabled={people.length === 0}>
+      <button className="today-pill" onClick={() => setOpen(true)} disabled={cards.length === 0}>
         <span>👥</span>
         <span className="grow">
-          {people.length === 0 ? "오늘 첫 감사를 남겨보세요!" : <>오늘 <b>{people.length}명</b>이 감사를 남겨주었어요</>}
+          {cards.length === 0
+            ? `${when === "오늘" ? "오늘" : `${md}(${dow})`}은 아직 감사가 없어요`
+            : <>{when} <b>{cards.length}명</b>이 감사를 남겨주었어요</>}
         </span>
-        {people.length > 0 && <span className="muted">›</span>}
+        {cards.length > 0 && <span className="muted">›</span>}
       </button>
 
       {open && (
         <div className="modal-backdrop" onClick={() => setOpen(false)}>
           <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <div className="spread" style={{ marginBottom: 12 }}>
-              <b>{md}({dow}) 감사를 남긴 사람 {people.length}명</b>
+              <b>{md}({dow}) 감사를 남긴 사람 {cards.length}명</b>
               <button className="link" onClick={() => setOpen(false)}>닫기</button>
             </div>
             <div className="sheet-list">
-              {people.map((p) => (
-                <div key={p.nickname} className={`sheet-row ${p.n >= PER_DAY ? "full" : ""}`}>
-                  <span className="grow">{p.nickname}{p.mine && <span className="badge brand" style={{ marginLeft: 6 }}>나</span>}</span>
+              {cards.map((c) => (
+                <button
+                  key={c.nickname}
+                  className={`sheet-row ${c.entries.length >= PER_DAY ? "full" : ""}`}
+                  onClick={() => { setOpen(false); onPick(c.nickname); }}
+                >
+                  <span className="grow">{c.nickname}{c.mine && <span className="badge brand" style={{ marginLeft: 6 }}>나</span>}</span>
                   <span className="dots">
-                    {Array.from({ length: PER_DAY }, (_, i) => <i key={i} className={i < p.n ? "on" : ""} />)}
+                    {Array.from({ length: PER_DAY }, (_, i) => <i key={i} className={i < c.entries.length ? "on" : ""} />)}
                   </span>
-                </div>
+                </button>
               ))}
             </div>
           </div>

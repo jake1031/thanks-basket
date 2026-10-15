@@ -385,7 +385,7 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 }
 @keyframes pop { from { transform: scale(.96); opacity: 0; } }
 .sheet-list { overflow-y: auto; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
-.sheet-row { display: flex; align-items: center; gap: 8px; padding: 11px 14px; border-bottom: 1px solid var(--line); font-weight: 600; }
+.sheet-row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 11px 14px; border: none; border-bottom: 1px solid var(--line); background: none; font-weight: 600; text-align: left; }
 .sheet-row:last-child { border-bottom: none; }
 .sheet-row .dots { display: flex; gap: 4px; }
 .sheet-row .dots i { width: 9px; height: 9px; border-radius: 50%; background: #ecdcc3; }
