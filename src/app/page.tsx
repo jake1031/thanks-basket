@@ -735,7 +735,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
 
       <div className="card" style={{ padding: "4px 8px 0" }}>
         <div className="basket-stage" ref={stageRef}>
-          <BasketBack empty={pieces.length === 0} />
+          <BasketBack />
           <div className={`pile ${landed ? "landed" : ""}`}>
             {pieces.map((p, i) => (
               <div
@@ -828,15 +828,13 @@ function Wheat({ x, y, angle, flip = false }: { x: number; y: number; angle: num
   );
 }
 
-function BasketBack({ empty = false }: { empty?: boolean }) {
+function BasketBack() {
   return (
     <svg className="basket" viewBox="0 30 400 290" aria-hidden>
       <ellipse cx="200" cy="296" rx="140" ry="9" fill="#7a5530" opacity=".12" />
       <Wheat x={70} y={206} angle={-28} />
       <Wheat x={92} y={206} angle={-10} />
       <Wheat x={330} y={206} angle={26} flip />
-      {/* 바구니 안쪽 그늘: 과일이 있을 때만 (비어 있으면 테두리만 매끈하게) */}
-      {!empty && <path d="M38 208 C70 172 330 172 362 208 Z" fill="#b48655" />}
     </svg>
   );
 }
