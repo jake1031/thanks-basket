@@ -255,6 +255,8 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
         )}
       </div>
 
+      {DAYS.includes(today) && <TodayPeople key={entries.length} today={today} />}
+
       <DayTabs
         today={today} sel={sel} onSel={setSel}
         dim={(d) => !canEditDate(today, d) && byDate(d).length === 0}
@@ -500,6 +502,57 @@ function gaugePos(count: number) {
     }
   }
   return 0;
+}
+
+/* ───────────── 오늘 감사 남긴 사람 ───────────── */
+
+type TodayPerson = { nickname: string; n: number; mine: boolean };
+
+function TodayPeople({ today }: { today: string }) {
+  const [people, setPeople] = useState<TodayPerson[] | null>(null);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    api<{ people: TodayPerson[] }>("/api/today").then((r) => setPeople(r.people)).catch(() => setPeople([]));
+  }, []);
+
+  if (!people) return null;
+  const { md, dow } = dayLabel(today);
+  const done = people.filter((p) => p.n >= PER_DAY).length;
+
+  return (
+    <>
+      <button className="today-pill" onClick={() => setOpen(true)} disabled={people.length === 0}>
+        <span>👥</span>
+        <span className="grow">
+          {people.length === 0 ? "오늘 첫 감사를 남겨보세요!" : <>오늘 <b>{people.length}명</b>이 감사를 남겨주었어요</>}
+        </span>
+        {people.length > 0 && <span className="muted">›</span>}
+      </button>
+
+      {open && (
+        <div className="sheet-backdrop" onClick={() => setOpen(false)}>
+          <div className="sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="spread">
+              <b>{md}({dow}) 감사를 남긴 사람 {people.length}명</b>
+              <button className="link" onClick={() => setOpen(false)}>닫기</button>
+            </div>
+            <p className="muted small" style={{ margin: "2px 0 10px" }}>3개를 다 채운 사람 {done}명 · 먼저 쓴 순서</p>
+            <div className="sheet-list">
+              {people.map((p) => (
+                <div key={p.nickname} className={`sheet-row ${p.n >= PER_DAY ? "full" : ""}`}>
+                  <span className="grow">{p.nickname}{p.mine && <span className="badge brand" style={{ marginLeft: 6 }}>나</span>}</span>
+                  <span className="dots">
+                    {Array.from({ length: PER_DAY }, (_, i) => <i key={i} className={i < p.n ? "on" : ""} />)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 /* ───────────── 날짜 탭 (내 감사·게시판 공용) ───────────── */

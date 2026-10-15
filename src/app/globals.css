@@ -364,3 +364,31 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
   padding-right: 36px;
 }
 .person-picker .btn { padding: 0 14px; font-size: 20px; }
+
+/* 오늘 감사 남긴 사람 */
+.today-pill {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 9px 14px; font-size: 14px; text-align: left;
+}
+.today-pill b { color: var(--brand); }
+.today-pill:disabled { opacity: 1; cursor: default; color: var(--muted); }
+.grow { flex: 1; min-width: 0; }
+.sheet-backdrop {
+  position: fixed; inset: 0; z-index: 60; background: rgba(40, 25, 10, .35);
+  display: flex; align-items: flex-end; justify-content: center; animation: fade .15s ease-out;
+}
+.sheet {
+  width: 100%; max-width: 480px; max-height: 70dvh; display: flex; flex-direction: column;
+  background: var(--bg); border-radius: 20px 20px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+  animation: up .2s ease-out;
+}
+.sheet-list { overflow-y: auto; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+.sheet-row { display: flex; align-items: center; gap: 8px; padding: 11px 14px; border-bottom: 1px solid var(--line); font-weight: 600; }
+.sheet-row:last-child { border-bottom: none; }
+.sheet-row .dots { display: flex; gap: 4px; }
+.sheet-row .dots i { width: 9px; height: 9px; border-radius: 50%; background: #ecdcc3; }
+.sheet-row .dots i.on { background: #e79a63; }
+.sheet-row.full .dots i.on { background: var(--brand); }
+@keyframes fade { from { opacity: 0; } }
+@keyframes up { from { transform: translateY(30px); opacity: 0; } }
