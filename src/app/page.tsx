@@ -518,7 +518,6 @@ function TodayPeople({ today }: { today: string }) {
 
   if (!people) return null;
   const { md, dow } = dayLabel(today);
-  const done = people.filter((p) => p.n >= PER_DAY).length;
 
   return (
     <>
@@ -531,13 +530,12 @@ function TodayPeople({ today }: { today: string }) {
       </button>
 
       {open && (
-        <div className="sheet-backdrop" onClick={() => setOpen(false)}>
-          <div className="sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="spread">
+        <div className="modal-backdrop" onClick={() => setOpen(false)}>
+          <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="spread" style={{ marginBottom: 12 }}>
               <b>{md}({dow}) 감사를 남긴 사람 {people.length}명</b>
               <button className="link" onClick={() => setOpen(false)}>닫기</button>
             </div>
-            <p className="muted small" style={{ margin: "2px 0 10px" }}>3개를 다 채운 사람 {done}명 · 먼저 쓴 순서</p>
             <div className="sheet-list">
               {people.map((p) => (
                 <div key={p.nickname} className={`sheet-row ${p.n >= PER_DAY ? "full" : ""}`}>
