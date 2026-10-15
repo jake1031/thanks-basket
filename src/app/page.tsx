@@ -54,7 +54,7 @@ export default function Home() {
 
   if (!ready) return <div className="wrap hero"><p className="muted">불러오는 중…</p></div>;
   if (!me) return <Join onDone={load} />;
-  const current: Tab = tab === "basket" && !basketOpen(me.today) ? "mine" : tab;
+  const current: Tab = tab;
 
   return (
     <>
@@ -68,7 +68,6 @@ export default function Home() {
       <nav className="tabs">
         <div className="tabs-inner">
           {([["mine", "✍️", "내 감사"], ["board", "💌", "감사 게시판"], ["basket", "🧺", "바구니"]] as const)
-            .filter(([id]) => id !== "basket" || basketOpen(me.today)) // 바구니 탭은 토요일부터
             .map(([id, ico, label]) => (
             <button key={id} className={`tab ${current === id ? "on" : ""}`} onClick={() => { setTab(id); window.scrollTo(0, 0); }}>
               <span className="ico">{ico}</span>{label}
@@ -658,7 +657,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
     <div className="stack">
       <div className="spread" style={{ paddingTop: 4, alignItems: "baseline" }}>
         <h2>🎤 싱어팀 감사 바구니</h2>
-        <span className="muted small">{data.placed.length}명 참여</span>
+        <span className="muted small">{data.open ? `${data.placed.length}명 참여` : "10/24(토) 오픈"}</span>
       </div>
 
       <div className="card" style={{ padding: "4px 8px 0" }}>
@@ -696,7 +695,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
             ))}
           </div>
         ) : (
-          <p className="muted small" style={{ textAlign: "center", margin: "4px 0" }}>아직 비어 있는 바구니예요</p>
+          <p className="muted small" style={{ textAlign: "center", margin: "4px 0" }}>{data.open ? "아직 비어 있는 바구니예요" : "토요일에 열매가 채워져요"}</p>
         )}
         <div className="total-row">
           <span>🙏 한 주간 모인 감사</span>
@@ -706,10 +705,10 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
 
       {!data.open ? (
         <div className="card my-fruit">
-          <Fruit id={myFruit.id} size={44} />
+          <span style={{ fontSize: 34 }}>🧺</span>
           <div style={{ flex: 1 }}>
-            <b>바구니는 10/24(토)에 열려요</b>
-            <p className="muted small">평일 동안 감사를 채우고, 토요일에 내 열매를 넣어주세요!</p>
+            <b>바구니는 아직 비어 있어요</b>
+            <p className="muted small">토요일(10/24)에 한 주간 모은 열매를 다 함께 담아요!</p>
           </div>
         </div>
       ) : user.placed ? (
