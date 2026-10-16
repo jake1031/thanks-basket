@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Fruit } from "@/components/Fruit";
+import { ForestIntro } from "@/components/ForestIntro";
 import { ApiError, api, token } from "@/lib/client";
 import {
   EVENT_DAYS as DAYS, FRUITS, MAX_COUNT, MAX_LEN, PER_DAY, WEEKDAYS, WEEKEND,
@@ -695,6 +696,10 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   const [landed, setLanded] = useState(false);
   const [busy, setBusy] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
+  // 바구니 탭을 열 때마다 숲속 나뭇잎을 헤치고 들어가는 연출
+  const [intro, setIntro] = useState(true);
+  const endIntro = useCallback(() => setIntro(false), []);
+  const introEl = intro ? <ForestIntro onDone={endIntro} /> : null;
 
   const fetchBasket = useCallback(async () => {
     try { setData(await api<BasketData>("/api/basket")); } catch (e) { say((e as Error).message); }
@@ -719,7 +724,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
     setBusy(false);
   }
 
-  if (!data) return <p className="muted" style={{ textAlign: "center", paddingTop: 40 }}>바구니 가져오는 중…</p>;
+  if (!data) return <>{introEl}<p className="muted" style={{ textAlign: "center", paddingTop: 40 }}>바구니 가져오는 중…</p></>;
 
   const { user } = me;
   const myFruit = fruitFor(user.count);
@@ -728,6 +733,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
 
   return (
     <div className="stack">
+      {introEl}
       <div className="spread" style={{ paddingTop: 4, alignItems: "baseline" }}>
         <h2>🎤 싱어팀 감사 바구니</h2>
         <span className="muted small">{data.open ? `${data.placed.length}명 참여` : "10/24(토) 오픈"}</span>

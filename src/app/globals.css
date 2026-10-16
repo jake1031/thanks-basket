@@ -404,3 +404,44 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .sheet-row.full .dots i.on { background: var(--brand); }
 @keyframes fade { from { opacity: 0; } }
 .page-no { margin-top: auto; padding-top: 8px; flex-shrink: 0; text-align: center; font-size: 12px; color: var(--muted); }
+
+/* 바구니 탭 진입: 숲속 나뭇잎 헤치기 */
+.forest {
+  position: fixed; left: 0; right: 0; top: 0; bottom: calc(62px + env(safe-area-inset-bottom));
+  z-index: 40; overflow: hidden; cursor: pointer;
+  background: #24502c; animation: forest-bg 1.6s ease-in forwards;
+}
+.forest-light {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 42%, rgba(255, 236, 170, .95) 0%, rgba(255, 220, 140, .35) 30%, transparent 60%);
+  opacity: 0; animation: forest-light 1.6s ease-out forwards;
+}
+.forest-layer { position: absolute; inset: 0; }
+.forest .leaves { position: absolute; top: -6%; bottom: -6%; width: 68%; }
+.forest .leaves svg { width: 100%; height: 100%; display: block; }
+.forest .leaves { overflow: visible; }
+.forest .leaves.left {
+  left: -12%; transform-origin: 0% 50%;
+  animation: part-left var(--t) cubic-bezier(.5, 0, .3, 1) var(--d) both;
+}
+.forest .leaves.right {
+  right: -12%; transform-origin: 100% 50%;
+  animation: part-right var(--t) cubic-bezier(.5, 0, .3, 1) var(--d) both;
+}
+/* 처음엔 살짝 바스락 흔들리다가 양옆으로 활짝 헤쳐진다 */
+@keyframes part-left {
+  0% { transform: translateX(0) rotate(0); }
+  12% { transform: translateX(2%) rotate(1.5deg); }
+  24% { transform: translateX(-1%) rotate(-1deg); }
+  80% { opacity: 1; }
+  100% { transform: translateX(-200%) rotate(-6deg) scale(1.1); opacity: 0; }
+}
+@keyframes part-right {
+  0% { transform: translateX(0) rotate(0); }
+  12% { transform: translateX(-2%) rotate(-1.5deg); }
+  24% { transform: translateX(1%) rotate(1deg); }
+  80% { opacity: 1; }
+  100% { transform: translateX(200%) rotate(6deg) scale(1.1); opacity: 0; }
+}
+@keyframes forest-bg { 0%, 25% { background-color: #24502c; } 65%, 100% { background-color: rgba(36, 80, 44, 0); } }
+@keyframes forest-light { 0%, 20% { opacity: 0; } 45% { opacity: .9; } 85%, 100% { opacity: 0; } }
