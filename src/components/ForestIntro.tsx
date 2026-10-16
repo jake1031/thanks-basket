@@ -50,9 +50,9 @@ function LeafCluster({ leaves }: { leaves: Leaf[] }) {
 
 // 뒤 → 앞 순서. 앞쪽 잎일수록 크고 빨리 헤쳐진다.
 const LAYERS = [
-  { seed: 11, count: 70, autumn: 0.08, delay: 0.32, dur: 1.15 },
-  { seed: 23, count: 60, autumn: 0.12, delay: 0.24, dur: 1.0 },
-  { seed: 37, count: 48, autumn: 0.18, delay: 0.16, dur: 0.85 },
+  { seed: 11, count: 70, autumn: 0.08, delay: 0.45, dur: 2.0 },
+  { seed: 23, count: 60, autumn: 0.12, delay: 0.3, dur: 1.85 },
+  { seed: 37, count: 48, autumn: 0.18, delay: 0.15, dur: 1.7 },
 ];
 
 export function ForestIntro({ onDone }: { onDone: () => void }) {
@@ -70,7 +70,7 @@ export function ForestIntro({ onDone }: { onDone: () => void }) {
       onDone();
       return;
     }
-    const t = setTimeout(onDone, 1650);
+    const t = setTimeout(onDone, 2600);
     return () => clearTimeout(t);
   }, [onDone]);
 

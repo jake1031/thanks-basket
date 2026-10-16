@@ -834,10 +834,86 @@ function Wheat({ x, y, angle, flip = false }: { x: number; y: number; angle: num
   );
 }
 
+/** 바구니 뒤 숲속 풍경 (하늘·햇살·먼 나무·가까운 나무·풀밭·떨어지는 단풍) */
+function ForestScene() {
+  const far = [
+    [10, 162, 30], [58, 156, 34], [108, 164, 28], [152, 152, 36], [200, 160, 30],
+    [246, 150, 36], [292, 162, 30], [338, 154, 34], [390, 160, 32],
+  ];
+  const mid = [[42, 128, 44], [96, 142, 36], [306, 140, 38], [362, 124, 46]];
+  const falling = [
+    { x: 128, y: 74, c: "#e0a12a", r: 30, d: "0s" },
+    { x: 262, y: 96, c: "#d9772a", r: -40, d: "-2.2s" },
+    { x: 188, y: 58, c: "#8cc152", r: 70, d: "-4.1s" },
+    { x: 330, y: 70, c: "#e0a12a", r: -10, d: "-1.3s" },
+  ];
+  return (
+    <g>
+      <defs>
+        <linearGradient id="fs-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#fbefcf" />
+          <stop offset="1" stopColor="#eaf2d6" />
+        </linearGradient>
+        <radialGradient id="fs-sun" cx="0.72" cy="0.12" r="0.6">
+          <stop offset="0" stopColor="#fff2b8" stopOpacity="1" />
+          <stop offset="1" stopColor="#fff2b8" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <rect x="0" y="30" width="400" height="290" fill="url(#fs-sky)" />
+      <rect x="0" y="30" width="400" height="290" fill="url(#fs-sun)" />
+      {/* 햇살 */}
+      <g fill="#fff" opacity=".22">
+        <path d="M300 30 L340 30 L210 250 L170 250 Z" />
+        <path d="M352 30 L372 30 L262 250 L240 250 Z" />
+      </g>
+      {/* 먼 나무 */}
+      <g fill="#bcd5a8">
+        {far.map(([x, y, r], i) => <circle key={i} cx={x} cy={y} r={r} />)}
+        <path d="M0 170 C 80 160 320 160 400 170 L400 240 L0 240 Z" />
+      </g>
+      {/* 가운데 나무 */}
+      {mid.map(([x, y, r], i) => (
+        <g key={i}>
+          <rect x={x - 3} y={y} width="6" height={230 - y} fill="#9b8462" />
+          <circle cx={x} cy={y} r={r} fill="#93c07e" />
+          <circle cx={x - r * 0.35} cy={y - r * 0.3} r={r * 0.55} fill="#a6cc8f" />
+        </g>
+      ))}
+      {/* 가까운 나무: 양옆에서 감싸기 */}
+      <rect x="6" y="90" width="18" height="170" fill="#7a5a3a" />
+      <circle cx="4" cy="78" r="66" fill="#5f9a55" />
+      <circle cx="40" cy="52" r="34" fill="#6fab60" />
+      <rect x="378" y="96" width="18" height="164" fill="#7a5a3a" />
+      <circle cx="400" cy="84" r="62" fill="#5f9a55" />
+      <circle cx="366" cy="56" r="30" fill="#6fab60" />
+      {/* 풀밭 */}
+      <path d="M0 236 C 90 222 310 222 400 236 L400 320 L0 320 Z" fill="#a8cf86" />
+      <path d="M0 272 C 120 260 280 260 400 272 L400 320 L0 320 Z" fill="#9ac57b" />
+      <g fill="#86b86a">
+        <circle cx="58" cy="242" r="16" /><circle cx="78" cy="246" r="12" />
+        <circle cx="342" cy="244" r="15" /><circle cx="322" cy="248" r="11" />
+      </g>
+      <g stroke="#79ad5e" strokeWidth="2.5" strokeLinecap="round">
+        <path d="M30 300 l-4 -10 M34 300 l2 -12 M38 300 l6 -9" />
+        <path d="M362 302 l-5 -9 M366 302 l1 -12 M370 302 l6 -8" />
+        <path d="M120 312 l-3 -8 M124 312 l2 -10" />
+        <path d="M280 312 l-2 -9 M284 312 l3 -8" />
+      </g>
+      {/* 떨어지는 단풍 */}
+      {falling.map((f, i) => (
+        <g key={i} className="fall-leaf" style={{ animationDelay: f.d }}>
+          <path transform={`translate(${f.x} ${f.y}) rotate(${f.r}) scale(.18)`} d="M0 0 C 14 -26 50 -30 78 0 C 50 30 14 26 0 0 Z" fill={f.c} />
+        </g>
+      ))}
+    </g>
+  );
+}
+
 function BasketBack() {
   return (
     <svg className="basket" viewBox="0 30 400 290" aria-hidden>
-      <ellipse cx="200" cy="296" rx="140" ry="9" fill="#7a5530" opacity=".12" />
+      <ForestScene />
+      <ellipse cx="200" cy="296" rx="150" ry="10" fill="#4f7d3b" opacity=".35" />
       <Wheat x={70} y={206} angle={-28} />
       <Wheat x={92} y={206} angle={-10} />
       <Wheat x={330} y={206} angle={26} flip />

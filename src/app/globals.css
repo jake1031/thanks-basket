@@ -188,7 +188,7 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .fruit.golden { filter: drop-shadow(0 0 5px rgba(246, 196, 67, .65)); }
 .fruit .sparkle { animation: twinkle 1.8s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
 @keyframes twinkle { 50% { opacity: .45; transform: scale(.8); } }
-.basket-stage { background: radial-gradient(ellipse at 50% 45%, #fff3dc 0%, rgba(255, 243, 220, 0) 65%); border-radius: 14px; }
+.basket-stage { border-radius: 14px; overflow: hidden; }
 .total-count { font-size: 20px; font-weight: 800; color: var(--brand); }
 .total-row {
   display: flex; align-items: center; justify-content: space-between;
@@ -409,12 +409,12 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .forest {
   position: fixed; left: 0; right: 0; top: 0; bottom: calc(62px + env(safe-area-inset-bottom));
   z-index: 40; overflow: hidden; cursor: pointer;
-  background: #24502c; animation: forest-bg 1.6s ease-in forwards;
+  background: #24502c; animation: forest-bg 2.6s ease-in forwards;
 }
 .forest-light {
   position: absolute; inset: 0;
   background: radial-gradient(ellipse at 50% 42%, rgba(255, 236, 170, .95) 0%, rgba(255, 220, 140, .35) 30%, transparent 60%);
-  opacity: 0; animation: forest-light 1.6s ease-out forwards;
+  opacity: 0; animation: forest-light 2.6s ease-out forwards;
 }
 .forest-layer { position: absolute; inset: 0; }
 .forest .leaves { position: absolute; top: -6%; bottom: -6%; width: 68%; }
@@ -422,26 +422,41 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .forest .leaves { overflow: visible; }
 .forest .leaves.left {
   left: -12%; transform-origin: 0% 50%;
-  animation: part-left var(--t) cubic-bezier(.5, 0, .3, 1) var(--d) both;
+  animation: part-left var(--t) cubic-bezier(.45, 0, .35, 1) var(--d) both;
 }
 .forest .leaves.right {
   right: -12%; transform-origin: 100% 50%;
-  animation: part-right var(--t) cubic-bezier(.5, 0, .3, 1) var(--d) both;
+  animation: part-right var(--t) cubic-bezier(.45, 0, .35, 1) var(--d) both;
 }
 /* 처음엔 살짝 바스락 흔들리다가 양옆으로 활짝 헤쳐진다 */
 @keyframes part-left {
   0% { transform: translateX(0) rotate(0); }
-  12% { transform: translateX(2%) rotate(1.5deg); }
-  24% { transform: translateX(-1%) rotate(-1deg); }
+  8% { transform: translateX(2%) rotate(1.5deg); }
+  16% { transform: translateX(-1.5%) rotate(-1deg); }
+  24% { transform: translateX(1%) rotate(.5deg); }
+  32% { transform: translateX(0) rotate(0); }
   80% { opacity: 1; }
   100% { transform: translateX(-200%) rotate(-6deg) scale(1.1); opacity: 0; }
 }
 @keyframes part-right {
   0% { transform: translateX(0) rotate(0); }
-  12% { transform: translateX(-2%) rotate(-1.5deg); }
-  24% { transform: translateX(1%) rotate(1deg); }
+  8% { transform: translateX(-2%) rotate(-1.5deg); }
+  16% { transform: translateX(1.5%) rotate(1deg); }
+  24% { transform: translateX(-1%) rotate(-.5deg); }
+  32% { transform: translateX(0) rotate(0); }
   80% { opacity: 1; }
   100% { transform: translateX(200%) rotate(6deg) scale(1.1); opacity: 0; }
 }
 @keyframes forest-bg { 0%, 25% { background-color: #24502c; } 65%, 100% { background-color: rgba(36, 80, 44, 0); } }
 @keyframes forest-light { 0%, 20% { opacity: 0; } 45% { opacity: .9; } 85%, 100% { opacity: 0; } }
+
+/* 숲속 풍경: 천천히 흔들리며 떨어지는 단풍 */
+.fall-leaf { animation: leaf-fall 7s ease-in-out infinite; transform-box: fill-box; }
+@keyframes leaf-fall {
+  0% { transform: translate(0, -20px) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  50% { transform: translate(14px, 50px) rotate(40deg); }
+  90% { opacity: 1; }
+  100% { transform: translate(-6px, 120px) rotate(-20deg); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .fall-leaf { animation: none; } }
