@@ -45,22 +45,17 @@ export function Fruit({ id, golden = false, size = 48 }: { id: FruitId; golden?:
         </>
       );
       break;
-    case "lemon":
-      // 대각선으로 비스듬히 선 레몬. 위쪽 꼭지 끝에 잎이 붙어 있다
-      body = "M8 36 C 8 30 12 28 15 26 C 22 18 42 18 49 26 C 52 28 56 30 56 36 C 56 42 52 44 49 46 C 42 54 22 54 15 46 C 12 44 8 42 8 36 Z";
+    case "avocado":
+      // 반으로 자른 아보카도: 짙은 초록 껍질, 연두 과육, 갈색 씨
+      body = "M32 6 C 40 6 43 14 45 22 C 47 30 56 34 56 46 C 56 56 46 62 32 62 C 18 62 8 56 8 46 C 8 34 17 30 19 22 C 21 14 24 6 32 6 Z";
       parts = (
-        <g transform="rotate(-40 32 36) translate(0 -2)">
-          <path d={body} fill={g("#f6d33c", GOLD.body)} />
-          {shade("M8 44 C 22 60 46 58 60 40 L64 64 L0 64 Z", g("#e5bc1f", GOLD.shade))}
-          <g fill={g("#d9b024", GOLD.dot)} opacity=".5">
-            <circle cx="22" cy="31" r=".9" /><circle cx="30" cy="27" r=".9" /><circle cx="38" cy="30" r=".9" />
-            <circle cx="26" cy="41" r=".9" /><circle cx="36" cy="43" r=".9" />
-          </g>
-          <path d="M56 36 L59 36" stroke={STEM} strokeWidth="2.4" strokeLinecap="round" />
-          <path d="M58 36 C 60 28 66 25 70 27 C 68 33 63 37 58 36 Z" fill={LEAF} />
-          <path d="M58 36 C 62 32 66 29 70 27 C 68 33 63 37 58 36 Z" fill={LEAF_DARK} />
-          <ellipse cx="22" cy="31" rx="6" ry="2.4" fill="#fff" opacity={shine} transform="rotate(-10 22 31)" />
-        </g>
+        <>
+          <path d={body} fill={g("#3f6b2a", GOLD.shade)} />
+          <path d="M32 10 C 38 10 40 16 42 23 C 44 31 52 35 52 46 C 52 54 44 58 32 58 C 20 58 12 54 12 46 C 12 35 20 31 22 23 C 24 16 26 10 32 10 Z" fill={g("#c9e07a", GOLD.body)} />
+          <path d="M32 14 C 36 14 38 19 39 25 C 41 32 48 36 48 46 C 48 52 42 55 32 55 C 22 55 16 52 16 46 C 16 36 23 32 25 25 C 26 19 28 14 32 14 Z" fill={g("#e6f0a4", GOLD.leaf)} />
+          <circle cx="32" cy="43" r="9" fill={g("#8a5a32", GOLD.stem)} />
+          <circle cx="30" cy="41" r="3" fill="#fff" opacity={shine * 0.7} />
+        </>
       );
       break;
     case "pomegranate":
