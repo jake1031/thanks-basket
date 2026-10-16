@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Fruit } from "@/components/Fruit";
 import { ForestIntro } from "@/components/ForestIntro";
-import { DROP_AT, SQUIRREL_MS, SquirrelRun } from "@/components/Squirrel";
 import { ApiError, api, token } from "@/lib/client";
 import {
   EVENT_DAYS as DAYS, FRUITS, MAX_COUNT, MAX_LEN, PER_DAY, WEEKDAYS, WEEKEND,
@@ -697,8 +696,6 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   const [landed, setLanded] = useState(false);
   const [busy, setBusy] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
-  const areaRef = useRef<HTMLDivElement>(null);
-  const myFruitRef = useRef<HTMLDivElement>(null);
   // 바구니 탭을 열 때마다 숲속 나뭇잎을 헤치고 들어가는 연출
   const [intro, setIntro] = useState(true);
   const endIntro = useCallback(() => setIntro(false), []);
@@ -713,9 +710,9 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
     setBusy(true);
     try {
       await api("/api/basket", { method: "POST" });
-      // 다람쥐가 달려와 카드 속 내 열매를 물고 가서 바구니에 넣는다
+      // 내 열매가 위에서 떨어져 바구니에 쏙 들어간다
       setDropping({ fruit: fruitFor(me.user.count).id, golden: me.user.golden });
-      await new Promise((r) => setTimeout(r, SQUIRREL_MS * (DROP_AT + 0.1))); // 과일이 바구니에 쏙 들어간 뒤
+      await new Promise((r) => setTimeout(r, 1300)); // 열매가 위에서 떨어져 바구니에 쏙 들어간 뒤
       await Promise.all([fetchBasket(), reload()]);
       setDropping(null);
       setLanded(true);
@@ -735,13 +732,15 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
     <div className="forest-page">
       {introEl}
       <ForestBackdrop />
-      <div className="forest-content" ref={areaRef}>
+      <div className="forest-content">
         <div className="forest-head">
-          <div className="spread" style={{ alignItems: "baseline" }}>
-            <h2>🎤 싱어팀 감사 바구니</h2>
-            <span className="small">{data.open ? `${data.placed.length}명 참여` : "10/24(토) 오픈"}</span>
+          <h2>🎤 싱어팀 감사 바구니</h2>
+          <div className="pills">
+            <span className="total-pill">
+              {data.open ? <>🧺 바구니에 넣은 사람 <b>{data.placed.length}명</b></> : <>🧺 바구니는 <b>10/24(토)</b>에 열려요</>}
+            </span>
+            <span className="total-pill">🙏 한 주간 모인 감사 <b>{data.totalThanks}개</b></span>
           </div>
-          <span className="total-pill">🙏 한 주간 모인 감사 <b>{data.totalThanks}개</b></span>
         </div>
 
         <div className="forest-spacer" />
@@ -766,6 +765,11 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
               </div>
             ))}
           </div>
+          {dropping && (
+            <div className="dropper">
+              <Fruit id={dropping.fruit} golden={dropping.golden} size="100%" />
+            </div>
+          )}
           <BasketFront />
           {landed && (
             <div className="burst" aria-hidden>
@@ -792,7 +796,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
             </div>
           ) : (
             <div className="ground-card">
-              <div className="card-fruit" ref={myFruitRef}><Fruit id={myFruit.id} golden={user.golden} size="100%" /></div>
+              <div className={`card-fruit ${dropping ? "gone" : ""}`}><Fruit id={myFruit.id} golden={user.golden} size="100%" /></div>
               <div style={{ flex: 1 }}>
                 <b>내 열매는 {user.golden ? "황금 " : ""}{myFruit.name}!</b>
                 <p className="muted small">평일 감사 {user.count}개를 채웠어요</p>
@@ -801,9 +805,6 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
             </div>
           )}
         </div>
-        {dropping && (
-          <SquirrelRun fruit={dropping.fruit} golden={dropping.golden} areaRef={areaRef} stageRef={stageRef} fromRef={myFruitRef} />
-        )}
       </div>
     </div>
   );
