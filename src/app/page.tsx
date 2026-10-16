@@ -768,37 +768,30 @@ const ROW_SPEC = [
 
 function arrangeFruits(placed: BasketData["placed"]): Piece[] {
   // 바구니에 그릴 과일 수: 넣은 사람 수만큼 한 개씩 늘다가, 자리(15개)가 차면 그대로 유지.
-  // 가득 찬 뒤에는 과일 구성만 실제 비율을 따라간다 (있는 과일은 최소 1개).
+  // 한 종류는 최대 3개까지만 그리고, 남는 자리는 다른 과일로 채운다
+  // (실제로 넣은 과일 먼저, 그래도 남으면 아무도 안 넣은 과일).
   const capacity = ROW_SPEC.reduce((n, r) => n + r.cap, 0);
   const total = Math.min(placed.length, capacity);
+  const PER_TYPE = 3;
   const counts = ALL_FRUITS.map((f) => placed.filter((p) => p.fruit === f).length);
   const shown: number[] = counts.map((c) => (c > 0 ? 1 : 0));
   let rest = total - shown.reduce((a, b) => a + b, 0);
   while (rest > 0) {
-    // 실제 비율보다 가장 덜 그려진 과일에 하나씩
+    // 실제 비율보다 가장 덜 그려진 과일에 하나씩 (3개 넘지 않게)
     let best = -1, gap = -Infinity;
     counts.forEach((c, i) => {
-      if (!c) return;
+      if (!c || shown[i] >= PER_TYPE) return;
       const g = (c / placed.length) * total - shown[i];
       if (g > gap) { gap = g; best = i; }
     });
+    if (best < 0) {
+      // 넣은 과일이 모두 3개가 됐으면 아직 없는 과일로 채운다
+      best = ALL_FRUITS.findIndex((_, i) => shown[i] === 0);
+      if (best < 0) best = shown.findIndex((n) => n < PER_TYPE);
+      if (best < 0) break;
+    }
     shown[best]++;
     rest--;
-  }
-  // 보기 좋게 섞기: 6개 이상 쌓이면 한 과일이 40%를 넘지 않게 하고,
-  // 넘친 자리는 다른 과일로 채운다 (실제 개수는 아래 칩에 그대로 나온다)
-  if (total >= 6) {
-    const max = Math.max(2, Math.floor(total * 0.4));
-    let extra = 0;
-    shown.forEach((n, i) => { if (n > max) { extra += n - max; shown[i] = max; } });
-    // 실제로 넣은 과일 → 아무도 안 넣은 과일 순으로, 가장 적게 그려진 곳부터
-    const order = ALL_FRUITS.map((_, i) => i).sort((a, b) => (counts[b] > 0 ? 1 : 0) - (counts[a] > 0 ? 1 : 0));
-    while (extra > 0) {
-      const target = order.filter((i) => shown[i] < max).sort((a, b) => shown[a] - shown[b] || (counts[b] > 0 ? 1 : 0) - (counts[a] > 0 ? 1 : 0))[0];
-      if (target === undefined) break;
-      shown[target]++;
-      extra--;
-    }
   }
   const items: Omit<Piece, "left" | "bottom" | "size" | "rotate" | "z">[] = [];
   ALL_FRUITS.forEach((f, i) => {
@@ -827,25 +820,24 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
       });
     }
   }
-  // 예쁘게 섞기: 같은 과일이 옆에 붙지 않게 종류를 번갈아 놓고,
-  // 큰 열매는 뒤쪽 가운데, 작은 열매는 앞쪽 가장자리로 보낸다.
-  const byType = new Map<FruitId, typeof items>();
-  for (const it of items) byType.set(it.fruit, [...(byType.get(it.fruit) ?? []), it]);
-  const types = [...byType.keys()].sort((x, y) => tierOf(y).level - tierOf(x).level || byType.get(y)!.length - byType.get(x)!.length);
-  const mixed: typeof items = [];
-  while (mixed.length < items.length) {
-    for (const t of types) { const q = byType.get(t)!; if (q.length) mixed.push(q.shift()!); }
-  }
-  // 자리 순서: 맨 위(뒤) 줄 가운데부터 → 앞줄 가장자리 순
+  // 같은 과일끼리 뭉치게: 큰 열매부터 뒤쪽 가운데 빈자리를 하나 잡고, 그 주변 가까운 자리로 묶는다
   const rank = slots
     .map((sl, i) => ({ i, row: sl.z >= 30 ? 0 : sl.z >= 20 ? 1 : 2, off: Math.abs(sl.left - 50) }))
-    .sort((x, y) => y.row - x.row || x.off - y.off);
+    .sort((x, y) => y.row - x.row || x.off - y.off)
+    .map((r) => r.i);
+  const dist = (i: number, j: number) => Math.hypot(slots[i].left - slots[j].left, (slots[i].bottom - slots[j].bottom) * 1.1);
+  const free = new Set(slots.map((_, i) => i));
+  const types = [...new Set(items.map((it) => it.fruit))].sort((x, y) => tierOf(y).level - tierOf(x).level);
+  const queue: typeof items = [];
   const order: number[] = [];
-  // 큰 열매(4·5단계)를 먼저 뒤쪽 가운데에, 나머지는 섞인 순서대로
-  const big = mixed.filter((it) => tierOf(it.fruit).level >= 4);
-  const small = mixed.filter((it) => tierOf(it.fruit).level < 4);
-  const queue = [...big, ...small];
-  queue.forEach((_, k) => order.push(rank[k].i));
+  for (const t of types) {
+    const group = items.filter((it) => it.fruit === t);
+    const seed = rank.find((i) => free.has(i))!;
+    const spots = [...free].sort((x, y) => dist(x, seed) - dist(y, seed)).slice(0, group.length);
+    spots.forEach((sp) => free.delete(sp));
+    queue.push(...group);
+    order.push(...spots);
+  }
   // 단계가 높을수록(큰 열매일수록) 크게 그린다
   const TIER_SCALE = [0, 0.8, 0.86, 0.94, 1.0, 1.08];
   return queue.map((it, k) => {
