@@ -518,3 +518,28 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .comment-form { display: flex; gap: 8px; margin-top: 10px; }
 .comment-form .input { flex: 1; min-width: 0; padding: 10px 12px; }
 .comment-form .btn { padding: 0 16px; }
+
+/* 열매 단계 · 도감 · 고르기 */
+.tier-row { width: 100%; background: none; border: none; padding: 0; text-align: left; }
+.tier-icons { display: flex; align-items: flex-end; flex-shrink: 0; }
+.tier-icons .fruit + .fruit { margin-left: -10px; }
+.book-link { color: var(--brand); font-weight: 600; }
+.book { overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.book-tier { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+.book-tier.locked { opacity: .5; }
+.book-tier.locked .fruit { filter: grayscale(1); }
+.book-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.book-head b { font-size: 14px; }
+.book-fruits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.book-fruit {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0;
+  background: #fff; border: 1.5px solid transparent; border-radius: 12px; font-size: 12px; font-weight: 700; color: var(--ink);
+}
+.book-fruit:disabled { cursor: default; color: var(--ink); opacity: 1; }
+.book-fruit.on { border-color: var(--brand); background: #fff3e8; }
+.card-fruit.pickable { position: relative; background: none; border: none; padding: 0; }
+.card-fruit .swap {
+  position: absolute; right: -4px; bottom: -2px; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--brand); color: #fff; font-size: 11px; line-height: 18px; text-align: center;
+}
+.pick-text { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; background: none; border: none; padding: 0; text-align: left; }

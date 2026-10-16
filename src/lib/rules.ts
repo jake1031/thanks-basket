@@ -9,18 +9,47 @@ export const TEAM_SIZE = 25;
 export const MAX_LEN = 200;
 export const COMMENT_LEN = 100;
 
-export type FruitId = "chestnut" | "tangerine" | "persimmon" | "pear" | "apple";
+export type FruitId =
+  | "chestnut" | "tangerine" | "persimmon"
+  | "plum" | "fig" | "lemon"
+  | "peach" | "apple" | "pomegranate"
+  | "grape" | "mango" | "banana"
+  | "watermelon" | "melon" | "pumpkin";
 
-export const FRUITS: { id: FruitId; name: string; min: number; max: number }[] = [
-  { id: "chestnut", name: "밤", min: 0, max: 3 },
-  { id: "tangerine", name: "귤", min: 4, max: 6 },
-  { id: "persimmon", name: "감", min: 7, max: 9 },
-  { id: "pear", name: "배", min: 10, max: 12 },
-  { id: "apple", name: "사과", min: 13, max: 15 },
+/** 크기별 5단계. 평일 감사 개수로 단계가 올라가고, 내 단계까지의 열매가 모두 해금된다. */
+export const TIERS: { level: number; name: string; min: number; max: number; fruits: FruitId[] }[] = [
+  { level: 1, name: "한입 열매", min: 0, max: 3, fruits: ["chestnut", "tangerine", "persimmon"] },
+  { level: 2, name: "손바닥 열매", min: 4, max: 6, fruits: ["plum", "fig", "lemon"] },
+  { level: 3, name: "주먹 열매", min: 7, max: 9, fruits: ["peach", "apple", "pomegranate"] },
+  { level: 4, name: "두손 열매", min: 10, max: 12, fruits: ["grape", "mango", "banana"] },
+  { level: 5, name: "아름드리 열매", min: 13, max: 15, fruits: ["watermelon", "melon", "pumpkin"] },
 ];
 
-export function fruitFor(count: number) {
-  return FRUITS.find((f) => count >= f.min && count <= f.max) ?? FRUITS[0];
+export const FRUIT_NAMES: Record<FruitId, string> = {
+  chestnut: "밤", tangerine: "귤", persimmon: "감",
+  plum: "자두", fig: "무화과", lemon: "레몬",
+  peach: "복숭아", apple: "사과", pomegranate: "석류",
+  grape: "포도", mango: "망고", banana: "바나나",
+  watermelon: "수박", melon: "멜론", pumpkin: "호박",
+};
+
+export const ALL_FRUITS: FruitId[] = TIERS.flatMap((t) => t.fruits);
+
+export function tierFor(count: number) {
+  return TIERS.find((t) => count >= t.min && count <= t.max) ?? TIERS[0];
+}
+export function nextTier(count: number) {
+  return TIERS.find((t) => t.min > count) ?? null;
+}
+export function tierOf(fruit: FruitId) {
+  return TIERS.find((t) => t.fruits.includes(fruit)) ?? TIERS[0];
+}
+/** 평일 감사 개수로 해금된 열매 */
+export function unlockedFruits(count: number): FruitId[] {
+  return TIERS.filter((t) => t.min <= count).flatMap((t) => t.fruits);
+}
+export function isFruitId(x: unknown): x is FruitId {
+  return typeof x === "string" && (ALL_FRUITS as string[]).includes(x);
 }
 
 /** 받침 유무에 따라 조사 선택: josa("감", "으로", "로") → "감으로" */
@@ -30,9 +59,6 @@ export function josa(word: string, withFinal: string, without: string) {
   return word + (hasFinal ? withFinal : without);
 }
 
-export function nextFruit(count: number) {
-  return FRUITS.find((f) => f.min > count) ?? null;
-}
 
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
 export function dayLabel(date: string) {

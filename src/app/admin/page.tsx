@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Fruit } from "@/components/Fruit";
-import { FRUITS, WEEKDAYS, WEEKEND, dayLabel, fruitFor, type FruitId } from "@/lib/rules";
+import { FRUIT_NAMES, TIERS, WEEKDAYS, WEEKEND, dayLabel, type FruitId } from "@/lib/rules";
 
 type U = {
-  id: number; nickname: string; realName: string; count: number; bonus: number; fruit: FruitId;
+  id: number; nickname: string; realName: string; count: number; bonus: number; tier: number; fruit: FruitId;
   golden: boolean; placed: boolean; byDay: Record<string, number>;
 };
 type E = { id: number; date: string; content: string; nickname: string };
@@ -71,10 +71,10 @@ export default function Admin() {
 
   function exportCsv() {
     if (!data) return;
-    const head = ["닉네임", "이름", ...WEEKDAYS.map((d) => dayLabel(d).md), "평일합계", "토요일", "열매", "황금"];
+    const head = ["닉네임", "이름", ...WEEKDAYS.map((d) => dayLabel(d).md), "평일합계", "토요일", "단계", "고른 열매", "황금"];
     const rows = data.users.map((u) => [
       u.nickname, u.realName, ...WEEKDAYS.map((d) => u.byDay[d] ?? 0), u.count, u.bonus,
-      fruitFor(u.count).name, u.golden ? "O" : "",
+      `${u.tier}단계 ${TIERS[u.tier - 1].name}`, u.placed ? FRUIT_NAMES[u.fruit] : "", u.golden ? "O" : "",
     ]);
     const csv = "﻿" + [head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
     const a = document.createElement("a");
@@ -96,8 +96,9 @@ export default function Admin() {
     );
   }
 
-  // 과일 등급 순서(밤→사과)로 몇 명씩인지
-  const tally = FRUITS.map((f) => ({ name: f.name, n: data.users.filter((u) => u.fruit === f.id).length }));
+  // 단계별로 몇 명씩인지 (실제 선물 기준)
+  const tally = TIERS.map((t) => data.users.filter((u) => u.tier === t.level).length);
+  const REP: FruitId[] = ["chestnut", "plum", "apple", "grape", "watermelon"];
 
   return (
     <div className="wrap stack admin">
@@ -117,8 +118,10 @@ export default function Admin() {
         <div className="stat"><span>✍️ 총 감사</span><b>{data.entries.length}<small>개</small></b></div>
         <div className="stat"><span>✨ 황금 열매</span><b>{data.users.filter((u) => u.golden).length}<small>명</small></b></div>
         <div className="fruit-tally">
-          {FRUITS.map((f) => (
-            <span key={f.id}><Fruit id={f.id} size={22} /><b>{tally.find((t) => t.name === f.name)?.n ?? 0}</b><small>명</small></span>
+          {TIERS.map((t, i) => (
+            <span key={t.level} title={`${t.level}단계 ${t.name}`}>
+              <Fruit id={REP[i]} size={22} /><b>{tally[i]}</b><small>명</small>
+            </span>
           ))}
         </div>
       </div>
@@ -137,7 +140,9 @@ export default function Admin() {
                 <Fruit id={u.fruit} golden={u.golden} size={28} />
                 <span className="admin-name">
                   <b>{label(u)}</b>
-                  <small>{u.golden ? "황금 " : ""}{fruitFor(u.count).name} · {u.count}개</small>
+                  <small>
+                    {u.tier}단계 · {u.count}개{u.placed ? ` · ${u.golden ? "황금 " : ""}${FRUIT_NAMES[u.fruit]}` : u.golden ? " · 황금" : ""}
+                  </small>
                 </span>
                 <span className="admin-mini">
                   {[...WEEKDAYS, ...WEEKEND].map((d) => <i key={d} className={`n${Math.min(u.byDay[d] ?? 0, 3)}`} />)}

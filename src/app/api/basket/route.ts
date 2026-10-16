@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { basketOpen } from "@/lib/rules";
+import { basketOpen, isFruitId, unlockedFruits } from "@/lib/rules";
 import { currentUser, fail, json, todayKST } from "@/lib/server";
 import { userStats } from "@/lib/stats";
 
@@ -26,6 +26,9 @@ export async function POST(req: Request) {
   const user = await currentUser(req);
   if (!user) return fail("로그인이 필요해요.", 401);
   if (!basketOpen(todayKST(req))) return fail("바구니는 토요일부터 열려요.", 403);
-  await db("insert into basket (user_id) values ($1) on conflict do nothing", [user.id]);
+  const { fruit } = await req.json().catch(() => ({}));
+  const [me] = await userStats(user.id);
+  if (!isFruitId(fruit) || !unlockedFruits(me.count).includes(fruit)) return fail("아직 해금되지 않은 열매예요.");
+  await db("insert into basket (user_id, fruit) values ($1, $2) on conflict do nothing", [user.id, fruit]);
   return json({ ok: true });
 }

@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
-import { WEEKDAYS, WEEKEND, basketOpen } from "@/lib/rules";
+import { WEEKDAYS, WEEKEND, basketOpen, unlockedFruits } from "@/lib/rules";
+import { userStats } from "@/lib/stats";
 import { DEV, currentUser, fail, hashPin, json, todayKST } from "@/lib/server";
 
 // 개발 모드 전용: 날짜 미리보기에 맞춰 데모 팀원과 감사를 채운다.
@@ -109,7 +110,11 @@ export async function POST(req: Request) {
           and exists (select 1 from entries e where e.user_id = u.id) order by u.id limit $1`,
         [Number(n) - keep.length],
       );
-      for (const m of more) await db("insert into basket (user_id) values ($1)", [m.id]);
+      for (const m of more) {
+        const [st] = await userStats(m.id);
+        const open = unlockedFruits(st.count);
+        await db("insert into basket (user_id, fruit) values ($1, $2)", [m.id, open[(m.id * 7) % open.length]]);
+      }
     }
     return json({ ok: true });
   }
@@ -162,7 +167,12 @@ export async function POST(req: Request) {
         await db("insert into entries (user_id, entry_date, content) values ($1, $2, $3)", [ids[u], WEEKEND[0], SATURDAY[(u + i) % SATURDAY.length]]);
       }
     }
-    if (basketOpen(today) && target !== 0) await db("insert into basket (user_id) values ($1)", [ids[u]]);
+    if (basketOpen(today) && target !== 0) {
+      // 데모 팀원은 해금된 열매 중 하나를 골라 넣는다 (높은 단계 쪽을 더 자주)
+      const open = unlockedFruits(target as number);
+      const pick = open[Math.max(0, open.length - 1 - Math.floor(rand(u + 300) * Math.min(6, open.length)))];
+      await db("insert into basket (user_id, fruit) values ($1, $2)", [ids[u], pick]);
+    }
   }
   return json({ ok: true });
 }

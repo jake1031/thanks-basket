@@ -5,15 +5,15 @@ import { Fruit } from "@/components/Fruit";
 import { ForestIntro } from "@/components/ForestIntro";
 import { ApiError, api, token } from "@/lib/client";
 import {
-  COMMENT_LEN, EVENT_DAYS as DAYS, FRUITS, MAX_COUNT, MAX_LEN, PER_DAY, WEEKDAYS, WEEKEND,
-  basketOpen, canEditDate, dayLabel, fruitFor, josa, nextFruit, phaseOf,
+  ALL_FRUITS, COMMENT_LEN, EVENT_DAYS as DAYS, FRUIT_NAMES, MAX_COUNT, MAX_LEN, PER_DAY, TIERS, WEEKDAYS, WEEKEND,
+  basketOpen, canEditDate, dayLabel, josa, nextTier, phaseOf, tierFor, tierOf, unlockedFruits,
   type FruitId,
 } from "@/lib/rules";
 
 type Entry = { id: number; date: string; content: string };
 type Me = {
   today: string;
-  user: { nickname: string; count: number; bonus: number; fruit: FruitId; golden: boolean; placed: boolean };
+  user: { nickname: string; count: number; bonus: number; tier: number; fruit: FruitId; golden: boolean; placed: boolean };
   entries: Entry[];
 };
 type Tab = "mine" | "board" | "basket";
@@ -125,7 +125,7 @@ function Join({ onDone }: { onDone: () => void }) {
     <div className="wrap stack">
       <div className="hero">
         <div className="row" style={{ justifyContent: "center", gap: 2 }}>
-          {FRUITS.map((f) => <Fruit key={f.id} id={f.id} size={40} />)}
+          {REP_FRUITS.map((f) => <Fruit key={f} id={f} size={40} />)}
         </div>
         <h1 style={{ marginTop: 12 }}>감사 바구니</h1>
         <p className="muted">
@@ -201,8 +201,15 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
 }) {
   const { today, user, entries } = me;
   const phase = phaseOf(today);
-  const fruit = fruitFor(user.count);
-  const next = nextFruit(user.count);
+  const tier = tierFor(user.count);
+  const next = nextTier(user.count);
+  const [book, setBook] = useState(false);
+  // 단계가 올라가면 새 열매 해금 알림
+  const prevTier = useRef(tier.level);
+  useEffect(() => {
+    if (tier.level > prevTier.current) say(`🔓 새 열매 해금! ${tier.fruits.map((f) => FRUIT_NAMES[f]).join(" · ")}`);
+    prevTier.current = tier.level;
+  }, [tier.level, tier.fruits, say]);
 
   async function logout() {
     if (!confirm("이 기기에서 로그아웃할까요? 다시 들어오려면 닉네임과 PIN이 필요해요.")) return;
@@ -221,29 +228,33 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
           <b className="hello">🎤 {user.nickname}님</b>
           <button className="link" onClick={logout}>로그아웃</button>
         </div>
-        <div className="row" style={{ gap: 12, marginTop: 6 }}>
-          <div className="big-fruit" style={{ padding: 0 }}><Fruit id={fruit.id} golden={user.golden} size={46} /></div>
+        <button className="row tier-row" style={{ gap: 12, marginTop: 6 }} onClick={() => setBook(true)}>
+          <div className="tier-icons">
+            {(user.placed ? [user.fruit] : tier.fruits).map((f) => <Fruit key={f} id={f} golden={user.golden} size={user.placed ? 46 : 30} />)}
+          </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <b>
-              {phase === "before" && "감사를 모으면 열매가 자라요"}
-              {phase === "weekday" && `지금은 ${josa(fruit.name, "을", "를")} 받을 수 있어요`}
-              {(phase === "weekend" || phase === "after") && `이번 주 내 열매는 ${user.golden ? "황금 " : ""}${fruit.name}!`}
+              {phase === "before" && "감사를 모으면 열매가 해금돼요"}
+              {phase === "weekday" && `'${tier.name}'까지 해금됐어요`}
+              {(phase === "weekend" || phase === "after") &&
+                (user.placed ? `이번 주 내 열매는 ${user.golden ? "황금 " : ""}${FRUIT_NAMES[user.fruit]}!` : `열매 ${unlockedFruits(user.count).length}종이 해금됐어요`)}
             </b>
             <p className="muted small" style={{ margin: "2px 0 0" }}>
               {phase === "before" && "10월 19일(월)부터 쓸 수 있어요!"}
-              {phase === "weekday" && (next ? `${next.min - user.count}개 더 쓰면 ${josa(next.name, "으로", "로")} 바뀌어요!` : "최고 열매 달성! 🎉")}
+              {phase === "weekday" && (next ? `${next.min - user.count}개 더 쓰면 ${next.fruits.map((f) => FRUIT_NAMES[f]).join("·")} 해금!` : "모든 열매 해금! 🎉")}
               {phase === "weekend" && (user.golden ? "황금 열매가 되었어요 ✨" : "토요일 감사로 황금 열매에 도전! ✨")}
               {phase === "after" && "함께해서 고마워요! 🙏"}
+              <span className="book-link"> · 열매 도감 ›</span>
             </p>
           </div>
           <span className="count">{user.count}<small>/{MAX_COUNT}</small></span>
-        </div>
-        {/* 진행 막대 위에 열매 단계 표시 */}
+        </button>
+        {/* 진행 막대 위에 단계별 대표 열매 */}
         <div className="track">
           <div className="marks">
-            {FRUITS.map((f) => (
-              <span key={f.id} className={user.count >= f.min ? "reached" : ""} style={{ left: `${gaugePos(f.min)}%` }}>
-                <Fruit id={f.id} size={18} />
+            {TIERS.map((t, i) => (
+              <span key={t.level} className={user.count >= t.min ? "reached" : ""} style={{ left: `${gaugePos(t.min)}%` }}>
+                <Fruit id={REP_FRUITS[i]} size={18} />
               </span>
             ))}
           </div>
@@ -255,6 +266,8 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
           </button>
         )}
       </div>
+
+      {book && <FruitBook count={user.count} golden={user.golden} onClose={() => setBook(false)} />}
 
       <DayTabs
         today={today} sel={sel} onSel={setSel}
@@ -505,7 +518,7 @@ function Board({ today, say, goWrite }: { today: string; say: (m: string) => voi
  * 단계 사이를 구간별로 늘려서 계산한다. 15개면 100%.
  */
 function gaugePos(count: number) {
-  const mins = FRUITS.map((f) => f.min); // [0, 4, 7, 10, 13]
+  const mins = TIERS.map((t) => t.min); // [0, 4, 7, 10, 13]
   const step = 88 / (mins.length - 1); // 단계 사이 간격 22%
   for (let i = mins.length - 1; i >= 0; i--) {
     if (count >= mins[i]) {
@@ -515,6 +528,54 @@ function gaugePos(count: number) {
     }
   }
   return 0;
+}
+
+/** 단계별 대표 열매 (게이지·첫 화면) */
+const REP_FRUITS: FruitId[] = ["chestnut", "plum", "apple", "grape", "watermelon"];
+
+/** 열매 도감 / 고르기: 단계별 3종, 해금 안 된 건 잠겨 보인다. onPick이 있으면 고르기 모드 */
+function FruitBook({ count, golden, value, onPick, onClose }: {
+  count: number; golden: boolean; value?: FruitId; onPick?: (f: FruitId) => void; onClose: () => void;
+}) {
+  const open = unlockedFruits(count);
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+        <div className="spread" style={{ marginBottom: 4 }}>
+          <b>{onPick ? "🧺 바구니에 넣을 열매 고르기" : "📖 열매 도감"}</b>
+          <button className="link" onClick={onClose}>닫기</button>
+        </div>
+        <p className="muted small" style={{ margin: "0 0 10px" }}>
+          {open.length}/{ALL_FRUITS.length}종 해금 · 감사를 많이 쓸수록 더 큰 열매가 열려요
+        </p>
+        <div className="book">
+          {TIERS.map((t) => {
+            const unlocked = count >= t.min;
+            return (
+              <div key={t.level} className={`book-tier ${unlocked ? "" : "locked"}`}>
+                <div className="book-head">
+                  <b>{t.level}단계 · {t.name}</b>
+                  <span className="muted small">{unlocked ? "해금" : `🔒 ${t.min}개부터`}</span>
+                </div>
+                <div className="book-fruits">
+                  {t.fruits.map((f) => (
+                    <button
+                      key={f} disabled={!unlocked || !onPick}
+                      className={`book-fruit ${value === f ? "on" : ""}`}
+                      onClick={() => { onPick?.(f); onClose(); }}
+                    >
+                      <Fruit id={f} golden={golden && unlocked} size={38} />
+                      <span>{FRUIT_NAMES[f]}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /* ───────────── 게시판 댓글 ───────────── */
@@ -700,7 +761,7 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
   // 가득 찬 뒤에는 과일 구성만 실제 비율을 따라간다 (있는 과일은 최소 1개).
   const capacity = ROW_SPEC.reduce((n, r) => n + r.cap, 0);
   const total = Math.min(placed.length, capacity);
-  const counts = FRUITS.map((f) => placed.filter((p) => p.fruit === f.id).length);
+  const counts = ALL_FRUITS.map((f) => placed.filter((p) => p.fruit === f).length);
   const shown: number[] = counts.map((c) => (c > 0 ? 1 : 0));
   let rest = total - shown.reduce((a, b) => a + b, 0);
   while (rest > 0) {
@@ -721,7 +782,7 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
     let extra = 0;
     shown.forEach((n, i) => { if (n > max) { extra += n - max; shown[i] = max; } });
     // 실제로 넣은 과일 → 아무도 안 넣은 과일 순으로, 가장 적게 그려진 곳부터
-    const order = FRUITS.map((_, i) => i).sort((a, b) => (counts[b] > 0 ? 1 : 0) - (counts[a] > 0 ? 1 : 0));
+    const order = ALL_FRUITS.map((_, i) => i).sort((a, b) => (counts[b] > 0 ? 1 : 0) - (counts[a] > 0 ? 1 : 0));
     while (extra > 0) {
       const target = order.filter((i) => shown[i] < max).sort((a, b) => shown[a] - shown[b] || (counts[b] > 0 ? 1 : 0) - (counts[a] > 0 ? 1 : 0))[0];
       if (target === undefined) break;
@@ -730,10 +791,10 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
     }
   }
   const items: Omit<Piece, "left" | "bottom" | "size" | "rotate" | "z">[] = [];
-  FRUITS.forEach((f, i) => {
+  ALL_FRUITS.forEach((f, i) => {
     for (let k = 0; k < shown[i]; k++) {
       // 바구니 그림에는 황금을 그리지 않는다 (넣을 때 애니메이션으로만)
-      items.push({ fruit: f.id, golden: false, mine: false });
+      items.push({ fruit: f, golden: false, mine: false });
     }
   });
   // 앞줄부터 자리를 만든다
@@ -775,10 +836,11 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
     at += n;
   }
   // 밤이 가장 작고, 귤은 밤과 감 사이 크기
-  const SCALE: Partial<Record<FruitId, number>> = { chestnut: 0.7, tangerine: 0.9 };
+  // 단계가 높을수록(큰 열매일수록) 크게 그린다
+  const TIER_SCALE = [0, 0.72, 0.82, 0.92, 1.0, 1.14];
   return items.map((it, i) => {
     const sl = slots[order[i]];
-    const size = sl.size * (SCALE[it.fruit] ?? 1);
+    const size = sl.size * TIER_SCALE[tierOf(it.fruit).level];
     // 작은 과일은 바구니에 너무 파묻히지 않게 줄어든 만큼 살짝 올린다
     return { ...it, ...sl, size, bottom: sl.bottom + (sl.size - size) * 0.9 };
   });
@@ -787,6 +849,9 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
 function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say: (m: string) => void }) {
   const [data, setData] = useState<BasketData | null>(null);
   const [dropping, setDropping] = useState<{ fruit: FruitId; golden: boolean } | null>(null);
+  // 바구니에 넣을 열매: 기본은 가장 높은 단계의 첫 열매
+  const [pick, setPick] = useState<FruitId>(() => (me.user.placed ? me.user.fruit : tierFor(me.user.count).fruits[0]));
+  const [picking, setPicking] = useState(false);
   const [landed, setLanded] = useState(false);
   const [busy, setBusy] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -803,9 +868,9 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   async function place() {
     setBusy(true);
     try {
-      await api("/api/basket", { method: "POST" });
+      await api("/api/basket", { method: "POST", body: { fruit: pick } });
       // 내 열매가 위에서 떨어져 바구니에 쏙 들어간다
-      setDropping({ fruit: fruitFor(me.user.count).id, golden: me.user.golden });
+      setDropping({ fruit: pick, golden: me.user.golden });
       await new Promise((r) => setTimeout(r, 1300)); // 열매가 위에서 떨어져 바구니에 쏙 들어간 뒤
       await Promise.all([fetchBasket(), reload()]);
       setDropping(null);
@@ -819,13 +884,16 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   if (!data) return <>{introEl}<p className="muted" style={{ textAlign: "center", paddingTop: 40 }}>바구니 가져오는 중…</p></>;
 
   const { user } = me;
-  const myFruit = fruitFor(user.count);
+  const myFruit = user.placed ? user.fruit : pick;
   const pieces = arrangeFruits(data.placed);
 
   return (
     <div className="forest-page">
       {introEl}
       <ForestBackdrop />
+      {picking && (
+        <FruitBook count={user.count} golden={user.golden} value={pick} onPick={setPick} onClose={() => setPicking(false)} />
+      )}
       <div className="forest-content">
         <div className="forest-head">
           <h2>🎤 싱어팀 감사 바구니</h2>
@@ -883,19 +951,22 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
             </div>
           ) : user.placed ? (
             <div className="ground-card">
-              <div className="card-fruit"><Fruit id={myFruit.id} golden={user.golden} size="100%" /></div>
+              <div className="card-fruit"><Fruit id={myFruit} golden={user.golden} size="100%" /></div>
               <div style={{ flex: 1 }}>
-                <b>나는 {user.golden ? "황금 " : ""}{josa(myFruit.name, "을", "를")} 넣었어요!</b>
+                <b>나는 {user.golden ? "황금 " : ""}{josa(FRUIT_NAMES[myFruit], "을", "를")} 넣었어요!</b>
                 <p className="muted small">{user.golden ? "토요일 감사로 황금 열매가 되었어요 ✨" : "함께 채운 바구니예요 🙏"}</p>
               </div>
             </div>
           ) : (
             <div className="ground-card">
-              <div className="card-fruit"><Fruit id={myFruit.id} golden={user.golden} size="100%" /></div>
-              <div style={{ flex: 1 }}>
-                <b>내 열매는 {user.golden ? "황금 " : ""}{myFruit.name}!</b>
-                <p className="muted small">평일 감사 {user.count}개를 채웠어요</p>
-              </div>
+              <button className="card-fruit pickable" onClick={() => setPicking(true)} disabled={!!dropping} aria-label="열매 고르기">
+                <Fruit id={myFruit} golden={user.golden} size="100%" />
+                <span className="swap">⇄</span>
+              </button>
+              <button className="pick-text" onClick={() => setPicking(true)} disabled={!!dropping}>
+                <b>{user.golden ? "황금 " : ""}{josa(FRUIT_NAMES[myFruit], "을", "를")} 넣을게요</b>
+                <span className="muted small">눌러서 바꾸기 · {unlockedFruits(user.count).length}종 해금</span>
+              </button>
               <button className="btn" disabled={busy || !!dropping} onClick={place}>넣기</button>
             </div>
           )}

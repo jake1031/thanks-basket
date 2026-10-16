@@ -40,6 +40,7 @@ create table if not exists basket (
   user_id int primary key references users(id) on delete cascade,
   placed_at timestamptz not null default now()
 );
+alter table basket add column if not exists fruit text
 `;
 
 declare global {

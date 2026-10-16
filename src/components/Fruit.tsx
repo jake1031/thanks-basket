@@ -33,18 +33,161 @@ export function Fruit({ id, golden = false, size = 48 }: { id: FruitId; golden?:
         </>
       );
       break;
-    case "pear":
-      body = "M32 12 C37 12 39 17 39 23 C39 29 44 32 48 37 C53 43 53 52 47 56 C42 59.5 22 59.5 17 56 C11 52 11 43 16 37 C20 32 25 29 25 23 C25 17 27 12 32 12 Z";
+    case "plum":
+      body = "M32 16 C 46 14 56 26 55 40 C 54 52 44 58 32 58 C 20 58 10 52 9 40 C 8 26 18 14 32 16 Z";
       parts = (
         <>
-          <path d={body} fill={g("#f2c94c", GOLD.body)} />
-          {shade("M40 10 C46 30 60 46 40 62 L64 64 L64 0 Z", g("#e2b53a", GOLD.shade))}
-          <g fill={g("#c99a2c", GOLD.dot)} opacity="0.55">
-            <circle cx="24" cy="44" r="0.9" /><circle cx="30" cy="51" r="0.9" /><circle cx="38" cy="44" r="0.9" />
-            <circle cx="21" cy="51" r="0.9" /><circle cx="33" cy="33" r="0.9" />
+          <path d={body} fill={g("#8a3f8f", GOLD.body)} />
+          {shade("M42 12 C 58 26 56 50 36 62 L64 64 L64 0 Z", g("#6b2c70", GOLD.shade))}
+          <path d="M32 18 C 30 30 31 46 34 57" stroke={g("#6b2c70", GOLD.shade)} strokeWidth="1.6" fill="none" opacity=".6" />
+          <path d="M32 17 C 32 12 33 9 35 7" stroke={STEM} strokeWidth="2.6" fill="none" strokeLinecap="round" />
+          <path d="M34 11 C 38 5 46 5 48 8 C 44 12 38 13 34 11 Z" fill={LEAF} />
+          <ellipse cx="19" cy="31" rx="2.6" ry="5" fill="#fff" opacity={shine} transform="rotate(25 19 31)" />
+        </>
+      );
+      break;
+    case "fig":
+      body = "M32 10 C 36 10 37 16 40 20 C 50 28 56 38 52 48 C 49 56 41 59 32 59 C 23 59 15 56 12 48 C 8 38 14 28 24 20 C 27 16 28 10 32 10 Z";
+      parts = (
+        <>
+          <path d={body} fill={g("#7b4a6e", GOLD.body)} />
+          {shade("M38 8 C 54 28 58 50 38 62 L64 64 L64 0 Z", g("#5e3555", GOLD.shade))}
+          <path d="M24 26 C 20 36 20 46 24 54 M32 22 L32 57 M40 26 C 44 36 44 46 40 54" stroke={g("#9c6a8c", GOLD.dot)} strokeWidth="1.3" fill="none" opacity=".55" />
+          <path d="M30 11 L31 5 L34 5 L34 11 Z" fill={g("#6f8a3a", GOLD.stem)} />
+          <ellipse cx="20" cy="38" rx="2.4" ry="5" fill="#fff" opacity={shine} transform="rotate(15 20 38)" />
+        </>
+      );
+      break;
+    case "lemon":
+      body = "M8 36 C 8 30 12 28 15 26 C 22 18 42 18 49 26 C 52 28 56 30 56 36 C 56 42 52 44 49 46 C 42 54 22 54 15 46 C 12 44 8 42 8 36 Z";
+      parts = (
+        <>
+          <path d={body} fill={g("#f6d33c", GOLD.body)} />
+          {shade("M40 16 C 58 26 58 46 40 58 L64 64 L64 0 Z", g("#e5bc1f", GOLD.shade))}
+          <g fill={g("#d9b024", GOLD.dot)} opacity=".5">
+            <circle cx="22" cy="31" r=".9" /><circle cx="30" cy="27" r=".9" /><circle cx="38" cy="30" r=".9" />
+            <circle cx="26" cy="41" r=".9" /><circle cx="36" cy="43" r=".9" />
           </g>
-          <path d="M32 13 C32 9 33 6 35.5 3.5" stroke={STEM} strokeWidth="3" fill="none" strokeLinecap="round" />
-          <ellipse cx="22" cy="42" rx="2.4" ry="4.5" fill="#fff" opacity={shine} transform="rotate(15 22 42)" />
+          <path d="M44 22 C 48 14 56 14 58 18 C 54 22 48 23 44 22 Z" fill={LEAF} />
+          <ellipse cx="20" cy="32" rx="5" ry="2.4" fill="#fff" opacity={shine} transform="rotate(-15 20 32)" />
+        </>
+      );
+      break;
+    case "peach":
+      body = "M32 18 C 40 12 56 16 56 34 C 56 50 44 58 32 58 C 20 58 8 50 8 34 C 8 16 24 12 32 18 Z";
+      parts = (
+        <>
+          <path d={body} fill={g("#f7a68a", GOLD.body)} />
+          {shade("M40 12 C 60 26 58 50 36 62 L64 64 L64 0 Z", g("#ef8a6c", GOLD.shade))}
+          <path d="M14 28 C 14 22 20 18 26 20 C 22 26 18 30 14 28 Z" fill={g("#f9c2a4", GOLD.leaf)} opacity=".8" />
+          <path d="M32 19 C 28 30 28 46 32 57" stroke={g("#e07a60", GOLD.shade)} strokeWidth="1.8" fill="none" strokeLinecap="round" opacity=".7" />
+          <path d="M32 18 C 32 14 33 11 35 9" stroke={STEM} strokeWidth="2.6" fill="none" strokeLinecap="round" />
+          <path d="M34 12 C 38 4 48 4 51 8 C 46 13 39 14 34 12 Z" fill={LEAF} />
+          <path d="M34 12 C 40 9 45 7 51 8 C 46 13 39 14 34 12 Z" fill={LEAF_DARK} />
+        </>
+      );
+      break;
+    case "pomegranate":
+      body = "M32 16 C 46 16 56 26 56 39 C 56 51 45 58 32 58 C 19 58 8 51 8 39 C 8 26 18 16 32 16 Z";
+      parts = (
+        <>
+          <path d={body} fill={g("#c8343c", GOLD.body)} />
+          {shade("M42 14 C 58 26 58 50 36 62 L64 64 L64 0 Z", g("#a3252d", GOLD.shade))}
+          <path d="M25 18 L24 9 L28 13 L32 7 L36 13 L40 9 L39 18 Z" fill={g("#a3252d", GOLD.shade)} />
+          <path d="M27 17 L27 12 L30 14 L32 10 L34 14 L37 12 L37 17 Z" fill={g("#d9555b", GOLD.leaf)} />
+          <ellipse cx="18" cy="34" rx="2.8" ry="6" fill="#fff" opacity={shine} transform="rotate(20 18 34)" />
+        </>
+      );
+      break;
+    case "grape":
+      body = "M14 18 L50 18 L36 60 L28 60 Z";
+      parts = (
+        <>
+          {[
+            [20, 22], [32, 22], [44, 22], [26, 32], [38, 32], [20, 42], [32, 42], [44, 32], [26, 51], [38, 51], [32, 59],
+          ].map(([x, y], i) => (
+            <g key={i}>
+              <circle cx={x} cy={y} r="7" fill={g("#7b4fa6", GOLD.body)} />
+              <circle cx={x + 2} cy={y + 2} r="5" fill={g("#653c8c", GOLD.shade)} opacity=".55" />
+              <circle cx={x - 2.4} cy={y - 2.4} r="1.6" fill="#fff" opacity={shine} />
+            </g>
+          ))}
+          <path d="M32 15 C 32 10 33 7 36 4" stroke={STEM} strokeWidth="2.6" fill="none" strokeLinecap="round" />
+          <path d="M35 9 C 40 2 50 3 52 7 C 47 12 40 12 35 9 Z" fill={LEAF} />
+        </>
+      );
+      break;
+    case "mango":
+      body = "M14 30 C 16 16 36 10 48 20 C 58 28 58 46 46 54 C 34 62 14 56 12 44 C 11 38 12 34 14 30 Z";
+      parts = (
+        <>
+          <path d={body} fill={g("#f6b23a", GOLD.body)} />
+          {shade("M4 0 C 30 6 40 20 30 34 C 22 44 6 40 0 30 Z", g("#ec6a3a", GOLD.leaf))}
+          {shade("M44 14 C 62 30 56 54 32 62 L64 64 L64 0 Z", g("#e2952a", GOLD.shade))}
+          <path d="M44 17 C 46 12 48 10 51 9" stroke={STEM} strokeWidth="2.6" fill="none" strokeLinecap="round" />
+          <path d="M48 12 C 52 5 60 6 62 10 C 58 14 52 14 48 12 Z" fill={LEAF} />
+          <ellipse cx="22" cy="30" rx="2.6" ry="5" fill="#fff" opacity={shine} transform="rotate(40 22 30)" />
+        </>
+      );
+      break;
+    case "banana":
+      body = "M10 22 C 14 44 32 56 54 50 C 58 49 58 46 55 45 C 36 46 22 36 16 20 C 15 17 10 18 10 22 Z";
+      parts = (
+        <>
+          <path d={body} fill={g("#f6d84a", GOLD.body)} />
+          {shade("M0 40 C 20 64 50 60 64 46 L64 64 L0 64 Z", g("#e2bd2a", GOLD.shade))}
+          <path d="M14 26 C 20 40 34 48 50 47" stroke={g("#e8c53a", GOLD.dot)} strokeWidth="1.4" fill="none" opacity=".7" />
+          <path d="M9 21 L12 15 L16 18 L14 22 Z" fill={g("#6b4a24", GOLD.stem)} />
+          <circle cx="55.5" cy="47.5" r="2" fill={g("#5a3a1a", GOLD.stem)} />
+          <ellipse cx="22" cy="36" rx="2.2" ry="5" fill="#fff" opacity={shine} transform="rotate(-45 22 36)" />
+        </>
+      );
+      break;
+    case "watermelon":
+      body = "M32 10 C 50 10 60 22 60 36 C 60 50 48 60 32 60 C 16 60 4 50 4 36 C 4 22 14 10 32 10 Z";
+      parts = (
+        <>
+          <path d={body} fill={g("#5aa64a", GOLD.body)} />
+          {[
+            "M14 14 C 8 28 8 44 16 56", "M24 10 C 18 26 18 46 24 60", "M34 10 C 30 26 30 46 34 60",
+            "M44 11 C 42 26 42 46 44 59", "M53 16 C 54 28 54 44 52 55",
+          ].map((d, i) => (
+            <path key={i} d={d} stroke={g("#2f6e2c", GOLD.shade)} strokeWidth="4" fill="none" strokeLinecap="round"
+              strokeDasharray="7 4" clipPath={`url(#${clip})`} />
+          ))}
+          {shade("M46 6 C 66 22 64 52 40 64 L64 64 L64 0 Z", g("#3f7f36", GOLD.shade))}
+          <path d="M32 10 C 32 6 34 4 36 3" stroke={STEM} strokeWidth="2.4" fill="none" strokeLinecap="round" />
+          <ellipse cx="15" cy="28" rx="3" ry="7" fill="#fff" opacity={shine * 0.8} transform="rotate(25 15 28)" />
+        </>
+      );
+      break;
+    case "melon":
+      body = "M32 12 C 48 12 58 23 58 37 C 58 51 47 60 32 60 C 17 60 6 51 6 37 C 6 23 16 12 32 12 Z";
+      parts = (
+        <>
+          <path d={body} fill={g("#bcd27a", GOLD.body)} />
+          <g stroke={g("#eef4cf", GOLD.leaf)} strokeWidth="1.4" fill="none" opacity=".9" clipPath={`url(#${clip})`}>
+            <path d="M6 24 L20 30 L18 44 L30 50 L28 62 M20 30 L32 22 L44 30 L42 44 L54 50 M18 44 L8 50 M32 22 L30 10 M44 30 L58 24 M42 44 L30 50 M30 38 L20 30 M30 38 L42 44 M30 38 L32 22" />
+          </g>
+          {shade("M44 8 C 62 24 60 52 38 64 L64 64 L64 0 Z", g("#9cb862", GOLD.shade))}
+          <path d="M28 13 L36 13 M32 13 L32 6" stroke={g("#6b7a3a", GOLD.stem)} strokeWidth="3" strokeLinecap="round" />
+          <ellipse cx="17" cy="30" rx="3" ry="6" fill="#fff" opacity={shine * 0.8} transform="rotate(25 17 30)" />
+        </>
+      );
+      break;
+    case "pumpkin":
+      body = "M32 20 C 44 14 62 20 61 38 C 60 54 46 60 32 58 C 18 60 4 54 3 38 C 2 20 20 14 32 20 Z";
+      parts = (
+        <>
+          <path d={body} fill={g("#f0882a", GOLD.body)} />
+          <g fill="none" stroke={g("#d06a14", GOLD.shade)} strokeWidth="2" opacity=".8" clipPath={`url(#${clip})`}>
+            <path d="M32 20 C 26 30 26 48 32 58" /><path d="M32 20 C 38 30 38 48 32 58" />
+            <path d="M20 18 C 12 28 12 48 20 58" /><path d="M44 18 C 52 28 52 48 44 58" />
+          </g>
+          {shade("M48 12 C 66 26 64 52 42 64 L64 64 L64 0 Z", g("#dc7019", GOLD.shade))}
+          <path d="M30 21 C 30 14 32 10 36 8 L38 11 C 35 13 34 16 34 21 Z" fill={g("#5f7a2e", GOLD.stem)} />
+          <path d="M36 12 C 42 6 52 8 54 13 C 48 16 41 15 36 12 Z" fill={LEAF} />
+          <ellipse cx="12" cy="32" rx="2.6" ry="6" fill="#fff" opacity={shine * 0.8} transform="rotate(15 12 32)" />
         </>
       );
       break;
