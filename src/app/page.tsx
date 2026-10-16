@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Fruit } from "@/components/Fruit";
 import { ForestIntro } from "@/components/ForestIntro";
+import { SQUIRREL_MS, SquirrelDrop } from "@/components/Squirrel";
 import { ApiError, api, token } from "@/lib/client";
 import {
   EVENT_DAYS as DAYS, FRUITS, MAX_COUNT, MAX_LEN, PER_DAY, WEEKDAYS, WEEKEND,
@@ -710,11 +711,11 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
     setBusy(true);
     try {
       await api("/api/basket", { method: "POST" });
-      // 바구니가 보이게 올린 뒤, 내 열매가 위에서 떨어져 바구니에 쏙 들어간다
+      // 바구니가 보이게 올린 뒤, 다람쥐가 내 열매를 들고 와서 바구니에 던져 넣는다
       stageRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       await new Promise((r) => setTimeout(r, 450));
       setDropping({ fruit: fruitFor(me.user.count).id, golden: me.user.golden });
-      await new Promise((r) => setTimeout(r, 1300));
+      await new Promise((r) => setTimeout(r, SQUIRREL_MS * 0.78)); // 과일이 바구니에 닿는 순간
       await Promise.all([fetchBasket(), reload()]);
       setDropping(null);
       setLanded(true);
@@ -739,7 +740,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
         <span className="muted small">{data.open ? `${data.placed.length}명 참여` : "10/24(토) 오픈"}</span>
       </div>
 
-      <div className="card" style={{ padding: "4px 8px 0" }}>
+      <div className="card basket-card">
         <div className="basket-stage" ref={stageRef}>
           <BasketBack />
           <div className={`pile ${landed ? "landed" : ""}`}>
@@ -756,9 +757,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
             ))}
           </div>
           {dropping && (
-            <div className="dropper">
-              <Fruit id={dropping.fruit} golden={dropping.golden} size="100%" />
-            </div>
+            <SquirrelDrop fruit={dropping.fruit} golden={dropping.golden} />
           )}
           {landed && (
             <div className="burst" aria-hidden>
