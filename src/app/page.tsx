@@ -550,7 +550,6 @@ function FruitBook({ count, golden, value, onPick, onClose }: {
       <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <div className="spread" style={{ marginBottom: 4 }}>
           <b>{onPick ? "🧺 바구니에 넣을 열매 고르기" : "📖 열매 도감"}</b>
-          <button className="link" onClick={onClose}>닫기</button>
         </div>
         <p className="muted small" style={{ margin: "0 0 10px" }}>
           {open.length}/{ALL_FRUITS.length}종 해금 · 감사를 많이 쓸수록 더 큰 열매가 열려요
@@ -688,7 +687,6 @@ function PeopleButton({ date, today, cards, onPick }: {
           <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <div className="spread" style={{ marginBottom: 12 }}>
               <b>{md}({dow}) 감사를 남긴 사람 {cards.length}명</b>
-              <button className="link" onClick={() => setOpen(false)}>닫기</button>
             </div>
             <div className="sheet-list">
               {cards.map((c) => (
