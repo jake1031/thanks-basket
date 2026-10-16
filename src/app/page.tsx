@@ -827,29 +827,29 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
       });
     }
   }
-  // 같은 과일끼리 옹기종기 모이도록: 왼쪽 아래 빈자리부터 시작해서 가장 가까운 자리들을 묶어 준다
-  const free = slots.map((_, i) => i);
-  const dist = (i: number, j: number) => Math.hypot(slots[i].left - slots[j].left, (slots[i].bottom - slots[j].bottom) * 0.9);
-  const order: number[] = [];
-  let at = 0;
-  while (at < items.length) {
-    let n = 1;
-    while (at + n < items.length && items[at + n].fruit === items[at].fruit) n++;
-    free.sort((x, y) => slots[x].left - slots[y].left || slots[x].bottom - slots[y].bottom);
-    const seed = free.shift()!;
-    const group = [seed];
-    for (let g = 1; g < n; g++) {
-      free.sort((x, y) => dist(x, seed) - dist(y, seed));
-      group.push(free.shift()!);
-    }
-    order.push(...group);
-    at += n;
+  // 예쁘게 섞기: 같은 과일이 옆에 붙지 않게 종류를 번갈아 놓고,
+  // 큰 열매는 뒤쪽 가운데, 작은 열매는 앞쪽 가장자리로 보낸다.
+  const byType = new Map<FruitId, typeof items>();
+  for (const it of items) byType.set(it.fruit, [...(byType.get(it.fruit) ?? []), it]);
+  const types = [...byType.keys()].sort((x, y) => tierOf(y).level - tierOf(x).level || byType.get(y)!.length - byType.get(x)!.length);
+  const mixed: typeof items = [];
+  while (mixed.length < items.length) {
+    for (const t of types) { const q = byType.get(t)!; if (q.length) mixed.push(q.shift()!); }
   }
-  // 밤이 가장 작고, 귤은 밤과 감 사이 크기
+  // 자리 순서: 맨 위(뒤) 줄 가운데부터 → 앞줄 가장자리 순
+  const rank = slots
+    .map((sl, i) => ({ i, row: sl.z >= 30 ? 0 : sl.z >= 20 ? 1 : 2, off: Math.abs(sl.left - 50) }))
+    .sort((x, y) => y.row - x.row || x.off - y.off);
+  const order: number[] = [];
+  // 큰 열매(4·5단계)를 먼저 뒤쪽 가운데에, 나머지는 섞인 순서대로
+  const big = mixed.filter((it) => tierOf(it.fruit).level >= 4);
+  const small = mixed.filter((it) => tierOf(it.fruit).level < 4);
+  const queue = [...big, ...small];
+  queue.forEach((_, k) => order.push(rank[k].i));
   // 단계가 높을수록(큰 열매일수록) 크게 그린다
-  const TIER_SCALE = [0, 0.72, 0.82, 0.92, 1.0, 1.14];
-  return items.map((it, i) => {
-    const sl = slots[order[i]];
+  const TIER_SCALE = [0, 0.8, 0.86, 0.94, 1.0, 1.08];
+  return queue.map((it, k) => {
+    const sl = slots[order[k]];
     const size = sl.size * TIER_SCALE[tierOf(it.fruit).level];
     // 작은 과일은 바구니에 너무 파묻히지 않게 줄어든 만큼 살짝 올린다
     return { ...it, ...sl, size, bottom: sl.bottom + (sl.size - size) * 0.9 };
