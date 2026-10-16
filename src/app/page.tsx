@@ -246,12 +246,12 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
           </div>
           <span className="count">{user.count}<small>/{MAX_COUNT}</small></span>
         </div>
-        {/* 진행 막대 위에 단계별 대표 열매 */}
+        {/* 진행 막대 위에 단계가 바뀌는 개수 */}
         <div className="track">
-          <div className="marks">
-            {TIERS.map((t, i) => (
+          <div className="marks nums">
+            {TIERS.map((t) => (
               <span key={t.level} className={user.count >= t.min ? "reached" : ""} style={{ left: `${gaugePos(t.min)}%` }}>
-                {user.count >= t.min ? <Fruit id={REP_FRUITS[i]} size={18} /> : <span className="mystery" style={{ width: 18, height: 18, fontSize: 11 }}>?</span>}
+                {Math.max(t.min, 1)}
               </span>
             ))}
           </div>

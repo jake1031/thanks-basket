@@ -552,3 +552,6 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
   background: #e9dcc6; color: #a08a70; font-weight: 800; font-size: 20px;
 }
 .book-tier.locked .book-fruit { background: #f6efe2; }
+.track .marks.nums { height: 16px; }
+.track .marks.nums span { font-size: 11px; font-weight: 800; color: var(--muted); line-height: 16px; opacity: .55; }
+.track .marks.nums span.reached { color: var(--brand); opacity: 1; }
