@@ -789,6 +789,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
             </div>
           ) : user.placed ? (
             <div className="ground-card">
+              <div className="card-fruit"><Fruit id={myFruit.id} golden={user.golden} size="100%" /></div>
               <div style={{ flex: 1 }}>
                 <b>나는 {user.golden ? "황금 " : ""}{josa(myFruit.name, "을", "를")} 넣었어요!</b>
                 <p className="muted small">{user.golden ? "토요일 감사로 황금 열매가 되었어요 ✨" : "함께 채운 바구니예요 🙏"}</p>
@@ -796,7 +797,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
             </div>
           ) : (
             <div className="ground-card">
-              <div className={`card-fruit ${dropping ? "gone" : ""}`}><Fruit id={myFruit.id} golden={user.golden} size="100%" /></div>
+              <div className="card-fruit"><Fruit id={myFruit.id} golden={user.golden} size="100%" /></div>
               <div style={{ flex: 1 }}>
                 <b>내 열매는 {user.golden ? "황금 " : ""}{myFruit.name}!</b>
                 <p className="muted small">평일 감사 {user.count}개를 채웠어요</p>

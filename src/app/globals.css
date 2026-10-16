@@ -498,6 +498,4 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .card-fruit { width: 46px; flex-shrink: 0; }
 .card-fruit svg { display: block; }
 
-.card-fruit { transition: opacity .25s, transform .25s; }
-.card-fruit.gone { opacity: 0; transform: translateY(-10px) scale(.8); }
 .forest-page .dropper { width: 20%; z-index: 2; }
