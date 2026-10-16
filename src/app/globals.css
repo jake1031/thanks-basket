@@ -465,44 +465,73 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .basket-card { padding: 12px 12px 0; }
 .basket-card .total-row { margin: 10px -12px 0; }
 
-/* 다람쥐가 과일을 들고 와서 넣기 (2.7s) */
+/* 다람쥐가 와서 풀밭의 내 열매를 집어 바구니에 넣기 (2.9s) */
 .squirrel {
-  position: absolute; bottom: 3%; left: 105%; width: 28%; aspect-ratio: 1; z-index: 3;
-  animation: sq-run 2.7s linear both;
+  position: absolute; bottom: 3%; left: 108%; width: 28%; aspect-ratio: 1; z-index: 4;
+  animation: sq-run 2.9s linear both;
 }
 .squirrel svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.squirrel-flip { position: relative; width: 100%; height: 100%; animation: sq-flip 2.7s steps(1) both; }
-.held-fruit { position: absolute; left: 18%; top: -22%; width: 46%; animation: held 2.7s steps(1) both; }
+.squirrel-flip { position: relative; width: 100%; height: 100%; animation: sq-flip 2.9s steps(1) both; }
+.held-fruit { position: absolute; left: 18%; top: -22%; width: 46%; animation: held 2.9s steps(1) both; }
 @keyframes sq-run {
-  0%   { left: 105%; transform: translateY(0); }
-  7%   { left: 98%;  transform: translateY(-14%); }
-  14%  { left: 91%;  transform: translateY(0); }
-  21%  { left: 84%;  transform: translateY(-14%); }
-  28%  { left: 77%;  transform: translateY(0); }
-  35%  { left: 70%;  transform: translateY(-10%); }
-  40%  { left: 68%;  transform: translateY(0); }
-  46%  { left: 68%;  transform: translateY(4%); }   /* 웅크렸다가 */
-  52%  { left: 68%;  transform: translateY(-12%); }  /* 휙 던지기 */
-  60%  { left: 68%;  transform: translateY(0); }
-  68%  { left: 76%;  transform: translateY(-14%); }
-  76%  { left: 84%;  transform: translateY(0); }
-  84%  { left: 92%;  transform: translateY(-14%); }
-  92%  { left: 100%; transform: translateY(0); }
-  100% { left: 112%; transform: translateY(-8%); }
+  0%   { left: 108%; transform: translateY(0); }
+  8%   { left: 100%; transform: translateY(-14%); }
+  16%  { left: 92%;  transform: translateY(0); }
+  24%  { left: 84%;  transform: translateY(-14%); }
+  30%  { left: 76%;  transform: translateY(0); }   /* 내 열매 앞에 도착 */
+  34%  { left: 76%;  transform: translateY(6%); }  /* 쪼그려 집기 */
+  40%  { left: 76%;  transform: translateY(0); }
+  48%  { left: 76%;  transform: translateY(5%); }  /* 웅크렸다가 */
+  54%  { left: 76%;  transform: translateY(-14%); } /* 휙 던지기 */
+  62%  { left: 76%;  transform: translateY(0); }
+  70%  { left: 84%;  transform: translateY(-14%); }
+  78%  { left: 92%;  transform: translateY(0); }
+  86%  { left: 100%; transform: translateY(-14%); }
+  100% { left: 116%; transform: translateY(0); }
 }
-@keyframes sq-flip { 0% { transform: scaleX(1); } 60% { transform: scaleX(-1); } }
-@keyframes held { 0% { opacity: 1; } 52% { opacity: 0; } }
+@keyframes sq-flip { 0% { transform: scaleX(1); } 62% { transform: scaleX(-1); } }
+@keyframes held { 0% { opacity: 0; } 34% { opacity: 1; } 54% { opacity: 0; } }
 .toss-fruit {
-  position: absolute; width: 18%; z-index: 1; opacity: 0;
-  animation: toss 2.7s cubic-bezier(.3, 0, .6, 1) both;
+  position: absolute; width: 16%; z-index: 1; opacity: 0;
+  animation: toss 2.9s cubic-bezier(.3, 0, .6, 1) both;
 }
 @keyframes toss {
-  0%, 51% { left: 74%; top: 44%; opacity: 0; transform: translate(-50%, 0) rotate(0); }
-  52% { left: 74%; top: 44%; opacity: 1; }
-  63% { left: 60%; top: 8%; transform: translate(-50%, 0) rotate(-160deg); }
-  76% { left: 50%; top: 36%; opacity: 1; transform: translate(-50%, 0) rotate(-300deg); }
-  82%, 100% { left: 50%; top: 46%; opacity: 0; transform: translate(-50%, 0) rotate(-330deg); }
+  0%, 53% { left: 84%; top: 40%; opacity: 0; transform: translate(-50%, 0) rotate(0); }
+  54% { left: 84%; top: 40%; opacity: 1; }
+  66% { left: 64%; top: 4%; transform: translate(-50%, 0) rotate(-160deg); }
+  80% { left: 50%; top: 34%; opacity: 1; transform: translate(-50%, 0) rotate(-300deg); }
+  86%, 100% { left: 50%; top: 46%; opacity: 0; transform: translate(-50%, 0) rotate(-330deg); }
 }
+/* 풀밭에 놓인 내 열매 */
+.ground-fruit {
+  position: absolute; left: 86%; bottom: 4%; width: 13%; z-index: 3;
+  transform: translateX(-50%); animation: bob 2.4s ease-in-out infinite;
+}
+.ground-fruit.picked { animation: picked 2.9s steps(1) both; }
+@keyframes picked { 0% { opacity: 1; } 34% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .squirrel, .squirrel-flip, .held-fruit, .toss-fruit { animation-duration: .01s; }
+  .squirrel, .squirrel-flip, .held-fruit, .toss-fruit, .ground-fruit { animation-duration: .01s; }
 }
+
+/* 바구니 탭: 숲이 화면 전체 배경 */
+.forest-page {
+  position: fixed; top: 0; left: 0; right: 0; margin: 0 auto; max-width: 480px;
+  bottom: calc(62px + env(safe-area-inset-bottom)); overflow: hidden; background: #eef3d8;
+}
+.forest-bg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.forest-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; }
+.forest-head { padding: 18px 16px 0; }
+.forest-head .small { color: #5b4a3a; font-weight: 600; }
+.total-pill {
+  display: inline-block; margin-top: 8px; padding: 5px 12px; border-radius: 99px; font-size: 13px;
+  background: rgba(255, 252, 244, .8); backdrop-filter: blur(4px);
+}
+.total-pill b { color: var(--brand); }
+.forest-spacer { flex: 1 1 auto; min-height: 0; }
+.forest-page .basket-stage { flex: none; border-radius: 0; overflow: visible; }
+.forest-ground { flex: none; background: #9ac57b; padding: 6px 16px 16px; }
+.ground-card {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px;
+  background: rgba(255, 250, 241, .94); box-shadow: 0 4px 14px rgba(40, 70, 30, .15);
+}
+.ground-card p { margin: 2px 0 0; }

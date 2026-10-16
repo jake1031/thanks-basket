@@ -1,7 +1,7 @@
 import type { FruitId } from "@/lib/rules";
 import { Fruit } from "./Fruit";
 
-// 열매 넣기 연출: 다람쥐가 과일을 머리 위로 들고 깡총깡총 와서 바구니에 던져 넣고 돌아간다.
+// 열매 넣기 연출: 다람쥐가 깡총깡총 와서 풀밭의 내 열매를 집어 들고, 바구니에 던져 넣고 돌아간다.
 
 function SquirrelBody() {
   return (
@@ -46,4 +46,4 @@ export function SquirrelDrop({ fruit, golden }: { fruit: FruitId; golden: boolea
 }
 
 /** 연출 전체 길이(ms). 이 시간이 지나면 바구니를 새로 불러온다. */
-export const SQUIRREL_MS = 2700;
+export const SQUIRREL_MS = 2900;

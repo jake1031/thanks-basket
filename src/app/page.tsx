@@ -729,18 +729,24 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
 
   const { user } = me;
   const myFruit = fruitFor(user.count);
-  const tally = FRUITS.map((f) => ({ ...f, n: data.placed.filter((p) => p.fruit === f.id).length })).filter((f) => f.n > 0);
   const pieces = arrangeFruits(data.placed);
 
+  const showGroundFruit = data.open && !user.placed;
   return (
-    <div className="stack">
+    <div className="forest-page">
       {introEl}
-      <div className="spread" style={{ paddingTop: 4, alignItems: "baseline" }}>
-        <h2>🎤 싱어팀 감사 바구니</h2>
-        <span className="muted small">{data.open ? `${data.placed.length}명 참여` : "10/24(토) 오픈"}</span>
-      </div>
+      <ForestBackdrop />
+      <div className="forest-content">
+        <div className="forest-head">
+          <div className="spread" style={{ alignItems: "baseline" }}>
+            <h2>🎤 싱어팀 감사 바구니</h2>
+            <span className="small">{data.open ? `${data.placed.length}명 참여` : "10/24(토) 오픈"}</span>
+          </div>
+          <span className="total-pill">🙏 한 주간 모인 감사 <b>{data.totalThanks}개</b></span>
+        </div>
 
-      <div className="card basket-card">
+        <div className="forest-spacer" />
+
         <div className="basket-stage" ref={stageRef}>
           <BasketBack />
           <div className={`pile ${landed ? "landed" : ""}`}>
@@ -756,59 +762,47 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
               </div>
             ))}
           </div>
-          {dropping && (
-            <SquirrelDrop fruit={dropping.fruit} golden={dropping.golden} />
+          <BasketFront />
+          {/* 바구니 옆 풀밭에 놓인 내 열매. 넣기를 누르면 다람쥐가 집어 간다 */}
+          {showGroundFruit && (
+            <div className={`ground-fruit ${dropping ? "picked" : ""}`}>
+              <Fruit id={myFruit.id} golden={user.golden} size="100%" />
+            </div>
           )}
+          {dropping && <SquirrelDrop fruit={dropping.fruit} golden={dropping.golden} />}
           {landed && (
             <div className="burst" aria-hidden>
               <span>✨</span><span>✨</span><span>✨</span>
             </div>
           )}
-          <BasketFront />
         </div>
-        {tally.length > 0 ? (
-          <div className="summary">
-            {tally.map((f) => (
-              <span key={f.id} className="chip"><Fruit id={f.id} size={18} />{f.name} {f.n}</span>
-            ))}
-          </div>
-        ) : (
-          <p className="muted small" style={{ textAlign: "center", margin: "4px 0" }}>{data.open ? "아직 비어 있는 바구니예요" : "토요일에 열매가 채워져요"}</p>
-        )}
-        <div className="total-row">
-          <span>🙏 한 주간 모인 감사</span>
-          <span className="total-count">{data.totalThanks}개</span>
+
+        <div className="forest-ground">
+          {!data.open ? (
+            <div className="ground-card">
+              <div style={{ flex: 1 }}>
+                <b>바구니는 아직 비어 있어요</b>
+                <p className="muted small">토요일(10/24)에 한 주간 모은 열매를 다 함께 담아요!</p>
+              </div>
+            </div>
+          ) : user.placed ? (
+            <div className="ground-card">
+              <div style={{ flex: 1 }}>
+                <b>나는 {user.golden ? "황금 " : ""}{josa(myFruit.name, "을", "를")} 넣었어요!</b>
+                <p className="muted small">{user.golden ? "토요일 감사로 황금 열매가 되었어요 ✨" : "함께 채운 바구니예요 🙏"}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="ground-card">
+              <div style={{ flex: 1 }}>
+                <b>내 열매는 {user.golden ? "황금 " : ""}{myFruit.name}!</b>
+                <p className="muted small">평일 감사 {user.count}개를 채웠어요</p>
+              </div>
+              <button className="btn" disabled={busy || !!dropping} onClick={place}>넣기</button>
+            </div>
+          )}
         </div>
       </div>
-
-      {!data.open ? (
-        <div className="card my-fruit">
-          <span style={{ fontSize: 34 }}>🧺</span>
-          <div style={{ flex: 1 }}>
-            <b>바구니는 아직 비어 있어요</b>
-            <p className="muted small">토요일(10/24)에 한 주간 모은 열매를 다 함께 담아요!</p>
-          </div>
-        </div>
-      ) : user.placed ? (
-        <div className="card my-fruit">
-          <Fruit id={myFruit.id} golden={user.golden} size={44} />
-          <div style={{ flex: 1 }}>
-            <b>나는 {user.golden ? "황금 " : ""}{josa(myFruit.name, "을", "를")} 넣었어요!</b>
-            <p className="muted small">
-              {user.golden ? "토요일 감사로 황금 열매가 되었어요 ✨" : "토요일에 감사를 쓰면 황금 열매가 돼요!"}
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="card my-fruit">
-          <div className="big-fruit" style={{ padding: 0 }}><Fruit id={myFruit.id} golden={user.golden} size={48} /></div>
-          <div style={{ flex: 1 }}>
-            <b>내 열매는 {user.golden ? "황금 " : ""}{myFruit.name}!</b>
-            <p className="muted small">평일 감사 {user.count}개를 채웠어요</p>
-          </div>
-          <button className="btn" disabled={busy} onClick={place}>넣기</button>
-        </div>
-      )}
     </div>
   );
 }
@@ -833,77 +827,84 @@ function Wheat({ x, y, angle, flip = false }: { x: number; y: number; angle: num
   );
 }
 
-/** 바구니 뒤 숲속 풍경 (하늘·햇살·먼 나무·가까운 나무·풀밭·떨어지는 단풍) */
-function ForestScene() {
+/** 바구니 탭 전체 배경: 하늘·햇살·먼 나무·가까운 나무·떨어지는 단풍 (아래쪽은 풀밭이 덮는다) */
+function ForestBackdrop() {
   const far = [
-    [10, 162, 30], [58, 156, 34], [108, 164, 28], [152, 152, 36], [200, 160, 30],
-    [246, 150, 36], [292, 162, 30], [338, 154, 34], [390, 160, 32],
+    [10, 470, 34], [60, 462, 38], [112, 472, 32], [160, 458, 40], [210, 468, 34],
+    [258, 456, 40], [306, 470, 34], [352, 460, 38], [398, 468, 36],
   ];
-  const mid = [[42, 128, 44], [96, 142, 36], [306, 140, 38], [362, 124, 46]];
+  const mid = [[40, 400, 52], [104, 428, 40], [300, 424, 42], [364, 392, 54]];
   const falling = [
-    { x: 128, y: 74, c: "#e0a12a", r: 30, d: "0s" },
-    { x: 262, y: 96, c: "#d9772a", r: -40, d: "-2.2s" },
-    { x: 188, y: 58, c: "#8cc152", r: 70, d: "-4.1s" },
-    { x: 330, y: 70, c: "#e0a12a", r: -10, d: "-1.3s" },
+    { x: 110, y: 220, c: "#e0a12a", r: 30, d: "0s" },
+    { x: 270, y: 280, c: "#d9772a", r: -40, d: "-2.2s" },
+    { x: 190, y: 160, c: "#8cc152", r: 70, d: "-4.1s" },
+    { x: 330, y: 200, c: "#e0a12a", r: -10, d: "-1.3s" },
+    { x: 60, y: 300, c: "#d9772a", r: 50, d: "-5.4s" },
   ];
   return (
-    <g>
+    <svg className="forest-bg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMax slice" aria-hidden>
       <defs>
         <linearGradient id="fs-sky" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#fbefcf" />
-          <stop offset="1" stopColor="#eaf2d6" />
+          <stop offset=".6" stopColor="#eef3d8" />
+          <stop offset="1" stopColor="#dfeccb" />
         </linearGradient>
-        <radialGradient id="fs-sun" cx="0.72" cy="0.12" r="0.6">
+        <radialGradient id="fs-sun" cx="0.75" cy="0.08" r="0.6">
           <stop offset="0" stopColor="#fff2b8" stopOpacity="1" />
           <stop offset="1" stopColor="#fff2b8" stopOpacity="0" />
         </radialGradient>
       </defs>
-      <rect x="0" y="30" width="400" height="290" fill="url(#fs-sky)" />
-      <rect x="0" y="30" width="400" height="290" fill="url(#fs-sun)" />
-      {/* 햇살 */}
-      <g fill="#fff" opacity=".22">
-        <path d="M300 30 L340 30 L210 250 L170 250 Z" />
-        <path d="M352 30 L372 30 L262 250 L240 250 Z" />
+      <rect width="400" height="800" fill="url(#fs-sky)" />
+      <rect width="400" height="800" fill="url(#fs-sun)" />
+      <g fill="#fff" opacity=".2">
+        <path d="M290 0 L340 0 L200 520 L150 520 Z" />
+        <path d="M356 0 L380 0 L262 520 L236 520 Z" />
       </g>
       {/* 먼 나무 */}
       <g fill="#bcd5a8">
         {far.map(([x, y, r], i) => <circle key={i} cx={x} cy={y} r={r} />)}
-        <path d="M0 170 C 80 160 320 160 400 170 L400 240 L0 240 Z" />
+        <rect x="0" y="470" width="400" height="330" />
       </g>
       {/* 가운데 나무 */}
       {mid.map(([x, y, r], i) => (
         <g key={i}>
-          <rect x={x - 3} y={y} width="6" height={230 - y} fill="#9b8462" />
+          <rect x={x - 4} y={y} width="8" height={800 - y} fill="#9b8462" />
           <circle cx={x} cy={y} r={r} fill="#93c07e" />
           <circle cx={x - r * 0.35} cy={y - r * 0.3} r={r * 0.55} fill="#a6cc8f" />
         </g>
       ))}
       {/* 가까운 나무: 양옆에서 감싸기 */}
-      <rect x="6" y="90" width="18" height="170" fill="#7a5a3a" />
-      <circle cx="4" cy="78" r="66" fill="#5f9a55" />
-      <circle cx="40" cy="52" r="34" fill="#6fab60" />
-      <rect x="378" y="96" width="18" height="164" fill="#7a5a3a" />
-      <circle cx="400" cy="84" r="62" fill="#5f9a55" />
-      <circle cx="366" cy="56" r="30" fill="#6fab60" />
-      {/* 풀밭 */}
-      <path d="M0 236 C 90 222 310 222 400 236 L400 320 L0 320 Z" fill="#a8cf86" />
-      <path d="M0 272 C 120 260 280 260 400 272 L400 320 L0 320 Z" fill="#9ac57b" />
-      <g fill="#86b86a">
-        <circle cx="58" cy="242" r="16" /><circle cx="78" cy="246" r="12" />
-        <circle cx="342" cy="244" r="15" /><circle cx="322" cy="248" r="11" />
-      </g>
-      <g stroke="#79ad5e" strokeWidth="2.5" strokeLinecap="round">
-        <path d="M30 300 l-4 -10 M34 300 l2 -12 M38 300 l6 -9" />
-        <path d="M362 302 l-5 -9 M366 302 l1 -12 M370 302 l6 -8" />
-        <path d="M120 312 l-3 -8 M124 312 l2 -10" />
-        <path d="M280 312 l-2 -9 M284 312 l3 -8" />
-      </g>
-      {/* 떨어지는 단풍 */}
+      <rect x="4" y="180" width="22" height="620" fill="#7a5a3a" />
+      <circle cx="0" cy="150" r="96" fill="#5f9a55" />
+      <circle cx="58" cy="96" r="52" fill="#6fab60" />
+      <circle cx="30" cy="250" r="44" fill="#5f9a55" />
+      <rect x="374" y="200" width="22" height="600" fill="#7a5a3a" />
+      <circle cx="400" cy="170" r="92" fill="#5f9a55" />
+      <circle cx="346" cy="112" r="48" fill="#6fab60" />
+      <circle cx="372" cy="270" r="40" fill="#5f9a55" />
       {falling.map((f, i) => (
         <g key={i} className="fall-leaf" style={{ animationDelay: f.d }}>
-          <path transform={`translate(${f.x} ${f.y}) rotate(${f.r}) scale(.18)`} d="M0 0 C 14 -26 50 -30 78 0 C 50 30 14 26 0 0 Z" fill={f.c} />
+          <path transform={`translate(${f.x} ${f.y}) rotate(${f.r}) scale(.2)`} d="M0 0 C 14 -26 50 -30 78 0 C 50 30 14 26 0 0 Z" fill={f.c} />
         </g>
       ))}
+    </svg>
+  );
+}
+
+/** 바구니가 놓인 풀밭 (스테이지 아래쪽, 페이지 아래 풀밭과 이어진다) */
+function Meadow() {
+  return (
+    <g>
+      <path d="M0 232 C 90 218 310 218 400 232 L400 320 L0 320 Z" fill="#a8cf86" />
+      <path d="M0 270 C 120 258 280 258 400 270 L400 320 L0 320 Z" fill="#9ac57b" />
+      <g fill="#86b86a">
+        <circle cx="40" cy="238" r="18" /><circle cx="64" cy="244" r="13" />
+        <circle cx="360" cy="240" r="17" /><circle cx="338" cy="246" r="12" />
+      </g>
+      <g stroke="#79ad5e" strokeWidth="2.5" strokeLinecap="round">
+        <path d="M24 300 l-4 -10 M28 300 l2 -12 M32 300 l6 -9" />
+        <path d="M118 312 l-3 -8 M122 312 l2 -10" />
+      </g>
     </g>
   );
 }
@@ -911,7 +912,7 @@ function ForestScene() {
 function BasketBack() {
   return (
     <svg className="basket" viewBox="0 30 400 290" aria-hidden>
-      <ForestScene />
+      <Meadow />
       <ellipse cx="200" cy="296" rx="150" ry="10" fill="#4f7d3b" opacity=".35" />
       <Wheat x={70} y={206} angle={-28} />
       <Wheat x={92} y={206} angle={-10} />
