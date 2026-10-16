@@ -9,7 +9,8 @@ type U = {
   golden: boolean; placed: boolean; byDay: Record<string, number>;
 };
 type E = { id: number; date: string; content: string; nickname: string };
-type Data = { today: string; users: U[]; entries: E[] };
+type C = { id: number; date: string; content: string; author: string; target: string };
+type Data = { today: string; users: U[]; entries: E[]; comments: C[] };
 
 const PW_KEY = "thanks-admin";
 
@@ -20,7 +21,7 @@ export default function Admin() {
   const [pw, setPw] = useState("");
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState("");
-  const [view, setView] = useState<"users" | "entries">("users");
+  const [view, setView] = useState<"users" | "entries" | "comments">("users");
   const [openId, setOpenId] = useState<number | null>(null); // 펼쳐 본 참여자
 
   async function call(method: "GET" | "POST", body?: unknown, password = pw) {
@@ -125,6 +126,7 @@ export default function Admin() {
       <div className="segment">
         <button className={view === "users" ? "on" : ""} onClick={() => setView("users")}>참여자</button>
         <button className={view === "entries" ? "on" : ""} onClick={() => setView("entries")}>전체 감사</button>
+        <button className={view === "comments" ? "on" : ""} onClick={() => setView("comments")}>댓글 {data.comments.length}</button>
       </div>
 
       {view === "users" ? (
@@ -157,6 +159,19 @@ export default function Admin() {
                   </div>
                 </div>
               )}
+            </div>
+          ))}
+        </div>
+      ) : view === "comments" ? (
+        <div className="card admin-list" style={{ padding: 8 }}>
+          {data.comments.length === 0 && <p className="muted small" style={{ textAlign: "center" }}>아직 댓글이 없어요</p>}
+          {data.comments.map((c) => (
+            <div key={c.id} className="comment" style={{ margin: 4 }}>
+              <div className="spread">
+                <b>{c.author} → {c.target} <span className="muted small">{dayLabel(c.date).md}</span></b>
+                <button className="link danger" style={{ padding: 0 }} onClick={() => act({ action: "delete-comment", id: c.id }, "이 댓글을 삭제할까요?")}>삭제</button>
+              </div>
+              <p>{c.content}</p>
             </div>
           ))}
         </div>

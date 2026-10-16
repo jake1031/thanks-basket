@@ -7,6 +7,7 @@ export const PER_DAY = 3;
 export const MAX_COUNT = WEEKDAYS.length * PER_DAY; // 15
 export const TEAM_SIZE = 25;
 export const MAX_LEN = 200;
+export const COMMENT_LEN = 100;
 
 export type FruitId = "chestnut" | "tangerine" | "persimmon" | "pear" | "apple";
 

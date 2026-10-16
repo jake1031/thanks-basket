@@ -140,6 +140,7 @@ export async function POST(req: Request) {
   }
   await db("delete from entries where user_id = any($1)", [ids]);
   await db("delete from basket where user_id = any($1)", [ids]);
+  await db("delete from comments where target_user_id = any($1) or author_id = any($1)", [ids]);
   // 날짜 → 사람 순으로 넣어 게시판에서 자연스럽게 섞이게 한다
   const plans = DEMO.map(([, target], u) => spread(target as number, u + 1));
   let k = 0;

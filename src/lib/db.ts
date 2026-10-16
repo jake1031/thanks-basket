@@ -27,6 +27,15 @@ create table if not exists entries (
 );
 create index if not exists entries_user_date on entries(user_id, entry_date);
 alter table users add column if not exists real_name text not null default '';
+create table if not exists comments (
+  id serial primary key,
+  target_user_id int not null references users(id) on delete cascade,
+  entry_date date not null,
+  author_id int not null references users(id) on delete cascade,
+  content text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists comments_target on comments(target_user_id, entry_date);
 create table if not exists basket (
   user_id int primary key references users(id) on delete cascade,
   placed_at timestamptz not null default now()

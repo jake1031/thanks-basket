@@ -22,11 +22,16 @@ export async function GET(req: Request) {
     [date],
   );
   // 먼저 쓴 사람 순서로 한 장씩 묶는다
-  const byUser = new Map<number, { nickname: string; mine: boolean; entries: string[] }>();
+  const byUser = new Map<number, { userId: number; nickname: string; mine: boolean; entries: string[]; comments: number }>();
   for (const r of rows) {
-    if (!byUser.has(r.user_id)) byUser.set(r.user_id, { nickname: r.nickname, mine: r.user_id === user.id, entries: [] });
+    if (!byUser.has(r.user_id)) byUser.set(r.user_id, { userId: r.user_id, nickname: r.nickname, mine: r.user_id === user.id, entries: [], comments: 0 });
     byUser.get(r.user_id)!.entries.push(r.content);
   }
+  const cc = await db<{ target_user_id: number; n: number }>(
+    "select target_user_id, count(*)::int as n from comments where entry_date = $1 group by target_user_id",
+    [date],
+  );
+  for (const c of cc) { const card = byUser.get(c.target_user_id); if (card) card.comments = c.n; }
   const cards = [...byUser.values()];
   return json({ people, cards });
 }

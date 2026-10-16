@@ -11,7 +11,12 @@ export async function GET(req: Request) {
   const names = await db<{ id: number; real_name: string }>("select id, real_name from users");
   const nameOf = new Map(names.map((n) => [n.id, n.real_name]));
   const users = (await userStats()).map((u) => ({ ...u, realName: nameOf.get(u.id) ?? "" }));
-  return json({ today: todayKST(req), users, entries });
+  const comments = await db(
+    `select c.id, c.entry_date::text as date, c.content, a.nickname as author, t.nickname as target
+       from comments c join users a on a.id = c.author_id join users t on t.id = c.target_user_id
+      order by c.id desc`,
+  );
+  return json({ today: todayKST(req), users, entries, comments });
 }
 
 export async function POST(req: Request) {
@@ -27,6 +32,9 @@ export async function POST(req: Request) {
       return json({ ok: true });
     case "delete-entry":
       await db("delete from entries where id = $1", [body.id]);
+      return json({ ok: true });
+    case "delete-comment":
+      await db("delete from comments where id = $1", [body.id]);
       return json({ ok: true });
     case "delete-user":
       await db("delete from users where id = $1", [body.userId]);

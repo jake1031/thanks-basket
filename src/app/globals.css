@@ -358,6 +358,7 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .wrap.admin { height: 100dvh; display: flex; flex-direction: column; gap: 12px; padding-bottom: 16px; overflow: hidden; }
 .wrap.admin > * { flex-shrink: 0; }
 .wrap.admin > .admin-list,
+.wrap.admin > .card.admin-list,
 .wrap.admin > .admin-entries { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .admin-entries { display: flex; flex-direction: column; gap: 12px; overflow-x: hidden; margin: 0 -16px; padding: 0 16px; }
 .admin-entries .name-grid {
@@ -499,3 +500,21 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .card-fruit svg { display: block; }
 
 .forest-page .dropper { width: 20%; z-index: 2; }
+
+/* 게시판 댓글 */
+.card-foot { margin-top: auto; padding-top: 8px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.card-foot .page-no { margin: 0; padding: 0; }
+.comment-btn {
+  border: none; background: rgba(255, 255, 255, .7); border-radius: 99px; padding: 5px 11px;
+  font-size: 12px; font-weight: 700; color: var(--ink);
+}
+.comment-list {
+  flex: 1; min-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px;
+}
+.comment { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; }
+.comment b { font-size: 13px; }
+.comment p { margin: 3px 0 0; font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.comment-form { display: flex; gap: 8px; margin-top: 10px; }
+.comment-form .input { flex: 1; min-width: 0; padding: 10px 12px; }
+.comment-form .btn { padding: 0 16px; }

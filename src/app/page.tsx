@@ -5,7 +5,7 @@ import { Fruit } from "@/components/Fruit";
 import { ForestIntro } from "@/components/ForestIntro";
 import { ApiError, api, token } from "@/lib/client";
 import {
-  EVENT_DAYS as DAYS, FRUITS, MAX_COUNT, MAX_LEN, PER_DAY, WEEKDAYS, WEEKEND,
+  COMMENT_LEN, EVENT_DAYS as DAYS, FRUITS, MAX_COUNT, MAX_LEN, PER_DAY, WEEKDAYS, WEEKEND,
   basketOpen, canEditDate, dayLabel, fruitFor, josa, nextFruit, phaseOf,
   type FruitId,
 } from "@/lib/rules";
@@ -388,12 +388,13 @@ function EntryItem({ entry, index, editable, reload, say }: {
 
 /* ───────────── 감사 게시판 ───────────── */
 
-type BoardCard = { nickname: string; mine: boolean; entries: string[] };
+type BoardCard = { userId: number; nickname: string; mine: boolean; entries: string[]; comments: number };
 
 function Board({ today, say, goWrite }: { today: string; say: (m: string) => void; goWrite: (date: string) => void }) {
   const [sel, setSel] = useState(() => defaultDay(today));
   const [people, setPeople] = useState<Record<string, number>>({});
   const [cards, setCards] = useState<BoardCard[] | null>(null);
+  const [commentFor, setCommentFor] = useState<BoardCard | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -473,12 +474,27 @@ function Board({ today, say, goWrite }: { today: string; say: (m: string) => voi
                   <ol>
                     {c.entries.map((t, k) => <li key={k}>{t}</li>)}
                   </ol>
-                  <span className="page-no">{i + 1} / {slides.length}</span>
+                  <div className="card-foot">
+                    <button className="comment-btn" onClick={() => setCommentFor(c)}>
+                      💬 {c.comments > 0 ? `댓글 ${c.comments}` : "댓글 달기"}
+                    </button>
+                    <span className="page-no">{i + 1} / {slides.length}</span>
+                  </div>
                 </div>
               ),
             )}
           </div>
         </>
+      )}
+
+      {commentFor && (
+        <Comments
+          card={commentFor} date={sel} say={say}
+          onClose={(n) => {
+            setCards((cs) => cs?.map((c) => (c.userId === commentFor.userId ? { ...c, comments: n } : c)) ?? null);
+            setCommentFor(null);
+          }}
+        />
       )}
     </div>
   );
@@ -499,6 +515,84 @@ function gaugePos(count: number) {
     }
   }
   return 0;
+}
+
+/* ───────────── 게시판 댓글 ───────────── */
+
+type CommentRow = { id: number; nickname: string; content: string; mine: boolean };
+
+function Comments({ card, date, say, onClose }: {
+  card: BoardCard; date: string; say: (m: string) => void; onClose: (count: number) => void;
+}) {
+  const [list, setList] = useState<CommentRow[] | null>(null);
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  const { md, dow } = dayLabel(date);
+
+  useEffect(() => {
+    api<{ comments: CommentRow[] }>(`/api/comments?target=${card.userId}&date=${date}`)
+      .then((r) => setList(r.comments)).catch((e) => say((e as Error).message));
+  }, [card.userId, date, say]);
+
+  useEffect(() => { listRef.current?.scrollTo({ top: listRef.current.scrollHeight }); }, [list]);
+
+  async function send(e: React.FormEvent) {
+    e.preventDefault();
+    if (!draft.trim()) return;
+    setBusy(true);
+    try {
+      const r = await api<{ comments: CommentRow[] }>("/api/comments", { method: "POST", body: { target: card.userId, date, content: draft } });
+      setList(r.comments);
+      setDraft("");
+    } catch (err) { say((err as Error).message); }
+    setBusy(false);
+  }
+
+  async function remove(id: number) {
+    if (!confirm("이 댓글을 지울까요?")) return;
+    try {
+      await api(`/api/comments/${id}`, { method: "DELETE" });
+      setList((l) => l?.filter((c) => c.id !== id) ?? null);
+    } catch (err) { say((err as Error).message); }
+  }
+
+  const close = () => onClose(list?.length ?? card.comments);
+
+  return (
+    <div className="modal-backdrop" onClick={close}>
+      <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+        <div className="spread" style={{ marginBottom: 10 }}>
+          <b>💬 {card.nickname}님의 {md}({dow}) 감사</b>
+          <button className="link" onClick={close}>닫기</button>
+        </div>
+        <div className="comment-list" ref={listRef}>
+          {list === null ? (
+            <p className="muted small" style={{ margin: 0, textAlign: "center" }}>불러오는 중…</p>
+          ) : list.length === 0 ? (
+            <p className="muted small" style={{ margin: 0, textAlign: "center" }}>첫 댓글을 남겨 응원해주세요!</p>
+          ) : (
+            list.map((c) => (
+              <div key={c.id} className="comment">
+                <div className="spread">
+                  <b>{c.nickname}{c.mine && <span className="badge brand" style={{ marginLeft: 6 }}>나</span>}</b>
+                  {c.mine && <button className="link danger" style={{ padding: 0 }} onClick={() => remove(c.id)}>삭제</button>}
+                </div>
+                <p>{c.content}</p>
+              </div>
+            ))
+          )}
+        </div>
+        <form className="comment-form" onSubmit={send}>
+          <input
+            className="input" value={draft} maxLength={COMMENT_LEN} placeholder="따뜻한 한마디를 남겨주세요"
+            onChange={(e) => setDraft(e.target.value)}
+          />
+          <button className="btn" disabled={busy || !draft.trim()}>등록</button>
+        </form>
+      </div>
+    </div>
+  );
 }
 
 /* ───────────── 그날 감사 남긴 사람 (게시판) ───────────── */
