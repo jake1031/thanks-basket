@@ -974,8 +974,8 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
                 <span className="swap">⇄</span>
               </button>
               <button className="pick-text" onClick={() => setPicking(true)} disabled={!!dropping}>
-                <b>{user.golden ? "황금 " : ""}{josa(FRUIT_NAMES[myFruit], "을", "를")} 넣을게요</b>
-                <span className="muted small">눌러서 바꾸기 · {unlockedFruits(user.count).length}종 해금</span>
+                <b>현재 내 열매: {user.golden ? "황금 " : ""}{FRUIT_NAMES[myFruit]}</b>
+                <span className="muted small">⇄ 눌러서 바꾸고, 넣기로 바구니에 담아요</span>
               </button>
               <button className="btn" disabled={busy || !!dropping} onClick={place}>넣기</button>
             </div>
