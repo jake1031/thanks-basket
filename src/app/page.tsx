@@ -235,9 +235,7 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
           </button>
           <div style={{ flex: 1, minWidth: 0 }}>
             <b>
-              {user.placed
-                ? `이번 주 내 열매는 ${user.golden ? "황금 " : ""}${FRUIT_NAMES[user.fruit]}!`
-                : `현재 내 열매: ${user.golden ? "황금 " : ""}${FRUIT_NAMES[user.fruit]}`}
+              {user.golden ? "황금 " : ""}{FRUIT_NAMES[user.fruit]}
             </b>
             <p className="muted small" style={{ margin: "2px 0 0" }}>
               {phase === "before" && "10월 19일(월)부터 쓸 수 있어요!"}
