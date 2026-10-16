@@ -27,6 +27,7 @@ create table if not exists entries (
 );
 create index if not exists entries_user_date on entries(user_id, entry_date);
 alter table users add column if not exists real_name text not null default '';
+alter table users add column if not exists pick text;
 create table if not exists comments (
   id serial primary key,
   target_user_id int not null references users(id) on delete cascade,

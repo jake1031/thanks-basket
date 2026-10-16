@@ -230,20 +230,19 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
         </div>
         <button className="row tier-row" style={{ gap: 12, marginTop: 6 }} onClick={() => setBook(true)}>
           <div className="tier-icons">
-            {(user.placed ? [user.fruit] : tier.fruits).map((f) => <Fruit key={f} id={f} golden={user.golden} size={user.placed ? 46 : 30} />)}
-            <span className="swap">⇄</span>
+            <Fruit id={user.fruit} golden={user.golden} size={44} />
+            {!user.placed && <span className="swap">⇄</span>}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <b>
-              {phase === "before" && "감사를 모으면 열매가 열려요"}
-              {phase === "weekday" && `열매 ${unlockedFruits(user.count).length}/${ALL_FRUITS.length}종을 모았어요`}
-              {(phase === "weekend" || phase === "after") &&
-                (user.placed ? `이번 주 내 열매는 ${user.golden ? "황금 " : ""}${FRUIT_NAMES[user.fruit]}!` : `열매 ${unlockedFruits(user.count).length}종이 해금됐어요`)}
+              {user.placed
+                ? `이번 주 내 열매는 ${user.golden ? "황금 " : ""}${FRUIT_NAMES[user.fruit]}!`
+                : `현재 내 열매: ${user.golden ? "황금 " : ""}${FRUIT_NAMES[user.fruit]}`}
             </b>
             <p className="muted small" style={{ margin: "2px 0 0" }}>
               {phase === "before" && "10월 19일(월)부터 쓸 수 있어요!"}
               {phase === "weekday" && (next ? `${next.min - user.count}개 더 쓰면 새 열매가 열려요!` : "모든 열매를 모았어요! 🎉")}
-              {phase === "weekend" && (user.golden ? "황금 열매가 되었어요 ✨" : "토요일 감사로 황금 열매에 도전! ✨")}
+              {phase === "weekend" && (user.placed ? "바구니에 쏙 넣었어요 🧺" : user.golden ? "황금 열매가 되었어요 ✨" : "토요일 감사로 황금 열매에 도전! ✨")}
               {phase === "after" && "함께해서 고마워요! 🙏"}
             </p>
           </div>
@@ -267,7 +266,15 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
         )}
       </div>
 
-      {book && <FruitBook count={user.count} golden={user.golden} onClose={() => setBook(false)} />}
+      {book && (
+        <FruitBook
+          count={user.count} golden={user.golden} value={user.fruit}
+          onPick={user.placed ? undefined : (f) => {
+            api("/api/me", { method: "POST", body: { fruit: f } }).then(() => reload()).catch((e) => say((e as Error).message));
+          }}
+          onClose={() => setBook(false)}
+        />
+      )}
 
       <DayTabs
         today={today} sel={sel} onSel={setSel}
@@ -850,7 +857,10 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   const [data, setData] = useState<BasketData | null>(null);
   const [dropping, setDropping] = useState<{ fruit: FruitId; golden: boolean } | null>(null);
   // 바구니에 넣을 열매: 기본은 가장 높은 단계의 첫 열매
-  const [pick, setPick] = useState<FruitId>(() => (me.user.placed ? me.user.fruit : tierFor(me.user.count).fruits[0]));
+  const pick = me.user.fruit;
+  const setPick = (f: FruitId) => {
+    api("/api/me", { method: "POST", body: { fruit: f } }).then(() => reload()).catch((e) => say((e as Error).message));
+  };
   const [picking, setPicking] = useState(false);
   const [landed, setLanded] = useState(false);
   const [busy, setBusy] = useState(false);
