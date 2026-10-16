@@ -228,11 +228,11 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
           <b className="hello">🎤 {user.nickname}님</b>
           <button className="link" onClick={logout}>로그아웃</button>
         </div>
-        <button className="row tier-row" style={{ gap: 12, marginTop: 6 }} onClick={() => setBook(true)}>
-          <div className="tier-icons">
+        <div className="row tier-row" style={{ gap: 12, marginTop: 6 }}>
+          <button className="tier-icons" onClick={() => setBook(true)} aria-label="열매 바꾸기">
             <Fruit id={user.fruit} golden={user.golden} size={44} />
-            {!user.placed && <span className="swap">⇄</span>}
-          </div>
+            <span className="swap">⇄</span>
+          </button>
           <div style={{ flex: 1, minWidth: 0 }}>
             <b>
               {user.placed
@@ -247,7 +247,7 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
             </p>
           </div>
           <span className="count">{user.count}<small>/{MAX_COUNT}</small></span>
-        </button>
+        </div>
         {/* 진행 막대 위에 단계별 대표 열매 */}
         <div className="track">
           <div className="marks">
@@ -269,9 +269,7 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
       {book && (
         <FruitBook
           count={user.count} golden={user.golden} value={user.fruit}
-          onPick={user.placed ? undefined : (f) => {
-            api("/api/me", { method: "POST", body: { fruit: f } }).then(() => reload()).catch((e) => say((e as Error).message));
-          }}
+          onPick={(f) => changeFruit(f, user.placed, reload, say)}
           onClose={() => setBook(false)}
         />
       )}
@@ -535,6 +533,16 @@ function gaugePos(count: number) {
     }
   }
   return 0;
+}
+
+/** 내 열매 바꾸기. 이미 바구니에 넣었다면 넣은 열매는 빠진다(다시 넣어야 함). */
+async function changeFruit(f: FruitId, placed: boolean, after: () => Promise<void>, say: (m: string) => void) {
+  if (placed && !confirm("열매를 바꾸면 바구니에 넣은 열매가 빠져요. 바꾼 뒤 다시 넣어주세요. 바꿀까요?")) return;
+  try {
+    await api("/api/me", { method: "POST", body: { fruit: f } });
+    await after();
+    if (placed) say("바구니에서 열매를 뺐어요. 새 열매를 다시 넣어주세요!");
+  } catch (e) { say((e as Error).message); }
 }
 
 /** 단계별 대표 열매 (게이지·첫 화면) */
@@ -855,9 +863,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   const [dropping, setDropping] = useState<{ fruit: FruitId; golden: boolean } | null>(null);
   // 바구니에 넣을 열매: 기본은 가장 높은 단계의 첫 열매
   const pick = me.user.fruit;
-  const setPick = (f: FruitId) => {
-    api("/api/me", { method: "POST", body: { fruit: f } }).then(() => reload()).catch((e) => say((e as Error).message));
-  };
+  const setPick = (f: FruitId) => changeFruit(f, me.user.placed, async () => { await Promise.all([reload(), fetchBasket()]); }, say);
   const [picking, setPicking] = useState(false);
   const [landed, setLanded] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -958,7 +964,10 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
             </div>
           ) : user.placed ? (
             <div className="ground-card">
-              <div className="card-fruit"><Fruit id={myFruit} golden={user.golden} size="100%" /></div>
+              <button className="card-fruit pickable" onClick={() => setPicking(true)} aria-label="열매 바꾸기">
+                <Fruit id={myFruit} golden={user.golden} size="100%" />
+                <span className="swap">⇄</span>
+              </button>
               <div style={{ flex: 1 }}>
                 <b>나는 {user.golden ? "황금 " : ""}{josa(FRUIT_NAMES[myFruit], "을", "를")} 넣었어요!</b>
                 <p className="muted small">{user.golden ? "토요일 감사로 황금 열매가 되었어요 ✨" : "함께 채운 바구니예요 🙏"}</p>

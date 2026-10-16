@@ -520,8 +520,8 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .comment-form .btn { padding: 0 16px; }
 
 /* 열매 단계 · 도감 · 고르기 */
-.tier-row { width: 100%; background: none; border: none; padding: 0; text-align: left; }
-.tier-icons { position: relative; display: flex; align-items: flex-end; flex-shrink: 0; }
+.tier-row { width: 100%; }
+.tier-icons { position: relative; display: flex; align-items: flex-end; flex-shrink: 0; background: none; border: none; padding: 0; }
 .tier-icons .swap {
   position: absolute; right: -6px; bottom: -4px; width: 17px; height: 17px; border-radius: 50%;
   background: var(--brand); color: #fff; font-size: 10px; line-height: 17px; text-align: center; box-shadow: 0 0 0 2px var(--card);
