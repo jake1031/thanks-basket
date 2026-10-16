@@ -465,7 +465,6 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .basket-card { padding: 12px 12px 0; }
 .basket-card .total-row { margin: 10px -12px 0; }
 
-@media (prefers-reduced-motion: reduce) { .runner-hop { animation: none; } }
 
 /* 바구니 탭: 숲이 화면 전체 배경 */
 .forest-page {
@@ -498,11 +497,40 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .card-fruit { width: 46px; flex-shrink: 0; }
 .card-fruit svg { display: block; }
 
-/* 달려오는 다람쥐 */
-.runner { position: absolute; left: 0; top: 0; width: 76px; z-index: 5; pointer-events: none; transform-origin: 50% 70%; opacity: 0; }
+/* 달려오는 다람쥐: 상태(data-state)에 따라 다리·팔·몸·꼬리가 움직인다 */
+.runner { position: absolute; left: 0; top: 0; width: 92px; z-index: 5; pointer-events: none; transform-origin: 50% 100%; opacity: 0; }
 .runner-face { transform-origin: 50% 50%; }
-.runner-hop { position: relative; animation: run-hop .22s ease-in-out infinite alternate; }
 .runner svg { width: 100%; display: block; overflow: visible; }
-.mouth-fruit { position: absolute; left: -16%; top: 30%; width: 36%; z-index: 1; opacity: 0; }
-@keyframes run-hop { from { transform: translateY(0) rotate(-3deg); } to { transform: translateY(-7px) rotate(3deg); } }
-.drop-fruit { position: absolute; left: 0; top: 0; width: 44px; z-index: 2; pointer-events: none; opacity: 0; }
+.sq-leg { transform-origin: 52px 94px; transition: transform .25s ease; }
+.sq-arm { transform-origin: 42px 66px; transition: transform .35s ease; }
+.sq-body { transform-origin: 50px 100px; transition: transform .45s ease; }
+.sq-tail { transform-origin: 58px 96px; animation: tail-sway 1.1s ease-in-out infinite alternate; }
+.sq-held { opacity: 0; transition: opacity .1s; }
+.runner[data-state~="hold"] .sq-held, .runner[data-state~="carry"] .sq-held { opacity: 1; }
+
+/* 달리기: 두 발이 번갈아 앞뒤로, 팔도 박자 맞춰 흔들고, 몸이 통통 */
+.runner[data-state~="run"] .sq-leg-near, .runner[data-state~="carry"] .sq-leg-near { animation: leg-a .36s ease-in-out infinite alternate; }
+.runner[data-state~="run"] .sq-leg-far, .runner[data-state~="carry"] .sq-leg-far { animation: leg-b .36s ease-in-out infinite alternate; }
+.runner[data-state~="run"] .sq-arm-near { animation: arm-a .36s ease-in-out infinite alternate; }
+.runner[data-state~="run"] .sq-arm-far { animation: arm-b .36s ease-in-out infinite alternate; }
+.runner[data-state~="run"] svg, .runner[data-state~="carry"] svg { animation: body-bob .18s ease-in-out infinite alternate; }
+/* 안고 달리기: 두 팔로 열매를 가슴 앞에 꼭 */
+.runner[data-state~="carry"] .sq-arm { transform: rotate(62deg); }
+/* 숙여서 집기 / 숙여서 바구니에 넣기 */
+.runner[data-state~="reach"] .sq-body, .runner[data-state~="lean"] .sq-body { transform: translateY(6px) rotate(-30deg); }
+.runner[data-state~="reach"] .sq-arm, .runner[data-state~="lean"] .sq-arm { transform: rotate(78deg); }
+.runner[data-state~="reach"] .sq-leg-near, .runner[data-state~="lean"] .sq-leg-near { transform: rotate(-10deg); }
+.runner[data-state~="reach"] .sq-leg-far, .runner[data-state~="lean"] .sq-leg-far { transform: rotate(14deg); }
+/* 서 있을 때 손에 든 열매는 가슴 앞 */
+.runner[data-state~="stand"][data-state~="hold"] .sq-arm { transform: rotate(62deg); }
+
+@keyframes leg-a { from { transform: rotate(30deg); } to { transform: rotate(-30deg); } }
+@keyframes leg-b { from { transform: rotate(-30deg); } to { transform: rotate(30deg); } }
+@keyframes arm-a { from { transform: rotate(32deg); } to { transform: rotate(-22deg); } }
+@keyframes arm-b { from { transform: rotate(-22deg); } to { transform: rotate(32deg); } }
+@keyframes body-bob { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+@keyframes tail-sway { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .sq-tail, .runner svg, .runner .sq-leg, .runner .sq-arm { animation: none !important; }
+}
+.drop-fruit { position: absolute; left: 0; top: 0; width: 40px; z-index: 2; pointer-events: none; opacity: 0; }
