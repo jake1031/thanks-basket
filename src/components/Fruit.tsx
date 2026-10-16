@@ -45,25 +45,6 @@ export function Fruit({ id, golden = false, size = 48 }: { id: FruitId; golden?:
         </>
       );
       break;
-    case "acorn":
-      // 모자 쓴 도토리
-      body = "M14 30 C 14 26 50 26 50 30 C 52 44 44 58 32 60 C 20 58 12 44 14 30 Z";
-      parts = (
-        <>
-          <path d={body} fill={g("#c98a4b", GOLD.body)} />
-          {shade("M40 24 C 56 36 50 58 30 64 L64 64 L64 0 Z", g("#a86e36", GOLD.shade))}
-          <path d="M30 60 L32 64 L34 60 Z" fill={g("#8a5a2c", GOLD.stem)} />
-          {/* 모자 */}
-          <path d="M8 31 C 8 18 20 12 32 12 C 44 12 56 18 56 31 C 46 35 18 35 8 31 Z" fill={g("#7a5230", GOLD.stem)} />
-          <g stroke={g("#5f3d20", GOLD.shade)} strokeWidth="1.4" opacity=".7" fill="none">
-            <path d="M14 22 L18 30 M22 17 L26 31 M32 15 L32 32 M42 17 L38 31 M50 22 L46 30" />
-            <path d="M12 26 C 24 22 40 22 52 26" />
-          </g>
-          <path d="M32 12 C 32 8 34 5 37 4" stroke={g("#5f3d20", GOLD.stem)} strokeWidth="3" fill="none" strokeLinecap="round" />
-          <ellipse cx="22" cy="42" rx="2.6" ry="6" fill="#fff" opacity={shine} transform="rotate(15 22 42)" />
-        </>
-      );
-      break;
     case "olive":
       // 감람나무 가지에 달린 올리브 세 알과 길쭉한 잎
       body = "M0 0 L64 0 L64 64 L0 64 Z";
@@ -149,6 +130,7 @@ export function Fruit({ id, golden = false, size = 48 }: { id: FruitId; golden?:
     case "chestnut":
       body = "M32 9 C36 9 40 14 44 20 C50 28 55 36 54 44 C53 52 44 57 32 57 C20 57 11 52 10 44 C9 36 14 28 20 20 C24 14 28 9 32 9 Z";
       parts = (
+        <g transform="translate(32 40) scale(.84) translate(-32 -40)">
         <>
           <path d={body} fill={g("#8b4f2a", GOLD.body)} />
           {shade("M38 6 C52 24 60 46 40 62 L64 64 L64 0 Z", g("#74401f", GOLD.shade))}
@@ -156,6 +138,7 @@ export function Fruit({ id, golden = false, size = 48 }: { id: FruitId; golden?:
           <path d="M30 10.5 Q32 3.5 34 10.5 Z" fill={g("#4a2410", GOLD.stem)} />
           <path d="M20 25 C17 30 16 35 16.5 40" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" fill="none" opacity={shine} />
         </>
+        </g>
       );
       break;
   }
