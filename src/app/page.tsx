@@ -632,7 +632,6 @@ function Comments({ card, date, say, onClose }: {
       <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <div className="spread" style={{ marginBottom: 10 }}>
           <b>💬 {card.nickname}님의 {md}({dow}) 감사</b>
-          <button className="link" onClick={close}>닫기</button>
         </div>
         <div className="comment-list" ref={listRef}>
           {list === null ? (
