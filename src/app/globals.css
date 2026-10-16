@@ -521,13 +521,16 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 
 /* 열매 단계 · 도감 · 고르기 */
 .tier-row { width: 100%; background: none; border: none; padding: 0; text-align: left; }
-.tier-icons { display: flex; align-items: flex-end; flex-shrink: 0; }
+.tier-icons { position: relative; display: flex; align-items: flex-end; flex-shrink: 0; }
+.tier-icons .swap {
+  position: absolute; right: -6px; bottom: -4px; width: 17px; height: 17px; border-radius: 50%;
+  background: var(--brand); color: #fff; font-size: 10px; line-height: 17px; text-align: center; box-shadow: 0 0 0 2px var(--card);
+}
 .tier-icons .fruit + .fruit { margin-left: -10px; }
 .book-link { color: var(--brand); font-weight: 600; }
 .book { overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
 .book-tier { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
 .book-tier.locked { opacity: .5; }
-.book-tier.locked .fruit { filter: grayscale(1); }
 .book-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
 .book-head b { font-size: 14px; }
 .book-fruits { display: flex; justify-content: center; gap: 6px; }
@@ -544,3 +547,8 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
   background: var(--brand); color: #fff; font-size: 11px; line-height: 18px; text-align: center;
 }
 .pick-text { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; background: none; border: none; padding: 0; text-align: left; }
+.mystery {
+  display: inline-flex; align-items: center; justify-content: center; border-radius: 50%;
+  background: #e9dcc6; color: #a08a70; font-weight: 800; font-size: 20px;
+}
+.book-tier.locked .book-fruit { background: #f6efe2; }

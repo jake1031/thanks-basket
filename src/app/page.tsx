@@ -207,7 +207,7 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
   // 단계가 올라가면 새 열매 해금 알림
   const prevTier = useRef(tier.level);
   useEffect(() => {
-    if (tier.level > prevTier.current) say(`🔓 새 열매 해금! ${tier.fruits.map((f) => FRUIT_NAMES[f]).join(" · ")}`);
+    if (tier.level > prevTier.current) say(`🔓 새 열매가 열렸어요! ${tier.fruits.map((f) => FRUIT_NAMES[f]).join(" · ")}`);
     prevTier.current = tier.level;
   }, [tier.level, tier.fruits, say]);
 
@@ -231,20 +231,20 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
         <button className="row tier-row" style={{ gap: 12, marginTop: 6 }} onClick={() => setBook(true)}>
           <div className="tier-icons">
             {(user.placed ? [user.fruit] : tier.fruits).map((f) => <Fruit key={f} id={f} golden={user.golden} size={user.placed ? 46 : 30} />)}
+            <span className="swap">⇄</span>
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <b>
-              {phase === "before" && "감사를 모으면 열매가 해금돼요"}
-              {phase === "weekday" && `'${tier.name}'까지 해금됐어요`}
+              {phase === "before" && "감사를 모으면 열매가 열려요"}
+              {phase === "weekday" && `열매 ${unlockedFruits(user.count).length}/${ALL_FRUITS.length}종을 모았어요`}
               {(phase === "weekend" || phase === "after") &&
                 (user.placed ? `이번 주 내 열매는 ${user.golden ? "황금 " : ""}${FRUIT_NAMES[user.fruit]}!` : `열매 ${unlockedFruits(user.count).length}종이 해금됐어요`)}
             </b>
             <p className="muted small" style={{ margin: "2px 0 0" }}>
               {phase === "before" && "10월 19일(월)부터 쓸 수 있어요!"}
-              {phase === "weekday" && (next ? `${next.min - user.count}개 더 쓰면 ${next.fruits.map((f) => FRUIT_NAMES[f]).join("·")} 해금!` : "모든 열매 해금! 🎉")}
+              {phase === "weekday" && (next ? `${next.min - user.count}개 더 쓰면 새 열매가 열려요!` : "모든 열매를 모았어요! 🎉")}
               {phase === "weekend" && (user.golden ? "황금 열매가 되었어요 ✨" : "토요일 감사로 황금 열매에 도전! ✨")}
               {phase === "after" && "함께해서 고마워요! 🙏"}
-              <span className="book-link"> · 열매 도감 ›</span>
             </p>
           </div>
           <span className="count">{user.count}<small>/{MAX_COUNT}</small></span>
@@ -254,7 +254,7 @@ function Mine({ me, initialDate, reload, say, goBasket }: {
           <div className="marks">
             {TIERS.map((t, i) => (
               <span key={t.level} className={user.count >= t.min ? "reached" : ""} style={{ left: `${gaugePos(t.min)}%` }}>
-                <Fruit id={REP_FRUITS[i]} size={18} />
+                {user.count >= t.min ? <Fruit id={REP_FRUITS[i]} size={18} /> : <span className="mystery" style={{ width: 18, height: 18, fontSize: 11 }}>?</span>}
               </span>
             ))}
           </div>
@@ -555,7 +555,7 @@ function FruitBook({ count, golden, value, onPick, onClose }: {
               <div key={t.level} className={`book-tier ${unlocked ? "" : "locked"}`}>
                 <div className="book-head">
                   <b>{t.level}단계</b>
-                  <span className="muted small">{unlocked ? "해금" : `🔒 ${t.min}개부터`}</span>
+                  <span className="muted small">{unlocked ? "해금" : `🔒 ${t.min}개부터 열려요`}</span>
                 </div>
                 <div className="book-fruits">
                   {t.fruits.map((f) => (
@@ -564,8 +564,8 @@ function FruitBook({ count, golden, value, onPick, onClose }: {
                       className={`book-fruit ${value === f ? "on" : ""}`}
                       onClick={() => { onPick?.(f); onClose(); }}
                     >
-                      <Fruit id={f} size={38} />
-                      <span>{FRUIT_NAMES[f]}</span>
+                      {unlocked ? <Fruit id={f} size={38} /> : <span className="mystery" style={{ width: 38, height: 38 }}>?</span>}
+                      <span>{unlocked ? FRUIT_NAMES[f] : "???"}</span>
                     </button>
                   ))}
                 </div>
