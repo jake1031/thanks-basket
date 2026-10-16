@@ -45,6 +45,25 @@ export function Fruit({ id, golden = false, size = 48 }: { id: FruitId; golden?:
         </>
       );
       break;
+    case "acorn":
+      // 모자 쓴 도토리
+      body = "M14 30 C 14 26 50 26 50 30 C 52 44 44 58 32 60 C 20 58 12 44 14 30 Z";
+      parts = (
+        <>
+          <path d={body} fill={g("#c98a4b", GOLD.body)} />
+          {shade("M40 24 C 56 36 50 58 30 64 L64 64 L64 0 Z", g("#a86e36", GOLD.shade))}
+          <path d="M30 60 L32 64 L34 60 Z" fill={g("#8a5a2c", GOLD.stem)} />
+          {/* 모자 */}
+          <path d="M8 31 C 8 18 20 12 32 12 C 44 12 56 18 56 31 C 46 35 18 35 8 31 Z" fill={g("#7a5230", GOLD.stem)} />
+          <g stroke={g("#5f3d20", GOLD.shade)} strokeWidth="1.4" opacity=".7" fill="none">
+            <path d="M14 22 L18 30 M22 17 L26 31 M32 15 L32 32 M42 17 L38 31 M50 22 L46 30" />
+            <path d="M12 26 C 24 22 40 22 52 26" />
+          </g>
+          <path d="M32 12 C 32 8 34 5 37 4" stroke={g("#5f3d20", GOLD.stem)} strokeWidth="3" fill="none" strokeLinecap="round" />
+          <ellipse cx="22" cy="42" rx="2.6" ry="6" fill="#fff" opacity={shine} transform="rotate(15 22 42)" />
+        </>
+      );
+      break;
     case "olive":
       // 감람나무 가지에 달린 올리브 세 알과 길쭉한 잎
       body = "M0 0 L64 0 L64 64 L0 64 Z";
