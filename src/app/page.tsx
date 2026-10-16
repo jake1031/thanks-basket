@@ -476,7 +476,7 @@ function Board({ today, say, goWrite }: { today: string; say: (m: string) => voi
                   </ol>
                   <div className="card-foot">
                     <button className="comment-btn" onClick={() => setCommentFor(c)}>
-                      💬 {c.comments > 0 ? `댓글 ${c.comments}` : "댓글 달기"}
+                      💬 댓글 {c.comments}
                     </button>
                     <span className="page-no">{i + 1} / {slides.length}</span>
                   </div>
