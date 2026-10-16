@@ -531,7 +531,7 @@ function gaugePos(count: number) {
 }
 
 /** 단계별 대표 열매 (게이지·첫 화면) */
-const REP_FRUITS: FruitId[] = ["chestnut", "plum", "apple", "mango", "watermelon"];
+const REP_FRUITS: FruitId[] = ["chestnut", "fig", "apple", "mango", "watermelon"];
 
 /** 열매 도감 / 고르기: 단계별 3종, 해금 안 된 건 잠겨 보인다. onPick이 있으면 고르기 모드 */
 function FruitBook({ count, golden, value, onPick, onClose }: {

@@ -98,7 +98,7 @@ export default function Admin() {
 
   // 단계별로 몇 명씩인지 (실제 선물 기준)
   const tally = TIERS.map((t) => data.users.filter((u) => u.tier === t.level).length);
-  const REP: FruitId[] = ["chestnut", "plum", "apple", "mango", "watermelon"];
+  const REP: FruitId[] = ["chestnut", "fig", "apple", "mango", "watermelon"];
 
   return (
     <div className="wrap stack admin">
