@@ -554,7 +554,7 @@ function FruitBook({ count, golden, value, onPick, onClose }: {
             return (
               <div key={t.level} className={`book-tier ${unlocked ? "" : "locked"}`}>
                 <div className="book-head">
-                  <b>{t.level}단계 · {t.name}</b>
+                  <b>{t.level}단계</b>
                   <span className="muted small">{unlocked ? "해금" : `🔒 ${t.min}개부터`}</span>
                 </div>
                 <div className="book-fruits">
@@ -564,7 +564,7 @@ function FruitBook({ count, golden, value, onPick, onClose }: {
                       className={`book-fruit ${value === f ? "on" : ""}`}
                       onClick={() => { onPick?.(f); onClose(); }}
                     >
-                      <Fruit id={f} golden={golden && unlocked} size={38} />
+                      <Fruit id={f} size={38} />
                       <span>{FRUIT_NAMES[f]}</span>
                     </button>
                   ))}
