@@ -11,24 +11,24 @@ export const COMMENT_LEN = 100;
 
 export type FruitId =
   | "chestnut" | "olive"
-  | "tangerine" | "fig"
-  | "persimmon" | "apple"
+  | "fig" | "tangerine"
+  | "apple" | "persimmon"
   | "mango"
   | "watermelon";
 
 /** 크기별 5단계 (1~3단계 2종, 4·5단계 1종). 평일 감사 개수로 단계가 올라가고, 내 단계까지의 열매가 모두 해금된다. */
 export const TIERS: { level: number; name: string; min: number; max: number; fruits: FruitId[] }[] = [
   { level: 1, name: "한입 열매", min: 0, max: 3, fruits: ["chestnut", "olive"] },
-  { level: 2, name: "손바닥 열매", min: 4, max: 6, fruits: ["tangerine", "fig"] },
-  { level: 3, name: "주먹 열매", min: 7, max: 9, fruits: ["persimmon", "apple"] },
+  { level: 2, name: "손바닥 열매", min: 4, max: 6, fruits: ["fig", "tangerine"] },
+  { level: 3, name: "주먹 열매", min: 7, max: 9, fruits: ["apple", "persimmon"] },
   { level: 4, name: "두손 열매", min: 10, max: 12, fruits: ["mango"] },
   { level: 5, name: "아름드리 열매", min: 13, max: 15, fruits: ["watermelon"] },
 ];
 
 export const FRUIT_NAMES: Record<FruitId, string> = {
   chestnut: "밤", olive: "올리브",
-  tangerine: "귤", fig: "무화과",
-  persimmon: "감", apple: "사과",
+  fig: "무화과", tangerine: "귤",
+  apple: "사과", persimmon: "감",
   mango: "망고",
   watermelon: "수박",
 };
