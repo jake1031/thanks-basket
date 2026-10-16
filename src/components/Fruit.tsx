@@ -37,36 +37,30 @@ export function Fruit({ id, golden = false, size = 48 }: { id: FruitId; golden?:
       body = "M32 10 C 36 10 37 16 40 20 C 50 28 56 38 52 48 C 49 56 41 59 32 59 C 23 59 15 56 12 48 C 8 38 14 28 24 20 C 27 16 28 10 32 10 Z";
       parts = (
         <>
-          <path d={body} fill={g("#7b4a6e", GOLD.body)} />
-          {shade("M38 8 C 54 28 58 50 38 62 L64 64 L64 0 Z", g("#5e3555", GOLD.shade))}
-          <path d="M24 26 C 20 36 20 46 24 54 M32 22 L32 57 M40 26 C 44 36 44 46 40 54" stroke={g("#9c6a8c", GOLD.dot)} strokeWidth="1.3" fill="none" opacity=".55" />
+          <path d={body} fill={g("#8a3f2c", GOLD.body)} />
+          {shade("M38 8 C 54 28 58 50 38 62 L64 64 L64 0 Z", g("#6a2e20", GOLD.shade))}
+          <path d="M24 26 C 20 36 20 46 24 54 M32 22 L32 57 M40 26 C 44 36 44 46 40 54" stroke={g("#b0654c", GOLD.dot)} strokeWidth="1.3" fill="none" opacity=".55" />
           <path d="M30 11 L31 5 L34 5 L34 11 Z" fill={g("#6f8a3a", GOLD.stem)} />
           <ellipse cx="20" cy="38" rx="2.4" ry="5" fill="#fff" opacity={shine} transform="rotate(15 20 38)" />
         </>
       );
       break;
-    case "avocado":
-      // 반으로 자른 아보카도: 짙은 초록 껍질, 연두 과육, 갈색 씨
-      body = "M32 6 C 40 6 43 14 45 22 C 47 30 56 34 56 46 C 56 56 46 62 32 62 C 18 62 8 56 8 46 C 8 34 17 30 19 22 C 21 14 24 6 32 6 Z";
+    case "olive":
+      // 감람나무 가지에 달린 올리브 세 알과 길쭉한 잎
+      body = "M0 0 L64 0 L64 64 L0 64 Z";
       parts = (
         <>
-          <path d={body} fill={g("#3f6b2a", GOLD.shade)} />
-          <path d="M32 10 C 38 10 40 16 42 23 C 44 31 52 35 52 46 C 52 54 44 58 32 58 C 20 58 12 54 12 46 C 12 35 20 31 22 23 C 24 16 26 10 32 10 Z" fill={g("#c9e07a", GOLD.body)} />
-          <path d="M32 14 C 36 14 38 19 39 25 C 41 32 48 36 48 46 C 48 52 42 55 32 55 C 22 55 16 52 16 46 C 16 36 23 32 25 25 C 26 19 28 14 32 14 Z" fill={g("#e6f0a4", GOLD.leaf)} />
-          <circle cx="32" cy="43" r="9" fill={g("#8a5a32", GOLD.stem)} />
-          <circle cx="30" cy="41" r="3" fill="#fff" opacity={shine * 0.7} />
-        </>
-      );
-      break;
-    case "pomegranate":
-      body = "M32 16 C 46 16 56 26 56 39 C 56 51 45 58 32 58 C 19 58 8 51 8 39 C 8 26 18 16 32 16 Z";
-      parts = (
-        <>
-          <path d={body} fill={g("#c8343c", GOLD.body)} />
-          {shade("M42 14 C 58 26 58 50 36 62 L64 64 L64 0 Z", g("#a3252d", GOLD.shade))}
-          <path d="M25 18 L24 9 L28 13 L32 7 L36 13 L40 9 L39 18 Z" fill={g("#a3252d", GOLD.shade)} />
-          <path d="M27 17 L27 12 L30 14 L32 10 L34 14 L37 12 L37 17 Z" fill={g("#d9555b", GOLD.leaf)} />
-          <ellipse cx="18" cy="34" rx="2.8" ry="6" fill="#fff" opacity={shine} transform="rotate(20 18 34)" />
+          <path d="M6 14 C 22 20 38 26 56 44" stroke={g("#7a5a3a", GOLD.stem)} strokeWidth="2.6" fill="none" strokeLinecap="round" />
+          <path d="M14 17 C 14 8 22 4 28 4 C 26 12 20 16 14 17 Z" fill={g("#7f9a5a", GOLD.leaf)} />
+          <path d="M30 26 C 36 18 46 16 52 18 C 46 26 38 28 30 26 Z" fill={g("#6f8a4c", GOLD.leafDark)} />
+          <path d="M46 37 C 54 34 60 36 62 40 C 56 44 50 42 46 37 Z" fill={g("#7f9a5a", GOLD.leaf)} />
+          <path d="M20 19 L 20 26 M34 28 L 32 36 M46 38 L 44 46" stroke={g("#7a5a3a", GOLD.stem)} strokeWidth="1.6" strokeLinecap="round" />
+          <ellipse cx="19" cy="34" rx="7.5" ry="10" fill={g("#6d8a3a", GOLD.body)} transform="rotate(-12 19 34)" />
+          <ellipse cx="31" cy="46" rx="8" ry="10.5" fill={g("#4a2f4f", GOLD.body)} transform="rotate(-8 31 46)" />
+          <ellipse cx="44" cy="54" rx="7" ry="9" fill={g("#5d7a2e", GOLD.shade)} transform="rotate(-20 44 54)" />
+          <ellipse cx="16" cy="30" rx="2" ry="3.4" fill="#fff" opacity={shine} transform="rotate(-12 16 30)" />
+          <ellipse cx="28" cy="42" rx="2" ry="3.6" fill="#fff" opacity={shine * 0.8} transform="rotate(-8 28 42)" />
+          <ellipse cx="41.5" cy="51" rx="1.8" ry="3" fill="#fff" opacity={shine} transform="rotate(-20 41.5 51)" />
         </>
       );
       break;
