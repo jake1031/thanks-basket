@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Fruit } from "@/components/Fruit";
 import { ForestIntro } from "@/components/ForestIntro";
-import { SQUIRREL_MS, SquirrelDrop } from "@/components/Squirrel";
+import { DROP_AT, SQUIRREL_MS, SquirrelRun } from "@/components/Squirrel";
 import { ApiError, api, token } from "@/lib/client";
 import {
   EVENT_DAYS as DAYS, FRUITS, MAX_COUNT, MAX_LEN, PER_DAY, WEEKDAYS, WEEKEND,
@@ -697,6 +697,8 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   const [landed, setLanded] = useState(false);
   const [busy, setBusy] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
+  const areaRef = useRef<HTMLDivElement>(null);
+  const myFruitRef = useRef<HTMLDivElement>(null);
   // 바구니 탭을 열 때마다 숲속 나뭇잎을 헤치고 들어가는 연출
   const [intro, setIntro] = useState(true);
   const endIntro = useCallback(() => setIntro(false), []);
@@ -711,11 +713,9 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
     setBusy(true);
     try {
       await api("/api/basket", { method: "POST" });
-      // 바구니가 보이게 올린 뒤, 다람쥐가 내 열매를 들고 와서 바구니에 던져 넣는다
-      stageRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      await new Promise((r) => setTimeout(r, 450));
+      // 다람쥐가 달려와 카드 속 내 열매를 물고 가서 바구니에 넣는다
       setDropping({ fruit: fruitFor(me.user.count).id, golden: me.user.golden });
-      await new Promise((r) => setTimeout(r, SQUIRREL_MS * 0.78)); // 과일이 바구니에 닿는 순간
+      await new Promise((r) => setTimeout(r, SQUIRREL_MS * (DROP_AT + 0.1))); // 과일이 바구니에 쏙 들어간 뒤
       await Promise.all([fetchBasket(), reload()]);
       setDropping(null);
       setLanded(true);
@@ -731,12 +731,11 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   const myFruit = fruitFor(user.count);
   const pieces = arrangeFruits(data.placed);
 
-  const showGroundFruit = data.open && !user.placed;
   return (
     <div className="forest-page">
       {introEl}
       <ForestBackdrop />
-      <div className="forest-content">
+      <div className="forest-content" ref={areaRef}>
         <div className="forest-head">
           <div className="spread" style={{ alignItems: "baseline" }}>
             <h2>🎤 싱어팀 감사 바구니</h2>
@@ -747,6 +746,11 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
 
         <div className="forest-spacer" />
 
+        <div className="stage-wrap">
+        <svg className="meadow" viewBox="0 0 400 100" preserveAspectRatio="none" aria-hidden>
+          <path d="M0 22 C 110 2 290 2 400 22 L400 100 L0 100 Z" fill="#a8cf86" />
+          <path d="M0 64 C 120 52 280 52 400 64 L400 100 L0 100 Z" fill="#9ac57b" />
+        </svg>
         <div className="basket-stage" ref={stageRef}>
           <BasketBack />
           <div className={`pile ${landed ? "landed" : ""}`}>
@@ -763,18 +767,12 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
             ))}
           </div>
           <BasketFront />
-          {/* 바구니 옆 풀밭에 놓인 내 열매. 넣기를 누르면 다람쥐가 집어 간다 */}
-          {showGroundFruit && (
-            <div className={`ground-fruit ${dropping ? "picked" : ""}`}>
-              <Fruit id={myFruit.id} golden={user.golden} size="100%" />
-            </div>
-          )}
-          {dropping && <SquirrelDrop fruit={dropping.fruit} golden={dropping.golden} />}
           {landed && (
             <div className="burst" aria-hidden>
               <span>✨</span><span>✨</span><span>✨</span>
             </div>
           )}
+        </div>
         </div>
 
         <div className="forest-ground">
@@ -794,6 +792,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
             </div>
           ) : (
             <div className="ground-card">
+              <div className="card-fruit" ref={myFruitRef}><Fruit id={myFruit.id} golden={user.golden} size="100%" /></div>
               <div style={{ flex: 1 }}>
                 <b>내 열매는 {user.golden ? "황금 " : ""}{myFruit.name}!</b>
                 <p className="muted small">평일 감사 {user.count}개를 채웠어요</p>
@@ -802,6 +801,9 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
             </div>
           )}
         </div>
+        {dropping && (
+          <SquirrelRun fruit={dropping.fruit} golden={dropping.golden} areaRef={areaRef} stageRef={stageRef} fromRef={myFruitRef} />
+        )}
       </div>
     </div>
   );
@@ -891,28 +893,9 @@ function ForestBackdrop() {
   );
 }
 
-/** 바구니가 놓인 풀밭 (스테이지 아래쪽, 페이지 아래 풀밭과 이어진다) */
-function Meadow() {
-  return (
-    <g>
-      <path d="M0 232 C 90 218 310 218 400 232 L400 320 L0 320 Z" fill="#a8cf86" />
-      <path d="M0 270 C 120 258 280 258 400 270 L400 320 L0 320 Z" fill="#9ac57b" />
-      <g fill="#86b86a">
-        <circle cx="40" cy="238" r="18" /><circle cx="64" cy="244" r="13" />
-        <circle cx="360" cy="240" r="17" /><circle cx="338" cy="246" r="12" />
-      </g>
-      <g stroke="#79ad5e" strokeWidth="2.5" strokeLinecap="round">
-        <path d="M24 300 l-4 -10 M28 300 l2 -12 M32 300 l6 -9" />
-        <path d="M118 312 l-3 -8 M122 312 l2 -10" />
-      </g>
-    </g>
-  );
-}
-
 function BasketBack() {
   return (
     <svg className="basket" viewBox="0 30 400 290" aria-hidden>
-      <Meadow />
       <ellipse cx="200" cy="296" rx="150" ry="10" fill="#4f7d3b" opacity=".35" />
       <Wheat x={70} y={206} angle={-28} />
       <Wheat x={92} y={206} angle={-10} />
@@ -927,7 +910,7 @@ function BasketFront() {
     for (let x = 72 + (r % 2) * 20; x <= 330; x += 40) marks.push({ x, y });
   });
   return (
-    <svg className="basket" viewBox="0 30 400 290" aria-hidden>
+    <svg className="basket basket-front" viewBox="0 30 400 290" aria-hidden>
       <defs>
         <clipPath id="bk-clip">
           <path d="M42 214 L358 214 C354 252 316 288 200 288 C84 288 46 252 42 214 Z" />

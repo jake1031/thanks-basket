@@ -465,53 +465,7 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .basket-card { padding: 12px 12px 0; }
 .basket-card .total-row { margin: 10px -12px 0; }
 
-/* 다람쥐가 와서 풀밭의 내 열매를 집어 바구니에 넣기 (2.9s) */
-.squirrel {
-  position: absolute; bottom: 3%; left: 108%; width: 28%; aspect-ratio: 1; z-index: 4;
-  animation: sq-run 2.9s linear both;
-}
-.squirrel svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.squirrel-flip { position: relative; width: 100%; height: 100%; animation: sq-flip 2.9s steps(1) both; }
-.held-fruit { position: absolute; left: 18%; top: -22%; width: 46%; animation: held 2.9s steps(1) both; }
-@keyframes sq-run {
-  0%   { left: 108%; transform: translateY(0); }
-  8%   { left: 100%; transform: translateY(-14%); }
-  16%  { left: 92%;  transform: translateY(0); }
-  24%  { left: 84%;  transform: translateY(-14%); }
-  30%  { left: 76%;  transform: translateY(0); }   /* 내 열매 앞에 도착 */
-  34%  { left: 76%;  transform: translateY(6%); }  /* 쪼그려 집기 */
-  40%  { left: 76%;  transform: translateY(0); }
-  48%  { left: 76%;  transform: translateY(5%); }  /* 웅크렸다가 */
-  54%  { left: 76%;  transform: translateY(-14%); } /* 휙 던지기 */
-  62%  { left: 76%;  transform: translateY(0); }
-  70%  { left: 84%;  transform: translateY(-14%); }
-  78%  { left: 92%;  transform: translateY(0); }
-  86%  { left: 100%; transform: translateY(-14%); }
-  100% { left: 116%; transform: translateY(0); }
-}
-@keyframes sq-flip { 0% { transform: scaleX(1); } 62% { transform: scaleX(-1); } }
-@keyframes held { 0% { opacity: 0; } 34% { opacity: 1; } 54% { opacity: 0; } }
-.toss-fruit {
-  position: absolute; width: 16%; z-index: 1; opacity: 0;
-  animation: toss 2.9s cubic-bezier(.3, 0, .6, 1) both;
-}
-@keyframes toss {
-  0%, 53% { left: 84%; top: 40%; opacity: 0; transform: translate(-50%, 0) rotate(0); }
-  54% { left: 84%; top: 40%; opacity: 1; }
-  66% { left: 64%; top: 4%; transform: translate(-50%, 0) rotate(-160deg); }
-  80% { left: 50%; top: 34%; opacity: 1; transform: translate(-50%, 0) rotate(-300deg); }
-  86%, 100% { left: 50%; top: 46%; opacity: 0; transform: translate(-50%, 0) rotate(-330deg); }
-}
-/* 풀밭에 놓인 내 열매 */
-.ground-fruit {
-  position: absolute; left: 86%; bottom: 4%; width: 13%; z-index: 3;
-  transform: translateX(-50%); animation: bob 2.4s ease-in-out infinite;
-}
-.ground-fruit.picked { animation: picked 2.9s steps(1) both; }
-@keyframes picked { 0% { opacity: 1; } 34% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) {
-  .squirrel, .squirrel-flip, .held-fruit, .toss-fruit, .ground-fruit { animation-duration: .01s; }
-}
+@media (prefers-reduced-motion: reduce) { .runner-hop { animation: none; } }
 
 /* 바구니 탭: 숲이 화면 전체 배경 */
 .forest-page {
@@ -535,3 +489,20 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
   background: rgba(255, 250, 241, .94); box-shadow: 0 4px 14px rgba(40, 70, 30, .15);
 }
 .ground-card p { margin: 2px 0 0; }
+
+/* 바구니: 조금 멀리 있는 것처럼 작게, 풀밭은 화면 끝까지 */
+.stage-wrap { position: relative; flex: none; }
+.stage-wrap .meadow { position: absolute; left: 0; right: 0; top: 46%; bottom: 0; width: 100%; height: 54%; }
+.forest-page .basket-stage { width: 74%; margin: 0 auto; }
+.basket-stage svg.basket-front { z-index: 3; }   /* 과일보다 앞: 바구니 안에 담긴 느낌 */
+.card-fruit { width: 46px; flex-shrink: 0; }
+.card-fruit svg { display: block; }
+
+/* 달려오는 다람쥐 */
+.runner { position: absolute; left: 0; top: 0; width: 76px; z-index: 5; pointer-events: none; transform-origin: 50% 70%; opacity: 0; }
+.runner-face { transform-origin: 50% 50%; }
+.runner-hop { position: relative; animation: run-hop .22s ease-in-out infinite alternate; }
+.runner svg { width: 100%; display: block; overflow: visible; }
+.mouth-fruit { position: absolute; left: -16%; top: 30%; width: 36%; z-index: 1; opacity: 0; }
+@keyframes run-hop { from { transform: translateY(0) rotate(-3deg); } to { transform: translateY(-7px) rotate(3deg); } }
+.drop-fruit { position: absolute; left: 0; top: 0; width: 44px; z-index: 2; pointer-events: none; opacity: 0; }
