@@ -99,50 +99,72 @@ export function Fruit({ id, golden = false, size = 48 }: { id: FruitId; golden?:
         </>
       );
       break;
-    case "grape":
-      body = "M14 18 L50 18 L36 60 L28 60 Z";
+    case "grape": {
+      // 송이 모양으로 촘촘하게: 위에서부터 5·5·4·3·2·1알
+      body = "M8 16 L56 16 L36 62 L28 62 Z";
+      const rows = [5, 5, 4, 3, 2, 1];
+      const berries: [number, number][] = [];
+      rows.forEach((n, r) => {
+        for (let k = 0; k < n; k++) berries.push([32 + (k - (n - 1) / 2) * 9.2, 18 + r * 8.2]);
+      });
       parts = (
         <>
-          {[
-            [20, 22], [32, 22], [44, 22], [26, 32], [38, 32], [20, 42], [32, 42], [44, 32], [26, 51], [38, 51], [32, 59],
-          ].map(([x, y], i) => (
+          {berries.map(([x, y], i) => (
             <g key={i}>
-              <circle cx={x} cy={y} r="7" fill={g("#7b4fa6", GOLD.body)} />
-              <circle cx={x + 2} cy={y + 2} r="5" fill={g("#653c8c", GOLD.shade)} opacity=".55" />
-              <circle cx={x - 2.4} cy={y - 2.4} r="1.6" fill="#fff" opacity={shine} />
+              <circle cx={x} cy={y} r="5.6" fill={g("#7a4ea6", GOLD.body)} />
+              <circle cx={x + 1.4} cy={y + 1.6} r="4" fill={g("#5f3889", GOLD.shade)} opacity=".55" />
+              <circle cx={x - 1.9} cy={y - 1.9} r="1.3" fill="#fff" opacity={shine} />
             </g>
           ))}
-          <path d="M32 15 C 32 10 33 7 36 4" stroke={STEM} strokeWidth="2.6" fill="none" strokeLinecap="round" />
-          <path d="M35 9 C 40 2 50 3 52 7 C 47 12 40 12 35 9 Z" fill={LEAF} />
+          <path d="M32 13 C 32 9 33 6 36 3" stroke={STEM} strokeWidth="2.6" fill="none" strokeLinecap="round" />
+          <path d="M34 9 C 30 4 22 4 18 8 C 23 12 30 12 34 9 Z" fill={LEAF} />
+          <path d="M34 9 C 30 6 24 6 18 8 C 23 12 30 12 34 9 Z" fill={LEAF_DARK} />
+          <path d="M36 4 C 40 2 43 4 42 7" stroke={LEAF_DARK} strokeWidth="1.4" fill="none" strokeLinecap="round" />
         </>
       );
       break;
+    }
     case "mango":
-      body = "M14 30 C 16 16 36 10 48 20 C 58 28 58 46 46 54 C 34 62 14 56 12 44 C 11 38 12 34 14 30 Z";
+      // 옆으로 길쭉한 콩팥 모양. 꼭지 쪽은 붉게, 아래는 노랗게 익은 망고
+      body = "M6 40 C 4 26 18 14 36 14 C 52 14 61 22 59 33 C 57 44 47 52 33 55 C 18 58 8 52 6 40 Z";
       parts = (
         <>
-          <path d={body} fill={g("#f6b23a", GOLD.body)} />
-          {shade("M4 0 C 30 6 40 20 30 34 C 22 44 6 40 0 30 Z", g("#ec6a3a", GOLD.leaf))}
-          {shade("M44 14 C 62 30 56 54 32 62 L64 64 L64 0 Z", g("#e2952a", GOLD.shade))}
-          <path d="M44 17 C 46 12 48 10 51 9" stroke={STEM} strokeWidth="2.6" fill="none" strokeLinecap="round" />
-          <path d="M48 12 C 52 5 60 6 62 10 C 58 14 52 14 48 12 Z" fill={LEAF} />
-          <ellipse cx="22" cy="30" rx="2.6" ry="5" fill="#fff" opacity={shine} transform="rotate(40 22 30)" />
+          <path d={body} fill={g("#f8bb3c", GOLD.body)} />
+          <ellipse cx="44" cy="22" rx="20" ry="11" fill={g("#f08a3e", GOLD.leaf)} opacity=".7" clipPath={`url(#${clip})`} transform="rotate(10 44 22)" />
+          <ellipse cx="48" cy="20" rx="10" ry="6" fill={g("#e5603a", GOLD.leaf)} opacity=".5" clipPath={`url(#${clip})`} />
+          {shade("M0 46 C 20 66 50 62 64 40 L64 64 L0 64 Z", g("#e7a22c", GOLD.shade))}
+          <path d="M51 16 C 52 12 54 10 57 9" stroke={STEM} strokeWidth="2.6" fill="none" strokeLinecap="round" />
+          <path d="M55 11 C 58 5 63 5 64 8 C 62 12 58 13 55 11 Z" fill={LEAF} />
+          <ellipse cx="18" cy="32" rx="6" ry="2.6" fill="#fff" opacity={shine} transform="rotate(-25 18 32)" />
         </>
       );
       break;
-    case "banana":
-      body = "M10 22 C 14 44 32 56 54 50 C 58 49 58 46 55 45 C 36 46 22 36 16 20 C 15 17 10 18 10 22 Z";
+    case "banana": {
+      // 세 개가 붙은 바나나 송이
+      body = "M0 0 L64 0 L64 64 L0 64 Z";
+      const one = "M24 14 C 20 34 30 52 54 56 C 58 56 59 53 56 51 C 38 46 31 32 30 14 C 30 11 24 11 24 14 Z";
+      const tips = [
+        { r: -14, dx: -2, dy: 3 },
+        { r: 0, dx: 0, dy: 0 },
+        { r: 13, dx: 2, dy: -2 },
+      ];
       parts = (
         <>
-          <path d={body} fill={g("#f6d84a", GOLD.body)} />
-          {shade("M0 40 C 20 64 50 60 64 46 L64 64 L0 64 Z", g("#e2bd2a", GOLD.shade))}
-          <path d="M14 26 C 20 40 34 48 50 47" stroke={g("#e8c53a", GOLD.dot)} strokeWidth="1.4" fill="none" opacity=".7" />
-          <path d="M9 21 L12 15 L16 18 L14 22 Z" fill={g("#6b4a24", GOLD.stem)} />
-          <circle cx="55.5" cy="47.5" r="2" fill={g("#5a3a1a", GOLD.stem)} />
-          <ellipse cx="22" cy="36" rx="2.2" ry="5" fill="#fff" opacity={shine} transform="rotate(-45 22 36)" />
+          {tips.map((t, i) => (
+            <g key={i} transform={`rotate(${t.r} 27 14) translate(${t.dx} ${t.dy})`}>
+              <path d={one} fill={g(i === 1 ? "#f8da4c" : "#f2cd3a", GOLD.body)} />
+              <path d="M27 16 C 27 32 34 44 52 52" stroke={g("#d9b326", GOLD.shade)} strokeWidth="2" fill="none" opacity=".55" />
+              <path d="M30 14 C 31 32 38 46 56 51 C 58 53 57 56 54 56 C 34 51 28 36 29 18 Z" fill={g("#e2bd2a", GOLD.shade)} opacity=".6" />
+              <circle cx="55.5" cy="53.5" r="1.8" fill={g("#5a3a1a", GOLD.stem)} />
+            </g>
+          ))}
+          <path d="M22 16 L25 6 L31 7 L30 16 Z" fill={g("#8a6a2a", GOLD.stem)} />
+          <path d="M25 6 L31 7 L30 9 L25 8 Z" fill={g("#5f4520", GOLD.stem)} />
+          <ellipse cx="25" cy="30" rx="1.8" ry="5" fill="#fff" opacity={shine} transform="rotate(-10 25 30)" />
         </>
       );
       break;
+    }
     case "watermelon":
       body = "M32 10 C 50 10 60 22 60 36 C 60 50 48 60 32 60 C 16 60 4 50 4 36 C 4 22 14 10 32 10 Z";
       parts = (
