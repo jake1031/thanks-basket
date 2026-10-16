@@ -13,24 +13,24 @@ export type FruitId =
   | "chestnut" | "tangerine" | "persimmon"
   | "plum" | "fig" | "lemon"
   | "peach" | "apple" | "pomegranate"
-  | "grape" | "mango" | "banana"
-  | "watermelon" | "melon" | "pumpkin";
+  | "mango"
+  | "watermelon";
 
-/** 크기별 5단계. 평일 감사 개수로 단계가 올라가고, 내 단계까지의 열매가 모두 해금된다. */
+/** 크기별 5단계 (1~3단계는 3종, 4·5단계는 1종). 평일 감사 개수로 단계가 올라가고, 내 단계까지의 열매가 모두 해금된다. */
 export const TIERS: { level: number; name: string; min: number; max: number; fruits: FruitId[] }[] = [
   { level: 1, name: "한입 열매", min: 0, max: 3, fruits: ["chestnut", "tangerine", "persimmon"] },
   { level: 2, name: "손바닥 열매", min: 4, max: 6, fruits: ["plum", "fig", "lemon"] },
   { level: 3, name: "주먹 열매", min: 7, max: 9, fruits: ["peach", "apple", "pomegranate"] },
-  { level: 4, name: "두손 열매", min: 10, max: 12, fruits: ["grape", "mango", "banana"] },
-  { level: 5, name: "아름드리 열매", min: 13, max: 15, fruits: ["watermelon", "melon", "pumpkin"] },
+  { level: 4, name: "두손 열매", min: 10, max: 12, fruits: ["mango"] },
+  { level: 5, name: "아름드리 열매", min: 13, max: 15, fruits: ["watermelon"] },
 ];
 
 export const FRUIT_NAMES: Record<FruitId, string> = {
   chestnut: "밤", tangerine: "귤", persimmon: "감",
   plum: "자두", fig: "무화과", lemon: "레몬",
   peach: "복숭아", apple: "사과", pomegranate: "석류",
-  grape: "포도", mango: "망고", banana: "바나나",
-  watermelon: "수박", melon: "멜론", pumpkin: "호박",
+  mango: "망고",
+  watermelon: "수박",
 };
 
 export const ALL_FRUITS: FruitId[] = TIERS.flatMap((t) => t.fruits);
