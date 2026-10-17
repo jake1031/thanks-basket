@@ -831,12 +831,20 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
 
   // 무리마다 바닥에 몇 개, 위에 몇 개 놓을지. 폭이 넘치면 바닥 개수를 줄여 위로 올린다
   // 바닥 줄은 되도록 다 깔고(조금 겹쳐도 됨), 그래도 넘치는 것만 위로 올린다
+  // 한 줄에 다 들어가면 전부 바닥에, 아니면 무리마다 삼각형 더미(바닥 b개 → 위로 하나씩 줄어듦)
+  const tri = (n: number) => { let b = 1; while ((b * (b + 1)) / 2 < n) b++; return b; };
   const groups = seq.map((c) => ({ ...c, bottom: c.n }));
+  if (groups.reduce((w, g) => w + g.bottom * radOf(g.f) * 2 * SNUG, 0) * 0.68 > MAXW) {
+    groups.forEach((g) => (g.bottom = tri(g.n)));
+  }
   const rowWidth = () =>
     groups.reduce((w, g) => w + g.bottom * radOf(g.f) * 2 * SNUG, 0);
   // 바닥에 최대한 다 깔고(조금 더 겹쳐도 됨) 그래도 넘칠 때만 위로 쌓는다
   while (rowWidth() * 0.68 > MAXW) {
-    const g = [...groups].filter((x) => x.bottom > 1).sort((x, y) => y.bottom - x.bottom || tierOf(y.f).level - tierOf(x.f).level)[0];
+    // 위에 얹을 열매가 자기 무리 안 틈에 앉을 수 있도록, 3개 이상인 무리는 바닥을 2개 이상 남긴다
+    const g = [...groups]
+      .filter((x) => x.bottom > 2 && x.bottom > tri(x.n) - 1)
+      .sort((x, y) => y.bottom - x.bottom || tierOf(y.f).level - tierOf(x.f).level)[0];
     if (!g) break;
     g.bottom--;
   }
@@ -880,10 +888,14 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
     const row = bottoms[gi];
     const center = row.reduce((s2, b) => s2 + b.x, 0) / row.length;
     const r = radOf(g.f);
+    // 자기 무리 바닥 줄 위에서만 자리를 찾는다 (다른 과일 위로 넘어가지 않게)
+    // (양 끝 어깨까지 허용해서, 틈이 차면 옆으로 기대어 앉는다 — 탑처럼 쌓이지 않게)
+    const lo = Math.max(10 + r, Math.min(...row.map((b) => b.x)) - r * 0.9);
+    const hi = Math.min(90 - r, Math.max(...row.map((b) => b.x)) + r * 0.9);
     for (let left = g.n - g.bottom; left > 0; left--) {
       let bestX = center, best = Infinity;
-      for (let cx = 10 + r; cx <= 90 - r; cx += 0.5) {
-        const score = restY(cx, r) + Math.abs(cx - center) * 0.35;
+      for (let cx = lo; cx <= hi; cx += 0.25) {
+        const score = restY(cx, r) + Math.abs(cx - center) * 0.12;
         if (score < best) { best = score; bestX = cx; }
       }
       drop(g.f, bestX);
