@@ -820,11 +820,10 @@ function fixedBasket(): Piece[] {
 }
 
 function arrangeFruits(placed: BasketData["placed"]): Piece[] {
-  // 15명까지는 실제로 넣은 과일을 그대로 하나씩 그린다 (한 종류 최대 3개).
+  // 15명까지는 실제로 넣은 과일을 넣은 수만큼 그대로 그린다.
   // 16명부터는 미리 짜둔 '가득 찬 바구니' 그림으로 고정한다.
-  const PER_TYPE = 3;
   if (placed.length > LIVE_LIMIT) return fixedBasket();
-  const shown = ALL_FRUITS.map((f) => Math.min(PER_TYPE, placed.filter((p) => p.fruit === f).length));
+  const shown = ALL_FRUITS.map((f) => placed.filter((p) => p.fruit === f).length);
   const items: Omit<Piece, "left" | "bottom" | "size" | "rotate" | "z">[] = [];
   ALL_FRUITS.forEach((f, i) => {
     for (let k = 0; k < shown[i]; k++) {
