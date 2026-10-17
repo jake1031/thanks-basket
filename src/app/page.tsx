@@ -772,7 +772,7 @@ const LIVE_LIMIT = 10;
 const FULL_LAYOUT: FruitId[][] = [
   ["chestnut", "chestnut", "olive", "olive", "tangerine", "fig", "fig"],
   ["persimmon", "persimmon", "tangerine", "tangerine", "apple", "apple"],
-  ["mango", "watermelon", "mango", "apple"],
+  ["watermelon", "mango", "mango", "apple"],
 ];
 
 // 단계가 높을수록(큰 열매일수록) 크게 그린다
@@ -799,17 +799,32 @@ function rowSlots(k: number, rowIdx: number, seedBase: number) {
   });
 }
 
+/** 작은 열매(1·2단계) 무리는 가운데로 끌어당겨 옹기종기 모은다 (1단계는 더 촘촘히) */
+function huddle(pieces: Piece[]) {
+  for (const t of new Set(pieces.map((p) => p.fruit))) {
+    const lv = tierOf(t).level;
+    if (lv > 2) continue;
+    const g = pieces.filter((p) => p.fruit === t);
+    if (g.length < 2) continue;
+    const k = lv === 1 ? 0.78 : 0.85;
+    const cx = g.reduce((s, p) => s + p.left, 0) / g.length;
+    const cb = g.reduce((s, p) => s + p.bottom, 0) / g.length;
+    g.forEach((p) => { p.left = cx + (p.left - cx) * k; p.bottom = cb + (p.bottom - cb) * k; });
+  }
+  return pieces;
+}
+
 /** 고정 그림 (FULL_LAYOUT 그대로) */
 function fixedBasket(): Piece[] {
   let seed = 0;
-  return FULL_LAYOUT.flatMap((row, ri) => {
+  return huddle(FULL_LAYOUT.flatMap((row, ri) => {
     const sl = rowSlots(row.length, ri, seed);
     seed += row.length;
     return row.map((fruit, j) => {
       const size = sl[j].size * TIER_SCALE[tierOf(fruit).level] * EXTRA(fruit);
       return { fruit, golden: false, mine: false, ...sl[j], size, bottom: sl[j].bottom + (sl[j].size - size) * 0.9 + NUDGE(fruit) };
     });
-  });
+  }));
 }
 
 function arrangeFruits(placed: BasketData["placed"]): Piece[] {
@@ -865,16 +880,7 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
     // 작은 과일은 바구니에 너무 파묻히지 않게 줄어든 만큼 살짝 올린다
     return { ...it, ...sl, size, bottom: sl.bottom + (sl.size - size) * 0.9 + NUDGE(it.fruit) };
   });
-  // 작은 열매(1·2단계) 무리는 가운데로 조금 끌어당겨 옹기종기 모은다
-  for (const t of types) {
-    if (tierOf(t).level > 2) continue;
-    const g = pieces.filter((p) => p.fruit === t);
-    if (g.length < 2) continue;
-    const cx = g.reduce((s, p) => s + p.left, 0) / g.length;
-    const cb = g.reduce((s, p) => s + p.bottom, 0) / g.length;
-    g.forEach((p) => { p.left = cx + (p.left - cx) * 0.7; p.bottom = cb + (p.bottom - cb) * 0.7; });
-  }
-  return pieces;
+  return huddle(pieces);
 }
 
 function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say: (m: string) => void }) {
