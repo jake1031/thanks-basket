@@ -768,10 +768,10 @@ const ROW_SPEC = [
 
 /** 이 인원까지는 실제로 넣은 과일 그대로 보여준다 */
 const LIVE_LIMIT = 10;
-/** 11명부터 보여줄 고정 그림: 줄마다 왼쪽→오른쪽으로 직접 배치 (앞줄 7 · 가운데 6 · 뒷줄 4) */
+/** 11명부터 보여줄 고정 그림: 줄마다 왼쪽→오른쪽으로 직접 배치 (앞줄 7 · 가운데 7 · 뒷줄 4) */
 const FULL_LAYOUT: FruitId[][] = [
   ["chestnut", "chestnut", "olive", "olive", "tangerine", "fig", "fig"],
-  ["persimmon", "persimmon", "tangerine", "tangerine", "apple", "apple"],
+  ["persimmon", "persimmon", "persimmon", "tangerine", "tangerine", "apple", "apple"],
   ["watermelon", "mango", "mango", "apple"],
 ];
 
