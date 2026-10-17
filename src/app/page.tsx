@@ -824,7 +824,21 @@ function fixedBasket(): Piece[] {
       const size = sl[j].size * TIER_SCALE[tierOf(fruit).level] * EXTRA(fruit);
       return { fruit, golden: false, mine: false, ...sl[j], size, bottom: sl[j].bottom + (sl[j].size - size) * 0.9 + NUDGE(fruit) };
     });
-  })).map((p) => (p.fruit === "olive" ? { ...p, left: p.left - 5 } : p)); // 올리브는 밤 쪽으로 조금 더
+  })).map((p) => (p.fruit === "olive" ? { ...p, left: p.left - 5 } : p)) // 올리브는 밤 쪽으로 조금 더
+    .map((p, _, all) => {
+      // 가운데 귤 세 개는 아래 두 개, 그 위에 하나로 쌓는다
+      const tans = all.filter((q) => q.fruit === "tangerine");
+      const k = tans.indexOf(p);
+      if (k < 0) return p;
+      const front = all.filter((q) => q.z >= 30 && q.fruit !== "tangerine");
+      const base = Math.min(...front.map((q) => q.bottom));
+      const spots = [
+        { left: 51, bottom: base + 2, z: 36 },
+        { left: 64, bottom: base + 2, z: 36 },
+        { left: 57.5, bottom: base + 17, z: 29 },
+      ];
+      return { ...p, ...spots[k], rotate: [-8, 6, -2][k] };
+    });
 }
 
 function arrangeFruits(placed: BasketData["placed"]): Piece[] {
