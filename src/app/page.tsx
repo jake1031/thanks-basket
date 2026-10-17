@@ -767,15 +767,15 @@ const ROW_SPEC = [
 ];
 
 /** 이 인원까지는 실제로 넣은 과일 그대로 보여준다 */
-const LIVE_LIMIT = 8;
-/** 9명부터 보여줄 고정 그림의 구성 (합 15개) */
+const LIVE_LIMIT = 10;
+/** 11명부터 보여줄 고정 그림의 구성 (합 15개) */
 const FULL_BASKET: Partial<Record<FruitId, number>> = {
   watermelon: 1, mango: 2, apple: 3, persimmon: 2, tangerine: 3, fig: 2, chestnut: 1, olive: 1,
 };
 
 function arrangeFruits(placed: BasketData["placed"]): Piece[] {
-  // 8명까지는 실제로 넣은 과일을 그대로 하나씩 그린다 (한 종류 최대 3개).
-  // 9명부터는 미리 짜둔 '가득 찬 바구니' 그림으로 고정한다.
+  // 10명까지는 실제로 넣은 과일을 그대로 하나씩 그린다 (한 종류 최대 3개).
+  // 11명부터는 미리 짜둔 '가득 찬 바구니' 그림으로 고정한다.
   const PER_TYPE = 3;
   let shown: number[];
   if (placed.length > LIVE_LIMIT) {
@@ -810,22 +810,38 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
       });
     }
   }
-  // 같은 과일끼리 뭉치게: 자리를 왼쪽→오른쪽 순으로 세우고, 과일 무리를 차례로 이어 붙인다.
-  // 큰 열매 무리가 가운데 오도록 무리 순서를 [작은 … 큰 … 작은] 산 모양으로 정한다.
-  const byLeft = slots.map((_, i) => i).sort((x, y) => slots[x].left - slots[y].left || slots[y].bottom - slots[x].bottom);
-  const types = [...new Set(items.map((it) => it.fruit))].sort((x, y) => tierOf(y).level - tierOf(x).level);
-  const seq: FruitId[] = [];
-  types.forEach((t, k) => (k % 2 ? seq.unshift(t) : seq.push(t)));
-  const queue = seq.flatMap((t) => items.filter((it) => it.fruit === t));
-  const order = byLeft;
+  // 작은 열매는 앞줄, 큰 열매는 뒷줄로. 같은 과일은 한 무리로 이어 붙인다.
+  // 자리 순서: 앞줄 왼→오, 가운데 줄 오→왼, 뒷줄 왼→오 (지그재그라 줄이 바뀌어도 무리가 끊기지 않음)
+  const rowOf = (i: number) => (slots[i].z >= 30 ? 0 : slots[i].z >= 20 ? 1 : 2);
+  const order = slots.map((_, i) => i).sort((x, y) => {
+    const rx = rowOf(x), ry = rowOf(y);
+    if (rx !== ry) return rx - ry;
+    // 맨 뒷줄은 바깥→가운데 순: 가장 큰 열매(마지막)가 뒤쪽 한가운데에 오도록
+    if (rx === 2) return Math.abs(slots[y].left - 50) - Math.abs(slots[x].left - 50);
+    return rx % 2 === 0 ? slots[x].left - slots[y].left : slots[y].left - slots[x].left;
+  });
+  const types = [...new Set(items.map((it) => it.fruit))].sort(
+    (x, y) => tierOf(x).level - tierOf(y).level || items.filter((i) => i.fruit === y).length - items.filter((i) => i.fruit === x).length,
+  );
+  const queue = types.flatMap((t) => items.filter((it) => it.fruit === t));
   // 단계가 높을수록(큰 열매일수록) 크게 그린다
   const TIER_SCALE = [0, 0.8, 0.86, 0.94, 1.0, 1.08];
-  return queue.map((it, k) => {
+  const pieces = queue.map((it, k) => {
     const sl = slots[order[k]];
     const size = sl.size * TIER_SCALE[tierOf(it.fruit).level];
     // 작은 과일은 바구니에 너무 파묻히지 않게 줄어든 만큼 살짝 올린다
     return { ...it, ...sl, size, bottom: sl.bottom + (sl.size - size) * 0.9 };
   });
+  // 작은 열매(1·2단계) 무리는 가운데로 조금 끌어당겨 옹기종기 모은다
+  for (const t of types) {
+    if (tierOf(t).level > 2) continue;
+    const g = pieces.filter((p) => p.fruit === t);
+    if (g.length < 2) continue;
+    const cx = g.reduce((s, p) => s + p.left, 0) / g.length;
+    const cb = g.reduce((s, p) => s + p.bottom, 0) / g.length;
+    g.forEach((p) => { p.left = cx + (p.left - cx) * 0.7; p.bottom = cb + (p.bottom - cb) * 0.7; });
+  }
+  return pieces;
 }
 
 function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say: (m: string) => void }) {
