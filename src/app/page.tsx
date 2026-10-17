@@ -761,28 +761,63 @@ type Piece = { fruit: FruitId; golden: boolean; mine: boolean; left: number; bot
 // 봉긋한 더미: 줄마다 반 칸씩 엇갈리고, 가운데로 갈수록 살짝 솟는다(curve).
 // 앞줄은 바구니 테두리 뒤로 깊이 잠기게(base 음수) 해서 과일이 바구니에 담긴 느낌을 준다.
 const ROW_SPEC = [
-  { cap: 6, base: -7, curve: 5, spacing: 14.5, size: 30, z: 3 }, // 앞줄
-  { cap: 5, base: 10, curve: 8, spacing: 14.5, size: 29, z: 2 }, // 가운데
+  { cap: 7, base: -7, curve: 5, spacing: 13.5, size: 29, z: 3 }, // 앞줄
+  { cap: 6, base: 10, curve: 8, spacing: 13.5, size: 28, z: 2 }, // 가운데
   { cap: 4, base: 26, curve: 7, spacing: 14.5, size: 27, z: 1 }, // 맨 위
 ];
 
 /** 이 인원까지는 실제로 넣은 과일 그대로 보여준다 */
 const LIVE_LIMIT = 10;
-/** 11명부터 보여줄 고정 그림의 구성 (합 15개) */
-const FULL_BASKET: Partial<Record<FruitId, number>> = {
-  watermelon: 1, mango: 2, apple: 3, persimmon: 2, tangerine: 3, fig: 2, chestnut: 1, olive: 1,
-};
+/** 11명부터 보여줄 고정 그림: 줄마다 왼쪽→오른쪽으로 직접 배치 (앞줄 7 · 가운데 6 · 뒷줄 4) */
+const FULL_LAYOUT: FruitId[][] = [
+  ["chestnut", "chestnut", "olive", "olive", "tangerine", "fig", "fig"],
+  ["persimmon", "persimmon", "tangerine", "tangerine", "apple", "apple"],
+  ["mango", "watermelon", "mango", "apple"],
+];
+
+// 단계가 높을수록(큰 열매일수록) 크게 그린다
+const TIER_SCALE = [0, 0.8, 0.86, 0.94, 1.0, 1.08];
+/** 올리브는 가지 그림이라 위로 떠 보여서 조금 내려 앉힌다 */
+const NUDGE = (f: FruitId) => (f === "olive" ? -2 : 0);
+/** 올리브는 알이 작아서 그림을 조금 키운다 */
+const EXTRA = (f: FruitId) => (f === "olive" ? 1.2 : 1);
+
+function rowSlots(k: number, rowIdx: number, seedBase: number) {
+  const row = ROW_SPEC[rowIdx];
+  const half = Math.max((k - 1) / 2, 1);
+  return Array.from({ length: k }, (_, j) => {
+    const r = Math.sin((seedBase + j + 1) * 12.9898) * 43758.5453;
+    const rand = r - Math.floor(r);
+    const off = j - (k - 1) / 2;
+    return {
+      left: 50 + off * row.spacing + (rand - 0.5) * 2,
+      bottom: row.base + row.curve * (1 - (off / half) ** 2) + (rand - 0.5) * 2,
+      size: row.size,
+      rotate: (rand - 0.5) * 20,
+      z: row.z * 10 + Math.round(10 - Math.abs(off) * 2),
+    };
+  });
+}
+
+/** 고정 그림 (FULL_LAYOUT 그대로) */
+function fixedBasket(): Piece[] {
+  let seed = 0;
+  return FULL_LAYOUT.flatMap((row, ri) => {
+    const sl = rowSlots(row.length, ri, seed);
+    seed += row.length;
+    return row.map((fruit, j) => {
+      const size = sl[j].size * TIER_SCALE[tierOf(fruit).level] * EXTRA(fruit);
+      return { fruit, golden: false, mine: false, ...sl[j], size, bottom: sl[j].bottom + (sl[j].size - size) * 0.9 + NUDGE(fruit) };
+    });
+  });
+}
 
 function arrangeFruits(placed: BasketData["placed"]): Piece[] {
   // 10명까지는 실제로 넣은 과일을 그대로 하나씩 그린다 (한 종류 최대 3개).
   // 11명부터는 미리 짜둔 '가득 찬 바구니' 그림으로 고정한다.
   const PER_TYPE = 3;
-  let shown: number[];
-  if (placed.length > LIVE_LIMIT) {
-    shown = ALL_FRUITS.map((f) => FULL_BASKET[f] ?? 0);
-  } else {
-    shown = ALL_FRUITS.map((f) => Math.min(PER_TYPE, placed.filter((p) => p.fruit === f).length));
-  }
+  if (placed.length > LIVE_LIMIT) return fixedBasket();
+  const shown = ALL_FRUITS.map((f) => Math.min(PER_TYPE, placed.filter((p) => p.fruit === f).length));
   const items: Omit<Piece, "left" | "bottom" | "size" | "rotate" | "z">[] = [];
   ALL_FRUITS.forEach((f, i) => {
     for (let k = 0; k < shown[i]; k++) {
@@ -824,13 +859,11 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
     (x, y) => tierOf(x).level - tierOf(y).level || items.filter((i) => i.fruit === y).length - items.filter((i) => i.fruit === x).length,
   );
   const queue = types.flatMap((t) => items.filter((it) => it.fruit === t));
-  // 단계가 높을수록(큰 열매일수록) 크게 그린다
-  const TIER_SCALE = [0, 0.8, 0.86, 0.94, 1.0, 1.08];
   const pieces = queue.map((it, k) => {
     const sl = slots[order[k]];
-    const size = sl.size * TIER_SCALE[tierOf(it.fruit).level];
+    const size = sl.size * TIER_SCALE[tierOf(it.fruit).level] * EXTRA(it.fruit);
     // 작은 과일은 바구니에 너무 파묻히지 않게 줄어든 만큼 살짝 올린다
-    return { ...it, ...sl, size, bottom: sl.bottom + (sl.size - size) * 0.9 };
+    return { ...it, ...sl, size, bottom: sl.bottom + (sl.size - size) * 0.9 + NUDGE(it.fruit) };
   });
   // 작은 열매(1·2단계) 무리는 가운데로 조금 끌어당겨 옹기종기 모은다
   for (const t of types) {
