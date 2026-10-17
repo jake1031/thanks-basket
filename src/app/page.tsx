@@ -767,9 +767,9 @@ const ROW_SPEC = [
 ];
 
 /** 이 인원까지는 실제로 넣은 과일 그대로 보여준다 */
-const LIVE_LIMIT = 10;
+const LIVE_LIMIT = 15;
 /**
- * 11명부터 보여줄 고정 그림. 자리마다 직접 좌표를 정해 오밀조밀하게 쌓는다.
+ * 16명부터 보여줄 고정 그림. 자리마다 직접 좌표를 정해 오밀조밀하게 쌓는다.
  * [열매, 가로(%), 높이(%), 줄(0 앞·1 가운데·2 뒤), 기울기]
  */
 const FULL_LAYOUT: [FruitId, number, number, 0 | 1 | 2, number][] = [
@@ -820,8 +820,8 @@ function fixedBasket(): Piece[] {
 }
 
 function arrangeFruits(placed: BasketData["placed"]): Piece[] {
-  // 10명까지는 실제로 넣은 과일을 그대로 하나씩 그린다 (한 종류 최대 3개).
-  // 11명부터는 미리 짜둔 '가득 찬 바구니' 그림으로 고정한다.
+  // 15명까지는 실제로 넣은 과일을 그대로 하나씩 그린다 (한 종류 최대 3개).
+  // 16명부터는 미리 짜둔 '가득 찬 바구니' 그림으로 고정한다.
   const PER_TYPE = 3;
   if (placed.length > LIVE_LIMIT) return fixedBasket();
   const shown = ALL_FRUITS.map((f) => Math.min(PER_TYPE, placed.filter((p) => p.fruit === f).length));
