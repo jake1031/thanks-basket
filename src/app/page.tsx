@@ -807,16 +807,10 @@ function fixedBasket(): Piece[] {
 
 /** n개를 작은 더미로 쌓을 때 아래→위 줄별 개수 (예: 3 → [2,1], 5 → [3,2], 6 → [3,2,1]) */
 function pileRows(n: number): number[] {
-  const rows: number[] = [];
-  let left = n;
-  let w = Math.ceil((Math.sqrt(8 * n + 1) - 1) / 2); // 삼각형으로 쌓이는 가장 아랫줄
-  while (left > 0) {
-    const k = Math.min(w, left);
-    rows.push(k);
-    left -= k;
-    w = Math.max(1, k - 1);
-  }
-  return rows;
+  // 높이 쌓지 않고 최대 2줄: 아래 줄을 넓게, 위 줄은 그 사이사이에 얹는다
+  if (n <= 2) return [n];
+  const bottom = Math.ceil((n + 1) / 2);
+  return [bottom, n - bottom];
 }
 
 function arrangeFruits(placed: BasketData["placed"]): Piece[] {
@@ -858,10 +852,8 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
     const squeeze = total > 86 ? 86 / total : 1; // 너무 넓으면 조금 더 겹치게
     total *= squeeze;
 
-    // 뒤쪽 층은 앞쪽 더미보다 살짝 높게 (앞 더미가 높이 쌓였으면 그만큼 더 올린다)
-    const frontTop = Math.max(0, ...pieces.map((p) => p.bottom + (p.size * 0.6) / H));
-    // 앞줄은 테두리 위로 잘 보이게 조금 올려 앉힌다
-    const base = li === 0 || !hasFront ? 3 : Math.max(16, frontTop - 20);
+    // 앞줄은 테두리 위로 잘 보이게 조금 올려 앉히고, 뒷줄은 앞줄 바로 뒤에 붙여 앉힌다 (띄우지 않음)
+    const base = li === 0 || !hasFront ? 3 : 20;
     const zBase = li === 0 ? 30 : 10;
     let x = 50 - total / 2;
     for (const g of groups) {
