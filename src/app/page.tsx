@@ -816,8 +816,8 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
   // 바구니 바닥이나 먼저 놓인 열매에 닿는 곳에 멈추게 한다. 그래서 허공에 뜨는 열매가 없다.
   // 좌표는 '가로 %' 단위로 통일 (세로 % = 가로 % / H)
   const H = 0.562;
-  const FLOOR = 3 * H; // 바구니 테두리 높이
-  const MAXW = 80; // 바구니 안 쓸 수 있는 폭
+  const FLOOR = 8 * H; // 바구니 테두리 높이 (조금 올려서 잘 보이게)
+  const MAXW = 84; // 바구니 안 쓸 수 있는 폭
   const sizeOf = (f: FruitId) => 26 * TIER_SCALE[tierOf(f).level] * EXTRA(f);
   const radOf = (f: FruitId) => sizeOf(f) * (f === "olive" ? 0.32 : 0.42);
   const SNUG = 0.86; // 바닥 줄 이웃 간격
@@ -834,7 +834,8 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
   const groups = seq.map((c) => ({ ...c, bottom: c.n }));
   const rowWidth = () =>
     groups.reduce((w, g) => w + g.bottom * radOf(g.f) * 2 * SNUG, 0);
-  while (rowWidth() * 0.78 > MAXW) {
+  // 바닥에 최대한 다 깔고(조금 더 겹쳐도 됨) 그래도 넘칠 때만 위로 쌓는다
+  while (rowWidth() * 0.68 > MAXW) {
     const g = [...groups].filter((x) => x.bottom > 1).sort((x, y) => y.bottom - x.bottom || tierOf(y.f).level - tierOf(x.f).level)[0];
     if (!g) break;
     g.bottom--;
