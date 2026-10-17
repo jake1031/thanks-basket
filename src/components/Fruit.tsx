@@ -68,7 +68,7 @@ export function Fruit({ id, golden = false, size = 48 }: { id: FruitId; golden?:
       // 참외: 세로로 선 길쭉한 타원, 진한 노랑에 흰 세로 골, 위에 초록 꼭지
       body = "M32 8 C 46 8 52 22 52 35 C 52 49 45 60 32 60 C 19 60 12 49 12 35 C 12 22 18 8 32 8 Z";
       parts = (
-        <>
+        <g transform="rotate(-16 32 34)">
           <path d={body} fill={g("#f7b316", GOLD.body)} />
           {shade("M40 4 C 58 20 58 50 36 64 L64 64 L64 0 Z", g("#ea8f0e", GOLD.shade))}
           <g stroke={g("#fff4d6", "#fff3b0")} strokeWidth="2" fill="none" strokeLinecap="round" opacity=".95" clipPath={`url(#${clip})`}>
@@ -80,7 +80,7 @@ export function Fruit({ id, golden = false, size = 48 }: { id: FruitId; golden?:
           </g>
           <path d="M30.5 9 L31 3 L34 3 L33.5 9 Z" fill={g("#4f8a3a", GOLD.stem)} />
           <ellipse cx="20" cy="28" rx="2.4" ry="7" fill="#fff" opacity={shine * 0.8} transform="rotate(8 20 28)" />
-        </>
+        </g>
       );
       break;
     case "watermelon":
