@@ -774,7 +774,7 @@ const LIVE_LIMIT = 10;
  */
 const FULL_LAYOUT: [FruitId, number, number, 0 | 1 | 2, number][] = [
   // 뒷줄: 왼쪽 수박, 가운데 망고 둘, 오른쪽 사과
-  ["watermelon", 29, 27, 2, -4], ["mango", 46, 31, 2, -6], ["mango", 59, 30, 2, 8], ["apple", 74, 25, 2, 6],
+  ["watermelon", 29, 27, 2, -4], ["mango", 46, 26, 2, -6], ["mango", 59, 25, 2, 8], ["apple", 74, 25, 2, 6],
   // 가운데 줄: 수박 앞에 감 셋(둘 위에 하나), 귤 탑 꼭대기, 오른쪽 사과 둘
   ["persimmon", 18, 11, 1, -6], ["persimmon", 31, 12, 1, 4], ["persimmon", 24, 21, 1, -2],
   ["tangerine", 55, 14, 1, -2], ["apple", 70, 12, 1, -6], ["apple", 83, 9, 1, 8],
