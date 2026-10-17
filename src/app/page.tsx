@@ -767,9 +767,9 @@ const ROW_SPEC = [
 ];
 
 /** 이 인원까지는 실제로 넣은 과일 그대로 보여준다 */
-const LIVE_LIMIT = 15;
+const LIVE_LIMIT = 11;
 /**
- * 16명부터 보여줄 고정 그림. 자리마다 직접 좌표를 정해 오밀조밀하게 쌓는다.
+ * 12명부터 보여줄 고정 그림. 자리마다 직접 좌표를 정해 오밀조밀하게 쌓는다.
  * [열매, 가로(%), 높이(%), 줄(0 앞·1 가운데·2 뒤), 기울기]
  */
 const FULL_LAYOUT: [FruitId, number, number, 0 | 1 | 2, number][] = [
@@ -814,8 +814,8 @@ function pileRows(n: number): number[] {
 }
 
 function arrangeFruits(placed: BasketData["placed"]): Piece[] {
-  // 15명까지는 실제로 넣은 과일을 넣은 수만큼 그대로 그린다.
-  // 16명부터는 미리 짜둔 '가득 찬 바구니' 그림으로 고정한다.
+  // 11명까지는 실제로 넣은 과일을 넣은 수만큼 그대로 그린다.
+  // 12명부터는 미리 짜둔 '가득 찬 바구니' 그림으로 고정한다.
   if (placed.length > LIVE_LIMIT) return fixedBasket();
 
   // 열매 종류마다 작은 더미(아래 넓게, 위로 좁게)를 만들고, 더미들을 옆으로 붙여 놓는다.
