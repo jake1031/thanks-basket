@@ -768,11 +768,19 @@ const ROW_SPEC = [
 
 /** 이 인원까지는 실제로 넣은 과일 그대로 보여준다 */
 const LIVE_LIMIT = 10;
-/** 11명부터 보여줄 고정 그림: 줄마다 왼쪽→오른쪽으로 직접 배치 (앞줄 7 · 가운데 7 · 뒷줄 4) */
-const FULL_LAYOUT: FruitId[][] = [
-  ["chestnut", "chestnut", "olive", "olive", "tangerine", "fig", "fig"],
-  ["persimmon", "persimmon", "persimmon", "tangerine", "tangerine", "apple", "apple"],
-  ["watermelon", "mango", "mango", "apple"],
+/**
+ * 11명부터 보여줄 고정 그림. 자리마다 직접 좌표를 정해 오밀조밀하게 쌓는다.
+ * [열매, 가로(%), 높이(%), 줄(0 앞·1 가운데·2 뒤), 기울기]
+ */
+const FULL_LAYOUT: [FruitId, number, number, 0 | 1 | 2, number][] = [
+  // 뒷줄: 왼쪽 수박, 가운데 망고 둘, 오른쪽 사과
+  ["watermelon", 29, 27, 2, -4], ["mango", 46, 31, 2, -6], ["mango", 59, 30, 2, 8], ["apple", 74, 25, 2, 6],
+  // 가운데 줄: 수박 앞에 감 셋(둘 위에 하나), 귤 탑 꼭대기, 오른쪽 사과 둘
+  ["persimmon", 18, 11, 1, -6], ["persimmon", 31, 12, 1, 4], ["persimmon", 24, 21, 1, -2],
+  ["tangerine", 55, 14, 1, -2], ["apple", 70, 12, 1, -6], ["apple", 83, 9, 1, 8],
+  // 앞줄: 밤 둘, 올리브 둘, 귤 둘(위에 하나 얹힘), 무화과 둘
+  ["chestnut", 10, -2, 0, -10], ["chestnut", 19, -1, 0, 8], ["olive", 29, 0, 0, -6], ["olive", 38, 1, 0, 10],
+  ["tangerine", 49, -1, 0, -8], ["tangerine", 61, -1, 0, 6], ["fig", 74, -1, 0, -6], ["fig", 85, -2, 0, 8],
 ];
 
 // 단계가 높을수록(큰 열매일수록) 크게 그린다
@@ -782,22 +790,6 @@ const NUDGE = (f: FruitId) => (f === "olive" ? -2 : 0);
 /** 올리브는 알이 작아서 그림을 조금 키운다 */
 const EXTRA = (f: FruitId) => (f === "olive" ? 1.2 : 1);
 
-function rowSlots(k: number, rowIdx: number, seedBase: number) {
-  const row = ROW_SPEC[rowIdx];
-  const half = Math.max((k - 1) / 2, 1);
-  return Array.from({ length: k }, (_, j) => {
-    const r = Math.sin((seedBase + j + 1) * 12.9898) * 43758.5453;
-    const rand = r - Math.floor(r);
-    const off = j - (k - 1) / 2;
-    return {
-      left: 50 + off * row.spacing + (rand - 0.5) * 2,
-      bottom: row.base + row.curve * (1 - (off / half) ** 2) + (rand - 0.5) * 2,
-      size: row.size,
-      rotate: (rand - 0.5) * 20,
-      z: row.z * 10 + Math.round(10 - Math.abs(off) * 2),
-    };
-  });
-}
 
 /** 작은 열매(1·2단계) 무리는 가운데로 끌어당겨 옹기종기 모은다 (1단계는 더 촘촘히) */
 function huddle(pieces: Piece[]) {
@@ -814,31 +806,17 @@ function huddle(pieces: Piece[]) {
   return pieces;
 }
 
-/** 고정 그림 (FULL_LAYOUT 그대로) */
+/** 고정 그림 (FULL_LAYOUT 좌표 그대로) */
 function fixedBasket(): Piece[] {
-  let seed = 0;
-  return huddle(FULL_LAYOUT.flatMap((row, ri) => {
-    const sl = rowSlots(row.length, ri, seed);
-    seed += row.length;
-    return row.map((fruit, j) => {
-      const size = sl[j].size * TIER_SCALE[tierOf(fruit).level] * EXTRA(fruit);
-      return { fruit, golden: false, mine: false, ...sl[j], size, bottom: sl[j].bottom + (sl[j].size - size) * 0.9 + NUDGE(fruit) };
-    });
-  })).map((p) => (p.fruit === "olive" ? { ...p, left: p.left - 5 } : p)) // 올리브는 밤 쪽으로 조금 더
-    .map((p, _, all) => {
-      // 가운데 귤 세 개는 아래 두 개, 그 위에 하나로 쌓는다
-      const tans = all.filter((q) => q.fruit === "tangerine");
-      const k = tans.indexOf(p);
-      if (k < 0) return p;
-      const front = all.filter((q) => q.z >= 30 && q.fruit !== "tangerine");
-      const base = Math.min(...front.map((q) => q.bottom));
-      const spots = [
-        { left: 51, bottom: base + 2, z: 36 },
-        { left: 64, bottom: base + 2, z: 36 },
-        { left: 57.5, bottom: base + 17, z: 29 },
-      ];
-      return { ...p, ...spots[k], rotate: [-8, 6, -2][k] };
-    });
+  return FULL_LAYOUT.map(([fruit, left, bottom, row, rotate], i) => {
+    const base = ROW_SPEC[row].size;
+    const size = base * TIER_SCALE[tierOf(fruit).level] * EXTRA(fruit);
+    return {
+      fruit, golden: false, mine: false, left, rotate, size,
+      bottom: bottom + (base - size) * 0.5 + NUDGE(fruit),
+      z: (3 - row) * 10 + (i % 10),
+    };
+  });
 }
 
 function arrangeFruits(placed: BasketData["placed"]): Piece[] {
