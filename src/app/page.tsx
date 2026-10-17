@@ -791,20 +791,6 @@ const NUDGE = (f: FruitId) => (f === "olive" ? -2 : 0);
 const EXTRA = (f: FruitId) => (f === "olive" ? 1.2 : 1);
 
 
-/** 작은 열매(1·2단계) 무리는 가운데로 끌어당겨 옹기종기 모은다 (1단계는 더 촘촘히) */
-function huddle(pieces: Piece[]) {
-  for (const t of new Set(pieces.map((p) => p.fruit))) {
-    const lv = tierOf(t).level;
-    if (lv > 2) continue;
-    const g = pieces.filter((p) => p.fruit === t);
-    if (g.length < 2) continue;
-    const k = lv === 1 ? 0.78 : 0.85;
-    const cx = g.reduce((s, p) => s + p.left, 0) / g.length;
-    const cb = g.reduce((s, p) => s + p.bottom, 0) / g.length;
-    g.forEach((p) => { p.left = cx + (p.left - cx) * k; p.bottom = cb + (p.bottom - cb) * k; });
-  }
-  return pieces;
-}
 
 /** 고정 그림 (FULL_LAYOUT 좌표 그대로) */
 function fixedBasket(): Piece[] {
@@ -819,59 +805,86 @@ function fixedBasket(): Piece[] {
   });
 }
 
+/** n개를 작은 더미로 쌓을 때 아래→위 줄별 개수 (예: 3 → [2,1], 5 → [3,2], 6 → [3,2,1]) */
+function pileRows(n: number): number[] {
+  const rows: number[] = [];
+  let left = n;
+  let w = Math.ceil((Math.sqrt(8 * n + 1) - 1) / 2); // 삼각형으로 쌓이는 가장 아랫줄
+  while (left > 0) {
+    const k = Math.min(w, left);
+    rows.push(k);
+    left -= k;
+    w = Math.max(1, k - 1);
+  }
+  return rows;
+}
+
 function arrangeFruits(placed: BasketData["placed"]): Piece[] {
   // 15명까지는 실제로 넣은 과일을 넣은 수만큼 그대로 그린다.
   // 16명부터는 미리 짜둔 '가득 찬 바구니' 그림으로 고정한다.
   if (placed.length > LIVE_LIMIT) return fixedBasket();
-  const shown = ALL_FRUITS.map((f) => placed.filter((p) => p.fruit === f).length);
-  const items: Omit<Piece, "left" | "bottom" | "size" | "rotate" | "z">[] = [];
-  ALL_FRUITS.forEach((f, i) => {
-    for (let k = 0; k < shown[i]; k++) {
-      // 바구니 그림에는 황금을 그리지 않는다 (넣을 때 애니메이션으로만)
-      items.push({ fruit: f, golden: false, mine: false });
-    }
-  });
-  // 앞줄부터 자리를 만든다
-  const slots: Omit<Piece, "fruit" | "golden" | "mine">[] = [];
-  let left = items.length;
-  for (const row of ROW_SPEC) {
-    const k = Math.min(row.cap, left);
-    left -= k;
-    const half = Math.max((k - 1) / 2, 1);
-    for (let j = 0; j < k; j++) {
-      const r = Math.sin((slots.length + 1) * 12.9898) * 43758.5453;
-      const rand = r - Math.floor(r);
-      const off = j - (k - 1) / 2;
-      slots.push({
-        left: 50 + off * row.spacing + (rand - 0.5) * 2,
-        bottom: row.base + row.curve * (1 - (off / half) ** 2) + (rand - 0.5) * 2,
-        size: row.size,
-        rotate: (rand - 0.5) * 20,
-        z: row.z * 10 + Math.round(10 - Math.abs(off) * 2),
+
+  // 열매 종류마다 작은 더미(아래 넓게, 위로 좁게)를 만들고, 더미들을 옆으로 붙여 놓는다.
+  // 작은 열매(1·2단계)는 앞쪽 층, 큰 열매(3단계 이상)는 뒤쪽 층에 놓는다.
+  const H = 0.562; // 바구니 더미 영역에서 '높이 1%'가 '가로 몇 %'인지
+  const counts = ALL_FRUITS.map((f) => ({ f, n: placed.filter((p) => p.fruit === f).length })).filter((c) => c.n > 0);
+  // 개수가 적어서 한 줄에 다 들어가면 앞뒤 나누지 않고 모두 첫 줄에 놓는다
+  const oneLine = counts.reduce((w, c) => w + pileRows(c.n)[0] * 28 * TIER_SCALE[tierOf(c.f).level] * EXTRA(c.f) * 0.74, 0) <= 84;
+  const layers = oneLine
+    ? [counts, []]
+    : [
+        counts.filter((c) => tierOf(c.f).level <= 2), // 앞
+        counts.filter((c) => tierOf(c.f).level >= 3), // 뒤
+      ];
+  const hasFront = layers[0].length > 0;
+  const pieces: Piece[] = [];
+  let seed = 1;
+
+  layers.forEach((layer, li) => {
+    if (!layer.length) return;
+    // 큰 더미가 가운데 오도록 [작은 … 큰 … 작은] 순서
+    const sorted = [...layer].sort((x, y) => y.n - x.n || tierOf(y.f).level - tierOf(x.f).level);
+    const seq: typeof layer = [];
+    sorted.forEach((c, k) => (k % 2 ? seq.unshift(c) : seq.push(c)));
+
+    const groups = seq.map(({ f, n }) => {
+      const size = 28 * TIER_SCALE[tierOf(f).level] * EXTRA(f);
+      const dx = size * 0.74; // 옆 열매와 겹치는 간격
+      const rows = pileRows(n);
+      return { f, size, dx, rows, width: rows[0] * dx };
+    });
+    const gap = 2;
+    let total = groups.reduce((s, g) => s + g.width, 0) + gap * (groups.length - 1);
+    const squeeze = total > 86 ? 86 / total : 1; // 너무 넓으면 조금 더 겹치게
+    total *= squeeze;
+
+    // 뒤쪽 층은 앞쪽 더미보다 살짝 높게 (앞 더미가 높이 쌓였으면 그만큼 더 올린다)
+    const frontTop = Math.max(0, ...pieces.map((p) => p.bottom + (p.size * 0.6) / H));
+    // 앞줄은 테두리 위로 잘 보이게 조금 올려 앉힌다
+    const base = li === 0 || !hasFront ? 3 : Math.max(16, frontTop - 20);
+    const zBase = li === 0 ? 30 : 10;
+    let x = 50 - total / 2;
+    for (const g of groups) {
+      const dx = g.dx * squeeze;
+      const cx = x + (g.rows[0] * dx) / 2;
+      g.rows.forEach((k, r) => {
+        for (let j = 0; j < k; j++) {
+          const rr = Math.sin(seed++ * 12.9898) * 43758.5453;
+          const rand = rr - Math.floor(rr);
+          pieces.push({
+            fruit: g.f, golden: false, mine: false,
+            size: g.size,
+            left: cx + (j - (k - 1) / 2) * dx + (rand - 0.5) * 1.2,
+            bottom: base + (r * g.size * 0.46) / H + (rand - 0.5) * 1.2 + NUDGE(g.f),
+            rotate: (rand - 0.5) * 18,
+            z: zBase + r * 3 + (j % 3),
+          });
+        }
       });
+      x += g.rows[0] * dx + gap * squeeze;
     }
-  }
-  // 작은 열매는 앞줄, 큰 열매는 뒷줄로. 같은 과일은 한 무리로 이어 붙인다.
-  // 자리 순서: 앞줄 왼→오, 가운데 줄 오→왼, 뒷줄 왼→오 (지그재그라 줄이 바뀌어도 무리가 끊기지 않음)
-  const rowOf = (i: number) => (slots[i].z >= 30 ? 0 : slots[i].z >= 20 ? 1 : 2);
-  const order = slots.map((_, i) => i).sort((x, y) => {
-    const rx = rowOf(x), ry = rowOf(y);
-    if (rx !== ry) return rx - ry;
-    // 맨 뒷줄은 바깥→가운데 순: 가장 큰 열매(마지막)가 뒤쪽 한가운데에 오도록
-    if (rx === 2) return Math.abs(slots[y].left - 50) - Math.abs(slots[x].left - 50);
-    return rx % 2 === 0 ? slots[x].left - slots[y].left : slots[y].left - slots[x].left;
   });
-  const types = [...new Set(items.map((it) => it.fruit))].sort(
-    (x, y) => tierOf(x).level - tierOf(y).level || items.filter((i) => i.fruit === y).length - items.filter((i) => i.fruit === x).length,
-  );
-  const queue = types.flatMap((t) => items.filter((it) => it.fruit === t));
-  const pieces = queue.map((it, k) => {
-    const sl = slots[order[k]];
-    const size = sl.size * TIER_SCALE[tierOf(it.fruit).level] * EXTRA(it.fruit);
-    // 작은 과일은 바구니에 너무 파묻히지 않게 줄어든 만큼 살짝 올린다
-    return { ...it, ...sl, size, bottom: sl.bottom + (sl.size - size) * 0.9 + NUDGE(it.fruit) };
-  });
-  return huddle(pieces);
+  return pieces;
 }
 
 function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say: (m: string) => void }) {
