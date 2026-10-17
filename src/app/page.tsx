@@ -805,96 +805,104 @@ function fixedBasket(): Piece[] {
   });
 }
 
-/** n개를 작은 더미로 쌓을 때 아래→위 줄별 개수 (예: 3 → [2,1], 5 → [3,2], 6 → [3,2,1]) */
-function pileRows(n: number): number[] {
-  // 높이 쌓지 않고 최대 2줄: 아래 줄을 넓게, 위 줄은 그 사이사이에 얹는다
-  if (n <= 2) return [n];
-  const bottom = Math.ceil((n + 1) / 2);
-  return [bottom, n - bottom];
-}
 
 function arrangeFruits(placed: BasketData["placed"]): Piece[] {
   // 11명까지는 실제로 넣은 과일을 넣은 수만큼 그대로 그린다.
   // 12명부터는 미리 짜둔 '가득 찬 바구니' 그림으로 고정한다.
   if (placed.length > LIVE_LIMIT) return fixedBasket();
 
-  // 열매 종류마다 작은 더미(아래 넓게, 위로 좁게)를 만들고, 더미들을 옆으로 붙여 놓는다.
-  // 작은 열매(1·2단계)는 앞쪽 층, 큰 열매(3단계 이상)는 뒤쪽 층에 놓는다.
-  const H = 0.562; // 바구니 더미 영역에서 '높이 1%'가 '가로 몇 %'인지
+  // ── 떨어뜨려 쌓기 ──
+  // 열매를 동그라미로 보고, 정한 가로 위치에서 위에서 떨어뜨려
+  // 바구니 바닥이나 먼저 놓인 열매에 닿는 곳에 멈추게 한다. 그래서 허공에 뜨는 열매가 없다.
+  // 좌표는 '가로 %' 단위로 통일 (세로 % = 가로 % / H)
+  const H = 0.562;
+  const FLOOR = 3 * H; // 바구니 테두리 높이
+  const MAXW = 80; // 바구니 안 쓸 수 있는 폭
+  const sizeOf = (f: FruitId) => 26 * TIER_SCALE[tierOf(f).level] * EXTRA(f);
+  const radOf = (f: FruitId) => sizeOf(f) * (f === "olive" ? 0.32 : 0.42);
+  const SNUG = 0.86; // 바닥 줄 이웃 간격
+  const COLL = 0.74; // 위에 얹을 때 겹쳐 보이는 정도 (그림은 둥근 몸통이 사각보다 작아서)
+
   const counts = ALL_FRUITS.map((f) => ({ f, n: placed.filter((p) => p.fruit === f).length })).filter((c) => c.n > 0);
-  // 개수가 적어서 한 줄에 다 들어가면 앞뒤 나누지 않고 모두 첫 줄에 놓는다
-  const oneLine = counts.reduce((w, c) => w + pileRows(c.n)[0] * 28 * TIER_SCALE[tierOf(c.f).level] * EXTRA(c.f) * 0.74, 0) <= 84;
-  const layers = oneLine
-    ? [counts, []]
-    : [
-        counts.filter((c) => tierOf(c.f).level <= 2), // 앞
-        counts.filter((c) => tierOf(c.f).level >= 3), // 뒤
-      ];
-  const hasFront = layers[0].length > 0;
-  const pieces: Piece[] = [];
-  let seed = 1;
+  // 큰 열매가 가운데, 작은 열매가 양옆: [작은 … 큰 … 작은]
+  const byTier = [...counts].sort((x, y) => tierOf(x.f).level - tierOf(y.f).level || x.n - y.n);
+  const seq: typeof counts = [];
+  byTier.forEach((c, k) => (k % 2 ? seq.unshift(c) : seq.push(c)));
 
-  layers.forEach((layer, li) => {
-    if (!layer.length) return;
-    // 큰 더미가 가운데 오도록 [작은 … 큰 … 작은] 순서
-    const sorted = [...layer].sort((x, y) => y.n - x.n || tierOf(y.f).level - tierOf(x.f).level);
-    const seq: typeof layer = [];
-    sorted.forEach((c, k) => (k % 2 ? seq.unshift(c) : seq.push(c)));
+  // 무리마다 바닥에 몇 개, 위에 몇 개 놓을지. 폭이 넘치면 바닥 개수를 줄여 위로 올린다
+  // 바닥 줄은 되도록 다 깔고(조금 겹쳐도 됨), 그래도 넘치는 것만 위로 올린다
+  const groups = seq.map((c) => ({ ...c, bottom: c.n }));
+  const rowWidth = () =>
+    groups.reduce((w, g) => w + g.bottom * radOf(g.f) * 2 * SNUG, 0);
+  while (rowWidth() * 0.78 > MAXW) {
+    const g = [...groups].filter((x) => x.bottom > 1).sort((x, y) => y.bottom - x.bottom || tierOf(y.f).level - tierOf(x.f).level)[0];
+    if (!g) break;
+    g.bottom--;
+  }
+  const squeeze = Math.min(1, MAXW / rowWidth());
 
-    const groups = seq.map(({ f, n }) => {
-      const size = 28 * TIER_SCALE[tierOf(f).level] * EXTRA(f);
-      const dx = size * 0.74; // 옆 열매와 겹치는 간격
-      const rows = pileRows(n);
-      return { f, size, dx, rows, width: rows[0] * dx };
-    });
-    // 뒷줄이 있으면 앞 더미 사이를 조금 벌려서 뒷 열매가 보일 틈을 만든다
-    const gap = li === 0 && layers[1].length ? 5 : 2;
-    let total = groups.reduce((s, g) => s + g.width, 0) + gap * (groups.length - 1);
-    const squeeze = total > 86 ? 86 / total : 1; // 너무 넓으면 조금 더 겹치게
-    total *= squeeze;
+  type Ball = { f: FruitId; x: number; y: number; r: number };
+  const balls: Ball[] = [];
+  const restY = (x: number, r: number) => {
+    let y = FLOOR + r;
+    for (const q of balls) {
+      const d = (r + q.r) * COLL;
+      const dx = Math.abs(x - q.x);
+      if (dx < d) y = Math.max(y, q.y + Math.sqrt(d * d - dx * dx));
+    }
+    return y;
+  };
+  const drop = (f: FruitId, x: number) => {
+    const r = radOf(f);
+    balls.push({ f, x, r, y: restY(x, r) });
+  };
 
-    // 앞줄은 테두리 위로 잘 보이게 조금 올려 앉히고, 뒷줄은 앞줄 바로 뒤에 붙여 앉힌다 (띄우지 않음)
-    const base = li === 0 || !hasFront ? 3 : 14;
-    const zBase = li === 0 ? 30 : 10;
-    // 뒷줄: 앞 열매가 가장 낮은 곳(더미 사이 틈, 가장자리)을 골라 놓는다
-    const frontTopAt = (x: number) =>
-      Math.max(0, ...pieces.filter((p) => Math.abs(p.left - x) < p.size * 0.42).map((p) => p.bottom + (p.size * 0.85) / H));
-    const usedRanges: [number, number][] = [];
-    const pickCenter = (w: number) => {
-      let best = 50, bestScore = Infinity;
-      for (let c = 8 + w / 2; c <= 92 - w / 2; c += 1) {
-        if (usedRanges.some(([a, b]) => c + w / 2 > a && c - w / 2 < b)) continue;
-        let h = 0;
-        for (let x = c - w / 2; x <= c + w / 2; x += 1) h = Math.max(h, frontTopAt(x));
-        const score = h + Math.abs(c - 50) * 0.15; // 비슷하면 가운데 쪽
-        if (score < bestScore) { bestScore = score; best = c; }
+  // 1) 바닥 줄: 왼쪽부터 무리를 이어 붙여 가운데 정렬
+  let x = 50 - (rowWidth() * squeeze) / 2;
+  const bottoms: Ball[][] = [];
+  for (const g of groups) {
+    const r = radOf(g.f);
+    const step = r * 2 * SNUG * squeeze;
+    const row: Ball[] = [];
+    for (let k = 0; k < g.bottom; k++) {
+      // 바닥 줄은 모두 바구니 바닥에 바로 앉힌다
+      const b = { f: g.f, x: x + step / 2, r, y: FLOOR + r };
+      balls.push(b);
+      row.push(b);
+      x += step;
+    }
+    bottoms.push(row);
+  }
+  // 2) 나머지는 자기 무리 근처에서 '가장 낮게 내려앉는 곳'(열매 사이 오목한 틈)을 찾아 떨어뜨린다.
+  //    꼭대기 위에 탑처럼 쌓이지 않고 골짜기부터 채워진다.
+  groups.forEach((g, gi) => {
+    const row = bottoms[gi];
+    const center = row.reduce((s2, b) => s2 + b.x, 0) / row.length;
+    const r = radOf(g.f);
+    for (let left = g.n - g.bottom; left > 0; left--) {
+      let bestX = center, best = Infinity;
+      for (let cx = 10 + r; cx <= 90 - r; cx += 0.5) {
+        const score = restY(cx, r) + Math.abs(cx - center) * 0.35;
+        if (score < best) { best = score; bestX = cx; }
       }
-      usedRanges.push([best - w / 2, best + w / 2]);
-      return best;
-    };
-    let x = 50 - total / 2;
-    for (const g of groups) {
-      const dx = g.dx * squeeze;
-      const backLayer = li === 1 && hasFront;
-      const cx = backLayer ? pickCenter(g.rows[0] * dx) : x + (g.rows[0] * dx) / 2;
-      g.rows.forEach((k, r) => {
-        for (let j = 0; j < k; j++) {
-          const rr = Math.sin(seed++ * 12.9898) * 43758.5453;
-          const rand = rr - Math.floor(rr);
-          pieces.push({
-            fruit: g.f, golden: false, mine: false,
-            size: g.size,
-            left: cx + (j - (k - 1) / 2) * dx + (rand - 0.5) * 1.2,
-            bottom: base + (r * g.size * 0.46) / H + (rand - 0.5) * 1.2 + NUDGE(g.f),
-            rotate: (rand - 0.5) * 18,
-            z: zBase + r * 3 + (j % 3),
-          });
-        }
-      });
-      x += g.rows[0] * dx + gap * squeeze;
+      drop(g.f, bestX);
     }
   });
-  return pieces;
+
+  // 위에 얹힌 열매일수록 뒤쪽(z 낮게)
+  let seed = 1;
+  return balls.map((b) => {
+    const size = sizeOf(b.f);
+    const rr = Math.sin(seed++ * 12.9898) * 43758.5453;
+    const rand = rr - Math.floor(rr);
+    return {
+      fruit: b.f, golden: false, mine: false, size,
+      left: b.x,
+      bottom: (b.y - size / 2) / H + NUDGE(b.f),
+      rotate: (rand - 0.5) * 16,
+      z: 60 - Math.round((b.y / H) / 2),
+    };
+  });
 }
 
 function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say: (m: string) => void }) {
