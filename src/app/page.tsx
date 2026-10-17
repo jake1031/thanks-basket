@@ -847,18 +847,36 @@ function arrangeFruits(placed: BasketData["placed"]): Piece[] {
       const rows = pileRows(n);
       return { f, size, dx, rows, width: rows[0] * dx };
     });
-    const gap = 2;
+    // 뒷줄이 있으면 앞 더미 사이를 조금 벌려서 뒷 열매가 보일 틈을 만든다
+    const gap = li === 0 && layers[1].length ? 5 : 2;
     let total = groups.reduce((s, g) => s + g.width, 0) + gap * (groups.length - 1);
     const squeeze = total > 86 ? 86 / total : 1; // 너무 넓으면 조금 더 겹치게
     total *= squeeze;
 
     // 앞줄은 테두리 위로 잘 보이게 조금 올려 앉히고, 뒷줄은 앞줄 바로 뒤에 붙여 앉힌다 (띄우지 않음)
-    const base = li === 0 || !hasFront ? 3 : 20;
+    const base = li === 0 || !hasFront ? 3 : 14;
     const zBase = li === 0 ? 30 : 10;
+    // 뒷줄: 앞 열매가 가장 낮은 곳(더미 사이 틈, 가장자리)을 골라 놓는다
+    const frontTopAt = (x: number) =>
+      Math.max(0, ...pieces.filter((p) => Math.abs(p.left - x) < p.size * 0.42).map((p) => p.bottom + (p.size * 0.85) / H));
+    const usedRanges: [number, number][] = [];
+    const pickCenter = (w: number) => {
+      let best = 50, bestScore = Infinity;
+      for (let c = 8 + w / 2; c <= 92 - w / 2; c += 1) {
+        if (usedRanges.some(([a, b]) => c + w / 2 > a && c - w / 2 < b)) continue;
+        let h = 0;
+        for (let x = c - w / 2; x <= c + w / 2; x += 1) h = Math.max(h, frontTopAt(x));
+        const score = h + Math.abs(c - 50) * 0.15; // 비슷하면 가운데 쪽
+        if (score < bestScore) { bestScore = score; best = c; }
+      }
+      usedRanges.push([best - w / 2, best + w / 2]);
+      return best;
+    };
     let x = 50 - total / 2;
     for (const g of groups) {
       const dx = g.dx * squeeze;
-      const cx = x + (g.rows[0] * dx) / 2;
+      const backLayer = li === 1 && hasFront;
+      const cx = backLayer ? pickCenter(g.rows[0] * dx) : x + (g.rows[0] * dx) / 2;
       g.rows.forEach((k, r) => {
         for (let j = 0; j < k; j++) {
           const rr = Math.sin(seed++ * 12.9898) * 43758.5453;
