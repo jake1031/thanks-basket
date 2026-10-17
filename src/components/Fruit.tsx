@@ -64,16 +64,22 @@ export function Fruit({ id, golden = false, size = 48 }: { id: FruitId; golden?:
         </>
       );
       break;
-    case "mango":
-      // 비스듬히 길쭉한 망고
-      body = "M22 8 C 36 4 50 14 54 30 C 58 46 50 60 36 60 C 22 60 13 50 11 36 C 9 22 12 11 22 8 Z";
+    case "chamoe":
+      // 참외: 노란 몸통에 흰 세로 골
+      body = "M32 14 C 48 14 58 24 58 37 C 58 50 48 59 32 59 C 16 59 6 50 6 37 C 6 24 16 14 32 14 Z";
       parts = (
         <>
-          <path d={body} fill={g("#f7b93c", GOLD.body)} />
-          {shade("M46 8 C 64 30 58 58 30 64 L64 64 L64 0 Z", g("#e9a02a", GOLD.shade))}
-          <path d="M22 9 C 21 6 22 3 24 2" stroke={STEM} strokeWidth="2.6" fill="none" strokeLinecap="round" />
-          <path d="M23 4 C 27 0 35 0 37 3 C 33 7 27 7 23 4 Z" fill={LEAF} />
-          <ellipse cx="20" cy="30" rx="2.8" ry="8" fill="#fff" opacity={shine} transform="rotate(10 20 30)" />
+          <path d={body} fill={g("#f6c623", GOLD.body)} />
+          <g stroke={g("#fff6c9", "#fff3b0")} strokeWidth="2.6" fill="none" strokeLinecap="round" opacity=".9" clipPath={`url(#${clip})`}>
+            <path d="M32 15 C 32 28 32 46 32 58" />
+            <path d="M22 16 C 18 28 18 46 22 57" />
+            <path d="M42 16 C 46 28 46 46 42 57" />
+            <path d="M13 22 C 9 32 9 44 13 52" />
+            <path d="M51 22 C 55 32 55 44 51 52" />
+          </g>
+          {shade("M46 10 C 64 28 60 54 36 64 L64 64 L64 0 Z", g("#e3ad12", GOLD.shade))}
+          <path d="M30 14 L31 9 L34 9 L34 14 Z" fill={STEM} />
+          <ellipse cx="17" cy="32" rx="2.6" ry="6" fill="#fff" opacity={shine} transform="rotate(15 17 32)" />
         </>
       );
       break;

@@ -544,7 +544,7 @@ async function changeFruit(f: FruitId, placed: boolean, after: () => Promise<voi
 }
 
 /** 단계별 대표 열매 (게이지·첫 화면) */
-const REP_FRUITS: FruitId[] = ["chestnut", "fig", "apple", "mango", "watermelon"];
+const REP_FRUITS: FruitId[] = ["chestnut", "fig", "apple", "chamoe", "watermelon"];
 
 /** 열매 도감 / 고르기: 단계별 3종, 해금 안 된 건 잠겨 보인다. onPick이 있으면 고르기 모드 */
 function FruitBook({ count, golden, value, onPick, onClose }: {
@@ -773,8 +773,8 @@ const LIVE_LIMIT = 11;
  * [열매, 가로(%), 높이(%), 줄(0 앞·1 가운데·2 뒤), 기울기]
  */
 const FULL_LAYOUT: [FruitId, number, number, 0 | 1 | 2, number][] = [
-  // 뒷줄: 왼쪽 수박, 가운데 망고 둘, 오른쪽 사과
-  ["watermelon", 29, 27, 2, -4], ["mango", 46, 26, 2, -6], ["mango", 59, 25, 2, 8], ["apple", 74, 25, 2, 6],
+  // 뒷줄: 왼쪽 수박, 가운데 참외 둘, 오른쪽 사과
+  ["watermelon", 29, 27, 2, -4], ["chamoe", 46, 26, 2, -6], ["chamoe", 59, 25, 2, 8], ["apple", 74, 25, 2, 6],
   // 가운데 줄: 수박 앞에 감 셋(둘 위에 하나), 귤 탑 꼭대기, 오른쪽 사과 둘
   ["persimmon", 18, 11, 1, -6], ["persimmon", 31, 12, 1, 4], ["persimmon", 24, 21, 1, -2],
   ["tangerine", 55, 14, 1, -2], ["apple", 70, 12, 1, -6], ["apple", 83, 9, 1, 8],

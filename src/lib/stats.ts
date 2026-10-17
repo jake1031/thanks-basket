@@ -34,7 +34,10 @@ export async function userStats(userId?: number): Promise<UserStat[]> {
     const count = WEEKDAYS.reduce((s, d) => s + Math.min(byDay[d] ?? 0, 3), 0);
     const bonus = WEEKEND.reduce((s, d) => s + (byDay[d] ?? 0), 0);
     const tier = tierFor(count);
-    const { picked, pref, ...rest } = u;
+    const { picked: p0, pref: p1, ...rest } = u;
+    // 예전 열매 이름(망고)은 참외로 이어서 본다
+    const fix = (v: string | null) => (v === "mango" ? "chamoe" : v);
+    const picked = fix(p0), pref = fix(p1);
     // 바구니에 넣었으면 넣은 열매, 아니면 내가 고른 열매, 그것도 없으면 내 단계의 첫 열매
     const open = unlockedFruits(count);
     const fruit = isFruitId(picked) && open.includes(picked) ? picked
