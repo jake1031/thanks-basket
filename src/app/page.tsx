@@ -824,7 +824,7 @@ function fixedBasket(): Piece[] {
       const size = sl[j].size * TIER_SCALE[tierOf(fruit).level] * EXTRA(fruit);
       return { fruit, golden: false, mine: false, ...sl[j], size, bottom: sl[j].bottom + (sl[j].size - size) * 0.9 + NUDGE(fruit) };
     });
-  }));
+  })).map((p) => (p.fruit === "olive" ? { ...p, left: p.left - 5 } : p)); // 올리브는 밤 쪽으로 조금 더
 }
 
 function arrangeFruits(placed: BasketData["placed"]): Piece[] {
