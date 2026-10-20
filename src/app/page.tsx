@@ -293,20 +293,9 @@ function Day({ date, today, entries, bonus = false, reload, say }: {
   const editable = canEditDate(today, date);
   const future = date > today;
   const { md, dow } = dayLabel(date);
-  const [draft, setDraft] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  async function add() {
-    if (!draft.trim()) return;
-    setBusy(true);
-    try {
-      await api("/api/entries", { method: "POST", body: { date, content: draft } });
-      setDraft("");
-      await reload();
-      say(entries.length + 1 === PER_DAY ? `${md} 감사 3개 완성! 🎉` : "감사가 담겼어요 🙏");
-    } catch (e) { say((e as Error).message); }
-    setBusy(false);
-  }
+  const PLACEHOLDERS = bonus
+    ? ["토요일, 무엇이 감사했나요?", "또 어떤 순간이 감사했나요?", "하나 더 남겨볼까요?"]
+    : [date === today ? "오늘, 무엇이 감사했나요?" : "이날, 무엇이 감사했나요?", "또 어떤 순간이 감사했나요?", "마지막 감사를 채워주세요"];
 
   if (future && !editable) {
     return (
@@ -336,18 +325,51 @@ function Day({ date, today, entries, bonus = false, reload, say }: {
       )}
       <div className="stack" style={{ gap: 10 }}>
         {entries.map((e, i) => <EntryItem key={e.id} entry={e} index={i} editable={editable} reload={reload} say={say} />)}
-        {editable && entries.length < PER_DAY && (
-          <div className="composer">
-            <textarea
-              className="textarea" rows={2} maxLength={MAX_LEN} value={draft} onChange={(e) => setDraft(e.target.value)}
-              placeholder={bonus ? "토요일, 무엇이 감사했나요?" : [date === today ? "오늘, 무엇이 감사했나요?" : "이날, 무엇이 감사했나요?", "또 어떤 순간이 감사했나요?", "마지막 감사를 채워주세요"][entries.length]}
+        {/* 남은 칸을 처음부터 모두 보여준다: 감사 하나에 한 칸 */}
+        {editable && Array.from({ length: PER_DAY - entries.length }, (_, k) => {
+          const idx = entries.length + k;
+          return (
+            <Slot
+              key={`${date}-${idx}`} date={date} index={idx} placeholder={PLACEHOLDERS[idx]}
+              onSaved={async () => {
+                await reload();
+                say(entries.length + 1 === PER_DAY ? `${md} 감사 3개 완성! 🎉` : "감사가 담겼어요 🙏");
+              }}
+              say={say}
             />
-            <button className="btn" disabled={busy || !draft.trim()} onClick={add}>담기</button>
-            {draft.length > MAX_LEN - 30 && <span className="muted small counter">{draft.length}/{MAX_LEN}</span>}
-          </div>
-        )}
+          );
+        })}
         {!editable && entries.length === 0 && <p className="muted small" style={{ margin: 0 }}>기록이 없어요</p>}
       </div>
+    </div>
+  );
+}
+
+/** 비어 있는 감사 한 칸 (번호 + 입력칸 + 담기) */
+function Slot({ date, index, placeholder, onSaved, say }: {
+  date: string; index: number; placeholder: string; onSaved: () => Promise<void>; say: (m: string) => void;
+}) {
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function add() {
+    if (!draft.trim()) return;
+    setBusy(true);
+    try {
+      await api("/api/entries", { method: "POST", body: { date, content: draft } });
+      setDraft("");
+      await onSaved();
+    } catch (e) { say((e as Error).message); }
+    setBusy(false);
+  }
+  return (
+    <div className="composer slot">
+      <span className="slot-no">{index + 1}</span>
+      <textarea
+        className="textarea" rows={2} maxLength={MAX_LEN} value={draft} placeholder={placeholder}
+        onChange={(e) => setDraft(e.target.value)}
+      />
+      <button className="btn" disabled={busy || !draft.trim()} onClick={add}>담기</button>
+      {draft.length > MAX_LEN - 30 && <span className="muted small counter">{draft.length}/{MAX_LEN}</span>}
     </div>
   );
 }
