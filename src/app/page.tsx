@@ -1012,7 +1012,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   const [recap, setRecap] = useState(false);
   // 바구니 그림에서 황금 열매를 금색으로 보여줄지 (기기마다 기억)
   const [showGold, setShowGold] = useState(() => {
-    try { return localStorage.getItem("thanks-gold") === "1"; } catch { return false; }
+    try { return localStorage.getItem("thanks-gold") !== "0"; } catch { return true; }
   });
   const toggleGold = () => setShowGold((v) => {
     try { localStorage.setItem("thanks-gold", v ? "0" : "1"); } catch {}
