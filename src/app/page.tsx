@@ -565,6 +565,44 @@ async function changeFruit(f: FruitId, placed: boolean, after: () => Promise<voi
   } catch (e) { say((e as Error).message); }
 }
 
+/** 바구니에 열매를 넣은 사람이 보는 '나의 한 주 감사' 모음 */
+function WeekRecap({ me, onClose }: { me: Me; onClose: () => void }) {
+  const { user, entries } = me;
+  const total = entries.length;
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal recap" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+        <div className="recap-head">
+          <Fruit id={user.fruit} golden={user.golden} size={44} />
+          <div>
+            <b>{user.nickname}님의 한 주 감사</b>
+            <p className="muted small">10/19 ~ 10/24 · 모두 {total}개의 감사를 드렸어요</p>
+          </div>
+        </div>
+        <div className="recap-list">
+          {DAYS.map((d) => {
+            const list = entries.filter((e) => e.date === d);
+            const { md, dow } = dayLabel(d);
+            return (
+              <div key={d} className={`recap-day ${list.length ? "" : "empty"}`}>
+                <div className="recap-date">
+                  <b>{dow}{WEEKEND.includes(d) && "✨"}</b>
+                  <span>{md}</span>
+                </div>
+                {list.length ? (
+                  <ol>{list.map((e) => <li key={e.id}>{e.content}</li>)}</ol>
+                ) : (
+                  <p className="muted small">이날은 쉬어갔어요</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** 단계별 대표 열매 (게이지·첫 화면) */
 const REP_FRUITS: FruitId[] = ["chestnut", "fig", "apple", "chamoe", "watermelon"];
 
@@ -947,6 +985,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   const pick = me.user.fruit;
   const setPick = (f: FruitId) => changeFruit(f, me.user.placed, async () => { await Promise.all([reload(), fetchBasket()]); }, say);
   const [picking, setPicking] = useState(false);
+  const [recap, setRecap] = useState(false);
   const [landed, setLanded] = useState(false);
   const [busy, setBusy] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -985,6 +1024,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
     <div className="forest-page">
       {introEl}
       <ForestBackdrop />
+      {recap && <WeekRecap me={me} onClose={() => setRecap(false)} />}
       {picking && (
         <FruitBook count={user.count} golden={user.golden} value={pick} onPick={setPick} onClose={() => setPicking(false)} />
       )}
@@ -1053,6 +1093,10 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
                 <b>나는 {user.golden ? "황금 " : ""}{josa(FRUIT_NAMES[myFruit], "을", "를")} 넣었어요!</b>
                 <p className="muted small">{user.golden ? "토요일 감사로 황금 열매가 되었어요 ✨" : "함께 채운 바구니예요 🙏"}</p>
               </div>
+              <button className="recap-btn" onClick={() => setRecap(true)} aria-label="나의 한 주 감사 모아보기">
+                <span>📜</span>
+                <small>내 감사</small>
+              </button>
             </div>
           ) : (
             <div className="ground-card">
