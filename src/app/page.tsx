@@ -1073,17 +1073,20 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
               {data.open ? <>🧺 바구니에 넣은 사람 <b>{data.placed.length}명</b></> : <>🧺 바구니는 <b>10/24(토)</b>에 열려요</>}
             </span>
             <span className="total-pill">🙏 한 주간 모인 감사 <b>{data.totalThanks}개</b></span>
-            {data.open && goldCount > 0 && (
-              <button className={`total-pill gold-toggle ${showGold ? "on" : ""}`} onClick={toggleGold}>
-                ✨ 황금 열매 {showGold ? "보는 중" : "보기"} <b>{goldCount}개</b>
-              </button>
-            )}
           </div>
         </div>
 
         <div className="forest-spacer" />
 
         <div className="stage-wrap">
+        {data.open && goldCount > 0 && (
+          <button
+            className={`gold-toggle ${showGold ? "on" : ""}`}
+            onClick={toggleGold}
+            aria-pressed={showGold}
+            aria-label={showGold ? "황금 열매 끄기" : "황금 열매 보기"}
+          >✨</button>
+        )}
         <svg className="meadow" viewBox="0 0 400 100" preserveAspectRatio="none" aria-hidden>
           <path d="M0 22 C 110 2 290 2 400 22 L400 100 L0 100 Z" fill="#a8cf86" />
           <path d="M0 64 C 120 52 280 52 400 64 L400 100 L0 100 Z" fill="#9ac57b" />
