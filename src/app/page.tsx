@@ -858,13 +858,14 @@ const EXTRA = (f: FruitId) => (f === "olive" ? 1.2 : 1);
  */
 function withGold(pieces: Piece[], placed: BasketData["placed"], on: boolean): Piece[] {
   if (!on) return pieces;
-  const fixed = placed.length > LIVE_LIMIT;
+  // 고정 그림은 정해 둔 몇 개만 금색으로 (전부 금색이 되지 않게)
+  if (placed.length > LIVE_LIMIT) {
+    const any = placed.some((p) => p.golden);
+    return pieces.map((p, i) => ({ ...p, golden: any && FULL_GOLD.has(i) }));
+  }
   const left = new Map<FruitId, number>();
   for (const f of new Set(pieces.map((p) => p.fruit))) {
-    const all = placed.filter((p) => p.fruit === f);
-    const gold = all.filter((p) => p.golden).length;
-    const drawn = pieces.filter((p) => p.fruit === f).length;
-    left.set(f, fixed ? Math.round((gold / Math.max(all.length, 1)) * drawn) || (gold > 0 ? 1 : 0) : gold);
+    left.set(f, placed.filter((p) => p.fruit === f && p.golden).length);
   }
   // 위쪽(잘 보이는) 열매부터 금색으로
   const order = pieces.map((p, i) => i).sort((a, b) => pieces[b].bottom - pieces[a].bottom);
@@ -875,6 +876,9 @@ function withGold(pieces: Piece[], placed: BasketData["placed"], on: boolean): P
   }
   return out;
 }
+
+/** 고정 그림에서 황금으로 칠할 열매 (FULL_LAYOUT 순번). 과일마다 한 개씩, 좌우로 고르게. 수박은 하나뿐이라 그대로 둔다. */
+const FULL_GOLD = new Set([1, 4, 7, 8, 10, 13, 16]);
 
 /** 고정 그림 (FULL_LAYOUT 좌표 그대로) */
 function fixedBasket(): Piece[] {
