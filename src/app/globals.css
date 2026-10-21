@@ -587,7 +587,7 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .recap-day p { margin: 0; align-self: center; }
 
 /* 내 감사 옆 황금 열매 켜기/끄기 */
-.gold-toggle { margin-left: -6px; cursor: pointer; background: #f4f1ec; border-color: #e2ddd5; color: #9a9187; }
+.gold-toggle { width: 48px; justify-content: center; margin-left: -6px; cursor: pointer; background: #f4f1ec; border-color: #e2ddd5; color: #9a9187; }
 .gold-toggle span { filter: grayscale(1); opacity: .6; }
 .gold-toggle.on { background: #fff4c7; border-color: #e8bd45; color: #b8860b; box-shadow: 0 0 10px rgba(246, 196, 67, .55); }
 .gold-toggle.on span { filter: none; opacity: 1; }

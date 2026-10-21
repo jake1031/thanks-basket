@@ -1142,7 +1142,7 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
                   aria-label={showGold ? "황금 열매 끄기" : "황금 열매 보기"}
                 >
                   <span>✨</span>
-                  <small>황금 {showGold ? "ON" : "OFF"}</small>
+                  <small>{showGold ? "ON" : "OFF"}</small>
                 </button>
               )}
             </div>
