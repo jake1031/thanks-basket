@@ -877,8 +877,8 @@ function withGold(pieces: Piece[], placed: BasketData["placed"], on: boolean): P
   return out;
 }
 
-/** 고정 그림에서 황금으로 칠할 열매 (FULL_LAYOUT 순번). 과일마다 한 개씩, 좌우로 고르게. 수박은 하나뿐이라 그대로 둔다. */
-const FULL_GOLD = new Set([1, 4, 7, 8, 10, 13, 16]);
+/** 고정 그림에서 황금으로 칠할 열매 (FULL_LAYOUT 순번). 과일마다 한 개씩, 금색끼리 서로 닿지 않게 위·아래 줄을 번갈아. 수박은 하나뿐이라 그대로 둔다. */
+const FULL_GOLD = new Set([1, 3, 6, 10, 13, 15, 17]);
 
 /** 고정 그림 (FULL_LAYOUT 좌표 그대로) */
 function fixedBasket(): Piece[] {
