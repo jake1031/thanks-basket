@@ -1068,6 +1068,14 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
       <div className="forest-content">
         <div className="forest-head">
           <h2>🎤 싱어팀 감사 바구니</h2>
+          {data.open && goldCount > 0 && (
+            <button
+              className={`gold-toggle ${showGold ? "on" : ""}`}
+              onClick={toggleGold}
+              aria-pressed={showGold}
+              aria-label={showGold ? "황금 열매 끄기" : "황금 열매 보기"}
+            >✨</button>
+          )}
           <div className="pills">
             <span className="total-pill">
               {data.open ? <>🧺 바구니에 넣은 사람 <b>{data.placed.length}명</b></> : <>🧺 바구니는 <b>10/24(토)</b>에 열려요</>}
@@ -1079,14 +1087,6 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
         <div className="forest-spacer" />
 
         <div className="stage-wrap">
-        {data.open && goldCount > 0 && (
-          <button
-            className={`gold-toggle ${showGold ? "on" : ""}`}
-            onClick={toggleGold}
-            aria-pressed={showGold}
-            aria-label={showGold ? "황금 열매 끄기" : "황금 열매 보기"}
-          >✨</button>
-        )}
         <svg className="meadow" viewBox="0 0 400 100" preserveAspectRatio="none" aria-hidden>
           <path d="M0 22 C 110 2 290 2 400 22 L400 100 L0 100 Z" fill="#a8cf86" />
           <path d="M0 64 C 120 52 280 52 400 64 L400 100 L0 100 Z" fill="#9ac57b" />
