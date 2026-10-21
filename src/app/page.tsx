@@ -852,6 +852,30 @@ const EXTRA = (f: FruitId) => (f === "olive" ? 1.2 : 1);
 
 
 
+/**
+ * 황금 열매 표시: 열매 종류마다 '황금으로 넣은 사람 수'만큼 그림 속 같은 열매를 금색으로 바꾼다.
+ * (고정 그림은 그려진 개수 안에서 비율대로)
+ */
+function withGold(pieces: Piece[], placed: BasketData["placed"], on: boolean): Piece[] {
+  if (!on) return pieces;
+  const fixed = placed.length > LIVE_LIMIT;
+  const left = new Map<FruitId, number>();
+  for (const f of new Set(pieces.map((p) => p.fruit))) {
+    const all = placed.filter((p) => p.fruit === f);
+    const gold = all.filter((p) => p.golden).length;
+    const drawn = pieces.filter((p) => p.fruit === f).length;
+    left.set(f, fixed ? Math.round((gold / Math.max(all.length, 1)) * drawn) || (gold > 0 ? 1 : 0) : gold);
+  }
+  // 위쪽(잘 보이는) 열매부터 금색으로
+  const order = pieces.map((p, i) => i).sort((a, b) => pieces[b].bottom - pieces[a].bottom);
+  const out = pieces.map((p) => ({ ...p }));
+  for (const i of order) {
+    const n = left.get(out[i].fruit) ?? 0;
+    if (n > 0) { out[i].golden = true; left.set(out[i].fruit, n - 1); }
+  }
+  return out;
+}
+
 /** 고정 그림 (FULL_LAYOUT 좌표 그대로) */
 function fixedBasket(): Piece[] {
   return FULL_LAYOUT.map(([fruit, left, bottom, row, rotate], i) => {
@@ -986,6 +1010,14 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
   const setPick = (f: FruitId) => changeFruit(f, me.user.placed, async () => { await Promise.all([reload(), fetchBasket()]); }, say);
   const [picking, setPicking] = useState(false);
   const [recap, setRecap] = useState(false);
+  // 바구니 그림에서 황금 열매를 금색으로 보여줄지 (기기마다 기억)
+  const [showGold, setShowGold] = useState(() => {
+    try { return localStorage.getItem("thanks-gold") === "1"; } catch { return false; }
+  });
+  const toggleGold = () => setShowGold((v) => {
+    try { localStorage.setItem("thanks-gold", v ? "0" : "1"); } catch {}
+    return !v;
+  });
   const [landed, setLanded] = useState(false);
   const [busy, setBusy] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -1018,7 +1050,8 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
 
   const { user } = me;
   const myFruit = user.placed ? user.fruit : pick;
-  const pieces = arrangeFruits(data.placed);
+  const pieces = withGold(arrangeFruits(data.placed), data.placed, showGold);
+  const goldCount = data.placed.filter((p) => p.golden).length;
 
   return (
     <div className="forest-page">
@@ -1036,6 +1069,11 @@ function Basket({ me, reload, say }: { me: Me; reload: () => Promise<void>; say:
               {data.open ? <>🧺 바구니에 넣은 사람 <b>{data.placed.length}명</b></> : <>🧺 바구니는 <b>10/24(토)</b>에 열려요</>}
             </span>
             <span className="total-pill">🙏 한 주간 모인 감사 <b>{data.totalThanks}개</b></span>
+            {data.open && goldCount > 0 && (
+              <button className={`total-pill gold-toggle ${showGold ? "on" : ""}`} onClick={toggleGold}>
+                ✨ 황금 열매 {showGold ? "보는 중" : "보기"} <b>{goldCount}개</b>
+              </button>
+            )}
           </div>
         </div>
 

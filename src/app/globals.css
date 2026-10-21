@@ -584,3 +584,7 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .recap-day ol { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
 .recap-day li { font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
 .recap-day p { margin: 0; align-self: center; }
+
+.gold-toggle { border: 1px solid #f1d27a; cursor: pointer; font: inherit; font-size: 13px; color: inherit; }
+.gold-toggle.on { background: #fff4c7; border-color: #e3b33a; }
+.gold-toggle b { color: #b8860b; }
