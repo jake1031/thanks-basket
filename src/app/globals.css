@@ -474,7 +474,7 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 }
 .forest-bg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .forest-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; }
-.forest-head { position: relative; padding: 18px 16px 0; }
+.forest-head { padding: 18px 16px 0; }
 .forest-head h2 { text-align: center; }
 .forest-head .small { color: #5b4a3a; font-weight: 600; }
 .pills { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-top: 8px; }
@@ -586,21 +586,8 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .recap-day li { font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
 .recap-day p { margin: 0; align-self: center; }
 
-/* 바구니 옆 황금 열매 켜기/끄기 */
-.gold-toggle {
-  position: absolute; right: 12px; top: 12px; z-index: 5;
-  width: 38px; height: 38px; border-radius: 50%; padding: 0;
-  font-size: 18px; line-height: 1; cursor: pointer;
-  background: rgba(255, 255, 255, .7); border: 1.5px solid rgba(255, 255, 255, .9);
-  box-shadow: 0 2px 6px rgba(60, 80, 40, .15);
-  filter: grayscale(1); opacity: .75;
-  transition: background .2s, border-color .2s, box-shadow .2s, filter .2s, opacity .2s;
-}
-.gold-toggle.on {
-  background: #fff4c7; border-color: #e8bd45; filter: none; opacity: 1;
-  box-shadow: 0 0 0 3px rgba(246, 196, 67, .25), 0 0 14px rgba(246, 196, 67, .7);
-  animation: gold-glow 2.4s ease-in-out infinite;
-}
-@keyframes gold-glow {
-  50% { box-shadow: 0 0 0 4px rgba(246, 196, 67, .15), 0 0 20px rgba(246, 196, 67, .9); }
-}
+/* 내 감사 옆 황금 열매 켜기/끄기 */
+.gold-toggle { margin-left: -6px; cursor: pointer; background: #f4f1ec; border-color: #e2ddd5; color: #9a9187; }
+.gold-toggle span { filter: grayscale(1); opacity: .6; }
+.gold-toggle.on { background: #fff4c7; border-color: #e8bd45; color: #b8860b; box-shadow: 0 0 10px rgba(246, 196, 67, .55); }
+.gold-toggle.on span { filter: none; opacity: 1; }
