@@ -86,20 +86,29 @@ export default function Admin() {
     download("감사바구니_결과.csv", [head, ...rows]);
   }
 
-  /** 전체 감사 내용: 사람 → 날짜 → 쓴 순서 */
+  /** 전체 감사 내용: 사람·날짜마다 한 줄, 그날 감사는 쓴 순서대로 쉼표로 이어서. 닉네임·이름은 그 사람 첫 줄에만 */
   function exportEntries() {
     if (!data) return;
     const nameOf = new Map(data.users.map((u) => [u.nickname, u.realName]));
     const sorted = [...data.entries].sort((x, y) =>
       x.nickname.localeCompare(y.nickname, "ko") || x.date.localeCompare(y.date) || x.id - y.id);
-    const no = new Map<string, number>();
-    const rows = sorted.map((e) => {
+    const byDay = new Map<string, E[]>();
+    for (const e of sorted) {
       const key = `${e.nickname}|${e.date}`;
-      no.set(key, (no.get(key) ?? 0) + 1);
-      const { md, dow } = dayLabel(e.date);
-      return [e.nickname, nameOf.get(e.nickname) ?? "", `${md} (${dow})`, no.get(key)!, e.content];
+      byDay.set(key, [...(byDay.get(key) ?? []), e]);
+    }
+    let prev = "";
+    const rows = [...byDay.values()].map((list) => {
+      const { nickname, date } = list[0];
+      const first = nickname !== prev;
+      prev = nickname;
+      const { md, dow } = dayLabel(date);
+      return [
+        first ? nickname : "", first ? nameOf.get(nickname) ?? "" : "",
+        `${md} (${dow})`, list.map((e) => e.content).join(", "),
+      ];
     });
-    download("감사바구니_감사내용.csv", [["닉네임", "이름", "날짜", "번호", "감사"], ...rows]);
+    download("감사바구니_감사내용.csv", [["닉네임", "이름", "날짜", "감사"], ...rows]);
   }
 
   if (!data) {
