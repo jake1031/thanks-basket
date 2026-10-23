@@ -69,18 +69,37 @@ export default function Admin() {
     act({ action: "reset-pin", userId: u.id, pin }, `${u.nickname}님의 PIN을 ${pin}(으)로 바꿀까요?`);
   }
 
-  function exportCsv() {
-    if (!data) return;
-    const head = ["닉네임", "이름", ...WEEKDAYS.map((d) => dayLabel(d).md), "평일합계", "토요일", "단계", "고른 열매", "황금"];
-    const rows = data.users.map((u) => [
-      u.nickname, u.realName, ...WEEKDAYS.map((d) => u.byDay[d] ?? 0), u.count, u.bonus,
-      `${u.tier}단계 ${TIERS[u.tier - 1].name}`, u.placed ? FRUIT_NAMES[u.fruit] : "", u.golden ? "O" : "",
-    ]);
-    const csv = "﻿" + [head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+  function download(name: string, table: (string | number)[][]) {
+    const csv = "\uFEFF" + table.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    a.download = "감사바구니_결과.csv";
+    a.download = name;
     a.click();
+  }
+
+  function exportCsv() {
+    if (!data) return;
+    const head = ["닉네임", "이름", ...WEEKDAYS.map((d) => dayLabel(d).md), "평일합계", "토요일"];
+    const rows = data.users.map((u) => [
+      u.nickname, u.realName, ...WEEKDAYS.map((d) => u.byDay[d] ?? 0), u.count, u.bonus > 0 ? "O" : "X",
+    ]);
+    download("감사바구니_결과.csv", [head, ...rows]);
+  }
+
+  /** 전체 감사 내용: 사람 → 날짜 → 쓴 순서 */
+  function exportEntries() {
+    if (!data) return;
+    const nameOf = new Map(data.users.map((u) => [u.nickname, u.realName]));
+    const sorted = [...data.entries].sort((x, y) =>
+      x.nickname.localeCompare(y.nickname, "ko") || x.date.localeCompare(y.date) || x.id - y.id);
+    const no = new Map<string, number>();
+    const rows = sorted.map((e) => {
+      const key = `${e.nickname}|${e.date}`;
+      no.set(key, (no.get(key) ?? 0) + 1);
+      const { md, dow } = dayLabel(e.date);
+      return [e.nickname, nameOf.get(e.nickname) ?? "", `${md} (${dow})`, no.get(key)!, e.content];
+    });
+    download("감사바구니_감사내용.csv", [["닉네임", "이름", "날짜", "번호", "감사"], ...rows]);
   }
 
   if (!data) {
@@ -109,7 +128,8 @@ export default function Admin() {
         </div>
         <div className="row">
           <button className="btn ghost btn-sm" style={{ marginTop: 0 }} onClick={() => load()}>새로고침</button>
-          <button className="btn btn-sm" style={{ marginTop: 0 }} onClick={exportCsv}>CSV 내보내기</button>
+          <button className="btn btn-sm" style={{ marginTop: 0 }} onClick={exportCsv}>결과 CSV</button>
+          <button className="btn btn-sm" style={{ marginTop: 0 }} onClick={exportEntries}>감사 내용 CSV</button>
         </div>
       </div>
 
