@@ -70,8 +70,8 @@ export function dayLabel(date: string) {
 export type Phase =
   | "before" // 10/19 이전: 가입만 가능
   | "weekday" // 평일: 오늘까지의 평일 칸 작성/수정/삭제 가능
-  | "weekend" // 토요일: 평일 기록 잠금, 보너스 감사만, 바구니 넣기 가능
-  | "after"; // 일요일(10/25)부터: 감사는 읽기 전용, 바구니 넣기는 가능
+  | "weekend" // 토요일: 보너스 감사, 바구니 넣기 가능 (지난 평일도 일요일까지 채울 수 있음)
+  | "after"; // 일요일(10/25)부터: 바구니 넣기 가능. 감사는 일요일까지만 쓰고 고칠 수 있음
 
 export function phaseOf(today: string): Phase {
   if (today < WEEKDAYS[0]) return "before";
@@ -80,12 +80,13 @@ export function phaseOf(today: string): Phase {
   return "after";
 }
 
+/** 이날(일요일)까지는 지난 평일·토요일 감사도 쓰고 고칠 수 있다 */
+export const EDIT_UNTIL = "2026-10-25";
+
 /** 해당 날짜의 감사를 지금 쓰거나 고칠 수 있는지 */
 export function canEditDate(today: string, date: string) {
-  const phase = phaseOf(today);
-  if (phase === "weekday") return WEEKDAYS.includes(date) && date <= today;
-  if (phase === "weekend") return date === today;
-  return false;
+  if (phaseOf(today) === "before" || today > EDIT_UNTIL) return false;
+  return EVENT_DAYS.includes(date) && date <= today;
 }
 
 export const basketOpen = (today: string) => phaseOf(today) === "weekend" || phaseOf(today) === "after";
