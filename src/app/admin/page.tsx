@@ -111,6 +111,14 @@ export default function Admin() {
     download("감사바구니_감사내용.csv", [["닉네임", "이름", "날짜", "감사"], ...rows]);
   }
 
+  /** 감사를 1개 이상 썼지만 바구니에 안 넣은 사람 */
+  const unplaced = data ? data.users.filter((u) => !u.placed && u.count + u.bonus > 0) : [];
+
+  function placeAll() {
+    const names = unplaced.map((u) => `${label(u)} → ${FRUIT_NAMES[u.fruit]}`).join("\n");
+    act({ action: "place-all" }, `아래 ${unplaced.length}명의 열매를 바구니에 대신 넣을까요?\n\n${names}`);
+  }
+
   if (!data) {
     return (
       <div className="wrap stack" style={{ maxWidth: 360, paddingTop: 80 }}>
@@ -137,6 +145,9 @@ export default function Admin() {
         </div>
         <div className="row">
           <button className="btn ghost btn-sm" style={{ marginTop: 0 }} onClick={() => load()}>새로고침</button>
+          {unplaced.length > 0 && (
+            <button className="btn btn-sm" style={{ marginTop: 0 }} onClick={placeAll}>미제출 {unplaced.length}명 대신 넣기</button>
+          )}
           <button className="btn btn-sm" style={{ marginTop: 0 }} onClick={exportCsv}>결과 CSV</button>
           <button className="btn btn-sm" style={{ marginTop: 0 }} onClick={exportEntries}>감사 내용 CSV</button>
         </div>

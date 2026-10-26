@@ -36,6 +36,14 @@ export async function POST(req: Request) {
     case "delete-comment":
       await db("delete from comments where id = $1", [body.id]);
       return json({ ok: true });
+    case "place-all": {
+      // 감사를 1개 이상 썼는데 바구니에 안 넣은 사람: 고른 열매(없으면 내 단계 첫 열매)로 대신 넣는다
+      const todo = (await userStats()).filter((u) => !u.placed && u.count + u.bonus > 0);
+      for (const u of todo) {
+        await db("insert into basket (user_id, fruit) values ($1, $2) on conflict do nothing", [u.id, u.fruit]);
+      }
+      return json({ ok: true, placed: todo.length });
+    }
     case "delete-user":
       await db("delete from users where id = $1", [body.userId]);
       return json({ ok: true });
